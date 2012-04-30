@@ -14,3 +14,5 @@ ext/nmatrix/yale/aicm.tex
 tmp/
 test.c
 spec/*.mtx
+*.so
+/tags

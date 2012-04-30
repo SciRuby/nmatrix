@@ -125,19 +125,19 @@ static NODE* list_find(LIST* list, size_t key) {
 
 
 /* Get the contents of some set of coordinates. Note: Does not make a copy! Don't free! */
-void* list_storage_get(LIST_STORAGE* s, size_t* coords) {
+void* list_storage_get(LIST_STORAGE* s, SLICE* slice) {
   //LIST_STORAGE* s = (LIST_STORAGE*)(t);
   size_t r;
   NODE*  n;
   LIST*  l = s->rows;
 
   for (r = s->rank; r > 1; --r) {
-    n = list_find(l, coords[s->rank - r]);
+    n = list_find(l, slice->coords[s->rank - r]);
     if (n)  l = n->val;
     else return s->default_val;
   }
 
-  n = list_find(l, coords[s->rank - r]);
+  n = list_find(l, slice->coords[s->rank - r]);
   if (n) return n->val;
   else   return s->default_val;
 }
@@ -179,7 +179,7 @@ static void* list_remove(LIST* list, size_t key) {
 
 
 /// TODO: Speed up removal.
-void* list_storage_remove(LIST_STORAGE* s, size_t* coords) {
+void* list_storage_remove(LIST_STORAGE* s, SLICE* slice) {
   int r;
   NODE  *n = NULL;
   LIST*  l = s->rows;
@@ -189,7 +189,7 @@ void* list_storage_remove(LIST_STORAGE* s, size_t* coords) {
   NODE** stack = ALLOCA_N( NODE*, s->rank - 1 );
 
   for (r = (int)(s->rank); r > 1; --r) {
-    n = list_find(l, coords[s->rank - r]); // does this row exist in the matrix?
+    n = list_find(l, slice->coords[s->rank - r]); // does this row exist in the matrix?
 
     if (!n) { // not found
       free(stack);
@@ -200,13 +200,13 @@ void* list_storage_remove(LIST_STORAGE* s, size_t* coords) {
     }
   }
 
-  rm = list_remove(l, coords[s->rank - r]);
+  rm = list_remove(l, slice->coords[s->rank - r]);
 
   // if we removed something, we may now need to remove parent lists
   if (rm) {
     for (r = (int)(s->rank) - 2; r >= 0; --r) { // walk back down the stack
       if (((LIST*)(stack[r]->val))->first == NULL)
-        free(list_remove(stack[r]->val, coords[r]));
+        free(list_remove(stack[r]->val, slice->coords[r]));
       else
         break; // no need to continue unless we just deleted one.
     }
@@ -293,7 +293,7 @@ static NODE* list_insert(LIST* list, bool replace, size_t key, void* val) {
 
 
 // TODO: Allow this function to accept an entire row and not just one value -- for slicing
-void* list_storage_insert(LIST_STORAGE* s, size_t* coords, void* val) {
+void* list_storage_insert(LIST_STORAGE* s, SLICE* slice, void* val) {
   // Pretend ranks = 2
   // Then coords is going to be size 2
   // So we need to find out if some key already exists
@@ -303,11 +303,11 @@ void* list_storage_insert(LIST_STORAGE* s, size_t* coords, void* val) {
 
   // drill down into the structure
   for (r = s->rank; r > 1; --r) {
-    n = list_insert(l, false, coords[s->rank - r], create_list());
+    n = list_insert(l, false, slice->coords[s->rank - r], create_list());
     l = n->val;
   }
 
-  n = list_insert(l, true, coords[s->rank - r], val);
+  n = list_insert(l, true, slice->coords[s->rank - r], val);
   return n->val;
 }
 
