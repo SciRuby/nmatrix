@@ -98,9 +98,6 @@ module Generator
         # Output the cue even if we added declarations, because later instantiations may also add declarations.
         out.puts line
       end
-
-      # Remove the temporary file if it exists
-      `rm #{from_filename}` if File.exists?(from_filename)
     end
 
   protected

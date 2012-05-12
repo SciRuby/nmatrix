@@ -249,6 +249,7 @@ typedef struct common_s { // Common elements found in all _s types.
   int8_t    dtype;
   size_t    rank;
   size_t*   shape;
+  size_t*   offset;
   void*     elements;
 } STORAGE;
 
@@ -257,6 +258,7 @@ typedef struct list_s {
   int8_t    dtype;
   size_t    rank;
   size_t*   shape;
+  size_t*   offset;
   void*     default_val;
   LIST*     rows;
 } LIST_STORAGE;
@@ -266,6 +268,9 @@ typedef struct dense_s {
   int8_t    dtype;
   size_t    rank;
   size_t*   shape;
+  size_t*   offset;
+  int       count;
+  void*     src;
   void*     elements;
 } DENSE_STORAGE;
 
@@ -274,6 +279,7 @@ typedef struct yale_s {
   int8_t    dtype;
   size_t    rank;
   size_t*   shape;
+  size_t*   offset;
   void*     a;
   size_t    ndnz; // strictly non-diagonal non-zero count!
   size_t    capacity;
@@ -287,6 +293,11 @@ typedef struct numeric_matrix {
   STORAGE* storage;           /* pointer to storage struct */
 } NMATRIX;
 
+typedef struct slice_s {
+  size_t *coords;           // Coordinate of first element
+  size_t *lens;             // Lenght of slice
+  uint8_t is_one_el;        // 1 - if all lens eql 1
+} SLICE;
 
 /* Local */
 
@@ -386,7 +397,7 @@ extern const int nm_sizeof[NM_TYPES+1];
 #define NM_SHAPE0(val)          (((struct numeric_matrix*)DATA_PTR(val))->shape[0])
 #define NM_SHAPE1(val)          (((struct numeric_matrix*)DATA_PTR(val))->shape[1])
 #define NM_SIZEOF_DTYPE(val)    (nm_sizeof[NM_DTYPE(val)])
-#define NM_REF(val,coords)      (RefFuncs[NM_STYPE(val)]( NM_STORAGE(val), coords, NM_SIZEOF_DTYPE(val) ))
+#define NM_REF(val,slice)      (RefFuncs[NM_STYPE(val)]( NM_STORAGE(val), slice, NM_SIZEOF_DTYPE(val) ))
 
 #define NM_IsNMatrix(obj) (rb_obj_is_kind_of(obj, cNMatrix)==Qtrue)
 #define NM_IsArray(obj)   (TYPE(obj)==T_ARRAY || rb_obj_is_kind_of(obj,cNMatrix)==Qtrue)
@@ -411,7 +422,7 @@ extern const int nm_sizeof[NM_TYPES+1];
 #define IS_NUMERIC(v)   (FIXNUM_P(v) || TYPE(v) == T_FLOAT || TYPE(v) == T_COMPLEX || TYPE(v) == T_RATIONAL)
 #define IS_STRING(v)    (TYPE(v) == T_STRING)
 
-#define CheckNMatrixType(v)   if (TYPE(v) != T_DATA || RDATA(v)->dfree != (RUBY_DATA_FUNC)nm_delete) rb_raise(rb_eTypeError, "expected NMatrix on left-hand side of operation");
+#define CheckNMatrixType(v)   if (TYPE(v) != T_DATA || (RDATA(v)->dfree != (RUBY_DATA_FUNC)nm_delete && RDATA(v)->dfree != (RUBY_DATA_FUNC)nm_delete_ref)) rb_raise(rb_eTypeError, "expected NMatrix on left-hand side of operation");
 
 //#define YALE_JA_START(sptr)             (((YALE_STORAGE*)(sptr))->shape[0]+1)
 #define YALE_IJA(sptr,elem_size,i)          (void*)( (char*)(((YALE_STORAGE*)(sptr))->ija) + i * elem_size )
@@ -450,8 +461,8 @@ extern const int nm_sizeof[NM_TYPES+1];
 
 typedef void     (*nm_setfunc_t[NM_TYPES][NM_TYPES])(); // copy functions
 typedef void     (*nm_incfunc_t[NM_TYPES])();           // increment functions
-typedef void*    (*nm_stype_ref_t[S_TYPES])(STORAGE*, size_t*);        // get/ref
-typedef VALUE    (*nm_stype_ins_t[S_TYPES])(STORAGE*, size_t*, VALUE); // insert
+typedef void*    (*nm_stype_ref_t[S_TYPES])(STORAGE*, SLICE*);        // get/ref
+typedef VALUE    (*nm_stype_ins_t[S_TYPES])(STORAGE*, SLICE*, VALUE); // insert
 typedef STORAGE* (*nm_create_storage_t[S_TYPES])();
 typedef STORAGE* (*nm_cast_copy_storage_t[S_TYPES])();
 typedef STORAGE* (*nm_scast_copy_storage_t[S_TYPES][S_TYPES])();
@@ -516,6 +527,7 @@ void cblas_vgemm_(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE Trans
 
 /* dense.c */
 DENSE_STORAGE*  create_dense_storage(int8_t dtype, size_t* shape, size_t rank, void* elements, size_t elements_length);
+void            delete_dense_storage_ref(DENSE_STORAGE* s);
 void            delete_dense_storage(DENSE_STORAGE* s);
 void            mark_dense_storage(void* s);
 DENSE_STORAGE*  cast_copy_dense_storage(DENSE_STORAGE* rhs, int8_t new_dtype);
@@ -524,9 +536,9 @@ size_t          count_dense_storage_elements(const DENSE_STORAGE* s);
 bool            dense_storage_eqeq(const DENSE_STORAGE*, const DENSE_STORAGE*);
 bool            dense_is_symmetric(const DENSE_STORAGE*, int, bool);
 
-size_t          dense_storage_pos(DENSE_STORAGE* s, size_t* coords);
-void*           dense_storage_get(DENSE_STORAGE* s, size_t* coords);
-void            dense_storage_set(DENSE_STORAGE* s, size_t* coords, void* val);
+size_t          dense_storage_pos(DENSE_STORAGE* s, SLICE* slice);
+void*           dense_storage_get(DENSE_STORAGE* s, SLICE* slice);
+void            dense_storage_set(DENSE_STORAGE* s, SLICE* slice, void* val);
 
 /* list.c */
 LIST_STORAGE*   create_list_storage(int8_t dtype, size_t* shape, size_t rank, void* init_val);
@@ -535,9 +547,9 @@ void            mark_list_storage(void* s);
 LIST_STORAGE*   cast_copy_list_storage(LIST_STORAGE* rhs, int8_t new_dtype);
 size_t          count_storage_max_elements(const STORAGE*);
 
-void*           list_storage_get(LIST_STORAGE* s, size_t* coords);
-void*           list_storage_insert(LIST_STORAGE* s, size_t* coords, void* val);
-void*           list_storage_remove(LIST_STORAGE* s, size_t* coords);
+void*           list_storage_get(LIST_STORAGE* s, SLICE* slice);
+void*           list_storage_insert(LIST_STORAGE* s, SLICE* slice, void* val);
+void*           list_storage_remove(LIST_STORAGE* s, SLICE* slice);
 bool            list_storage_eqeq(const LIST_STORAGE*, const LIST_STORAGE*);
 
 /* yale.c */
@@ -550,8 +562,8 @@ void            mark_yale_storage(void* s);
 YALE_STORAGE*   cast_copy_yale_storage(YALE_STORAGE* rhs, int8_t new_dtype);
 bool            yale_storage_eqeq(const YALE_STORAGE*, const YALE_STORAGE*);
 
-void*           yale_storage_ref(YALE_STORAGE* s, size_t* coords);
-char            yale_storage_set(YALE_STORAGE* s, size_t* coords, void* v);
+void*           yale_storage_ref(YALE_STORAGE* s, SLICE* slice);
+char            yale_storage_set(YALE_STORAGE* s, SLICE* slice, void* v);
 
 YALE_STORAGE*   create_merged_yale_storage(const YALE_STORAGE*, const YALE_STORAGE*);
 

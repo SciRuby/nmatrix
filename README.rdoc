@@ -30,6 +30,8 @@ From the command line,
 
     git clone git@github.com:mohawkjohn/nmatrix.git
     cd nmatrix
+    bundle
+    rake compile
     rake console
 
 Gem coming later.

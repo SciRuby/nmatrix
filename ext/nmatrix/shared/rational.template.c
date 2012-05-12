@@ -14,7 +14,7 @@ inline %%TYPE%% %%TYPE_ABBREV%%_bang(%%= dtype.sym == :rational128 ? "int64_t n,
 
 inline %%TYPE%% %%TYPE_ABBREV%%_negate(%%= dtype.sym == :rational128 ? "int64_t n, int64_t d" : (dtype.sym == :rational64 ? "int32_t n, int32_t d" : "int16_t n, int16_t d")%%)
 {
-  %%TYPE%% result = {-n, -d};
+  %%TYPE%% result = {-n, d};
   return result;
 }
 

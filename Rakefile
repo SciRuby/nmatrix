@@ -1,28 +1,29 @@
 # -*- ruby -*-
 
 require 'rubygems'
-
-# Fix for problem described here: https://github.com/jbarnette/isolate/pull/39
-module Gem
-  Deprecate = Module.new do
-    include Deprecate
-  end
+require 'bundler'
+begin
+  Bundler.setup(:default, :development)
+rescue Bundler::BundlerError => e
+  $stderr.puts e.message
+  $stderr.puts "Run `bundle install` to install missing gems"
+  exit e.status_code
 end
-require 'isolate/now'
-# End Fix
 
-require 'hoe'
-require 'pathname'
+require 'rake'
+require "rake/extensiontask"
+Rake::ExtensionTask.new do |ext|
+    ext.name = 'nmatrix'          
+    ext.ext_dir = 'ext/nmatrix' 
+    ext.lib_dir = 'lib/'             
+end
+
 require 'rspec/core/rake_task'
-
-Hoe.plugin :compiler
-Hoe.plugin :bundler
-Hoe.plugin :git
-# Hoe.plugin :compiler
-# Hoe.plugin :gem_prelude_sucks
-# Hoe.plugin :inline
-# Hoe.plugin :racc
-# Hoe.plugin :rubyforge
+require 'rspec/core'
+require 'rspec/core/rake_task'
+RSpec::Core::RakeTask.new(:spec) do |spec|
+  spec.pattern = FileList['spec/**/*_spec.rb']
+end
 
 BASEDIR = Pathname( __FILE__ ).dirname.relative_path_from( Pathname.pwd )
 SPECDIR = BASEDIR + 'spec'
@@ -42,45 +43,10 @@ VALGRIND_MEMORYFILL_OPTIONS = [
 GDB_OPTIONS = []
 
 
-h = Hoe.spec 'nmatrix' do
-  self.require_ruby_version ">=1.9"
-  self.developer('John Woods', 'john.o.woods@gmail.com')
-  self.post_install_message = <<-EOF
-***********************************************************
-Welcome to SciRuby: Tools for Scientific Computing in Ruby!
-
-                     *** WARNING ***
-Please be aware that NMatrix is in ALPHA status. If you're
-thinking of using NMatrix to write mission critical code,
-such as for driving a car or flying a space shuttle, you
-may wish to choose other software (for now).
-
-NMatrix requires a C compiler, and has been tested only
-with GCC 4.6.1. We are happy to accept contributions
-which improve the portability of this project.
-
-Also required is ATLAS. Most Linux distributions and Mac
-versions include ATLAS, but you may wish to compile it
-yourself.
-
-More explicit instructions for NMatrix and SciRuby should
-be available on the SciRuby website, sciruby.com, or
-through our mailing list (which can be found on our web-
-site).
-
-Thanks for trying out NMatrix! Happy coding!
-
-***********************************************************
-EOF
-  #self.need_rdoc = false
-  self.readme_file = 'README.rdoc'
-  # self.rubyforge_name = 'nmatrixx' # if different than 'nmatrix'
-end
-
 RSpec::Core::RakeTask.new(:spec)
 
 task :console do |task|
-  cmd = [ 'irb', "-r './lib/nmatrix.rb'" ]
+  cmd = [ 'pry', "-r './lib/nmatrix.rb'" ]
   run *cmd
 end
 

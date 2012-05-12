@@ -744,7 +744,9 @@ int yale_storage_binary_search(YALE_STORAGE* s, y_size_t left, y_size_t right, y
 
 
 
-char yale_storage_set(YALE_STORAGE* s, size_t* coords, void* v) {
+char yale_storage_set(YALE_STORAGE* s, SLICE* slice, void* v) {
+  size_t* coords = slice->coords;
+
   y_size_t i_next = coords[0] + 1;
   y_size_t ija, ija_next, ija_size;
   y_size_t pos;
@@ -782,7 +784,9 @@ char yale_storage_set(YALE_STORAGE* s, size_t* coords, void* v) {
 }
 
 
-void* yale_storage_ref(YALE_STORAGE* s, size_t* coords) {
+void* yale_storage_ref(YALE_STORAGE* s, SLICE* slice) {
+  size_t* coords = slice->coords;
+
   y_size_t l, r, i_plus_one = coords[0] + 1, test_j;
   int pos;
 

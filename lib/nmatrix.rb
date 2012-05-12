@@ -37,8 +37,6 @@ require File.join(File.dirname(__FILE__), "array.rb") # Load Array extensions
 
 
 class NMatrix
-  VERSION = '0.0.1'
-
   # Read and write extensions for NMatrix. These are only loaded when needed.
   module IO
     autoload(:Matlab, File.join(File.dirname(__FILE__), 'nmatrix', 'io', 'matlab.rb'))

@@ -67,6 +67,13 @@ nm_delete_t DeleteFuncs = {
   delete_yale_storage
 };
 
+nm_delete_t DeleteFuncsRef = {
+  delete_dense_storage_ref,
+  delete_list_storage,
+  delete_yale_storage
+};
+
+
 
 nm_mark_t MarkFuncs = {
   mark_dense_storage,
@@ -485,6 +492,10 @@ static void nm_delete(NMATRIX* mat) {
   DeleteFuncs[mat->stype](mat->storage);
 }
 
+static void nm_delete_ref(NMATRIX* mat) {
+  DeleteFuncsRef[mat->stype](mat->storage);
+}
+
 
 static STORAGE* nm_dense_new(size_t* shape, size_t rank, int8_t dtype, void* init_val, size_t init_val_len, VALUE self) {
   return (STORAGE*)(create_dense_storage(dtype, shape, rank, init_val, init_val_len));
@@ -548,25 +559,25 @@ nm_stype_ref_t RefFuncs = {
 };
 
 
-VALUE nm_dense_set(STORAGE* s, size_t* coords, VALUE val) {
+VALUE nm_dense_set(STORAGE* s, SLICE* slice, VALUE val) {
   void* v = ALLOCA_N(char, nm_sizeof[s->dtype]);
   SetFuncs[s->dtype][NM_ROBJ](1, v, 0, &val, 0);
-  dense_storage_set( (DENSE_STORAGE*)s, coords, v );
+  dense_storage_set( (DENSE_STORAGE*)s, slice, v );
   return val;
 }
 
 
 // Should work exactly the same as nm_dense_set.
-VALUE nm_yale_set(STORAGE* s, size_t* coords, VALUE val) {
+VALUE nm_yale_set(STORAGE* s, SLICE* slice, VALUE val) {
   void* v = ALLOCA_N(char, nm_sizeof[s->dtype]);
   SetFuncs[s->dtype][NM_ROBJ](1, v, 0, &val, 0);
-  yale_storage_set( (YALE_STORAGE*)s, coords, v );
+  yale_storage_set( (YALE_STORAGE*)s, slice, v );
   return val;
 }
 
 
 // TODO: Why can't you be more like your brothers, nm_dense_set and nm_yale_set?
-VALUE nm_list_set(STORAGE* s, size_t* coords, VALUE val) {
+VALUE nm_list_set(STORAGE* s, SLICE* slice, VALUE val) {
   void *v = ALLOC_N(char, nm_sizeof[s->dtype]), *rm;
   LIST_STORAGE* ls = (LIST_STORAGE*)s;
 
@@ -578,14 +589,14 @@ VALUE nm_list_set(STORAGE* s, size_t* coords, VALUE val) {
     // User asked to insert default_value, which is actually node *removal*.
     // So let's do that instead.
 
-    rm = list_storage_remove( ls, coords );
+    rm = list_storage_remove( ls, slice);
 
     //if (rm) fprintf(stderr, "    remove_val: %p\n", rm);
 
     if (rm) free(rm);
     return val;
 
-  } else if (list_storage_insert( ls, coords, v ))    return val;
+  } else if (list_storage_insert( ls, slice, v ))    return val;
   return Qnil;
   // No need to free; the list keeps v.
 }
@@ -1370,16 +1381,35 @@ NMATRIX* nm_create(int8_t stype, void* storage) {
 }
 
 
-static size_t* convert_coords(size_t rank, VALUE* c, VALUE self) {
+static SLICE* get_slice(size_t rank, VALUE* c, VALUE self) {
   size_t r;
-  size_t* coords = ALLOC_N(size_t,rank);
+  VALUE beg, end;
+  int i;
+
+  SLICE* slice = ALLOC(SLICE);
+  slice->coords = ALLOC_N(size_t,rank);
+  slice->lens = ALLOC_N(size_t, rank);
+  slice->is_one_el = 1;
 
   for (r = 0; r < rank; ++r) {
-    coords[r] = FIX2UINT(c[r]);
-    if (coords[r] >= NM_SHAPE(self,r)) rb_raise(rb_eArgError, "out of range");
+    VALUE cl = CLASS_OF(c[r]);
+    if (cl == rb_cFixnum) {
+      slice->coords[r] = FIX2UINT(c[r]);
+      slice->lens[r] = 1;
+    }
+    else if (cl == rb_cRange) {
+      rb_range_values(c[r], &beg, &end, &i);
+      slice->coords[r] = FIX2UINT(beg);
+      slice->lens[r] = FIX2UINT(end) - slice->coords[r] + 1;
+      slice->is_one_el = 0;
+    }
+    else rb_raise(rb_eArgError, "%s is not used for slicing", rb_class2name(cl));
+
+    if (slice->coords[r] + slice->lens[r] > NM_SHAPE(self,r)) 
+      rb_raise(rb_eArgError, "out of range");
   }
 
-  return coords;
+  return slice;
 }
 
 
@@ -1390,20 +1420,31 @@ static size_t* convert_coords(size_t rank, VALUE* c, VALUE self) {
  *
  */
 VALUE nm_mref(int argc, VALUE* argv, VALUE self) {
-  VALUE v;
+  NMATRIX* mat;
+  SLICE* slice;  
+  void* v;
 
   if (NM_RANK(self) == (size_t)(argc)) {
+    slice = get_slice((size_t)(argc), argv, self);
+    // TODO: Slice for List, Yale types
+    if (NM_STYPE(self) == S_DENSE && slice->is_one_el == 0) {
 
-    SetFuncs[NM_ROBJ][NM_DTYPE(self)](1, &v, 0,
-      RefFuncs[NM_STYPE(self)](NM_STORAGE(self),
-                               convert_coords((size_t)(argc), argv, self)
-                              ), 0);
-    return v;
-
+      mat = ALLOC(NMATRIX);
+      mat->stype = S_DENSE; 
+      mat->storage = RefFuncs[NM_STYPE(self)](NM_STORAGE(self), slice);
+      return Data_Wrap_Struct(cNMatrix, MarkFuncs[mat->stype], nm_delete_ref, mat);
+    } 
+    else {
+      v = ALLOC(VALUE);
+      SetFuncs[NM_ROBJ][NM_DTYPE(self)](1, v, 0,
+                RefFuncs[NM_STYPE(self)](NM_STORAGE(self), slice), 0);
+      return *(VALUE*)v;
+    }
+                              
   } else if (NM_RANK(self) < (size_t)(argc)) {
     rb_raise(rb_eArgError, "Coordinates given exceed matrix rank");
   } else {
-    rb_raise(rb_eNotImpError, "Slicing not supported yet");
+    rb_raise(rb_eNotImpError, "This type slicing not supported yet");
   }
   return Qnil;
 }
@@ -1426,7 +1467,7 @@ VALUE nm_mset(int argc, VALUE* argv, VALUE self) {
 
   } else if (NM_RANK(self) == rank) {
     return (*(InsFuncs[NM_STYPE(self)]))( NM_STORAGE(self),
-                                         convert_coords(rank, argv, self),
+                                         get_slice(rank, argv, self),
                                          argv[rank] );
 
   } else if (NM_RANK(self) < rank) {
