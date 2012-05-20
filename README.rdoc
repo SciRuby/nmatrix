@@ -28,7 +28,7 @@ Please be aware that SciRuby and NMatrix are in *PRE-ALPHA* status. If you're th
 
 From the command line,
 
-    git clone git@github.com:mohawkjohn/nmatrix.git
+    git clone https://github.com/SciRuby/nmatrix.git
     cd nmatrix
     bundle
     rake compile
