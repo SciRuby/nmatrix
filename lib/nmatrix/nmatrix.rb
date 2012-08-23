@@ -236,3 +236,63 @@ class NMatrix
 		ary
 	end
 end
+
+#######################################
+#
+# SIMPLE IN-LINE CONSTRUCTOR
+#
+# by Daniel Carrera <dcarrera@hush.com>
+#
+#######################################
+# 
+# NMatrix needs to have a succinct way to create a matrix by specifying
+# the components directly. This is very usefeul for using NMatrix as an
+# advanced calculator, it is useful for learning NMatrix and it is also
+# useful for testing language features or developing algorithms.
+# 
+# The N[] function provides a way to create a matrix in a way that is
+# very short and very natural, simply by specifying the components in
+# the traditional Ruby array syntax.  Optionaly, one can specify a
+# dtype as the last parameter (default is :float64).
+# 
+# a = N[ 1,2,3,4 ]          =>  1.0  2.0  3.0  4.0
+# 
+# a = N[ 1,2,3,4, :int32 ]  =>  1  2  3  4
+# 
+# a = N[ [1,2,3], [3,4,5] ] =>  1.0  2.0  3.0
+#                               3.0  4.0  5.0
+# 
+# 
+# SYNTAX COMPARISON:
+# 
+#     MATLAB:		a = [ [1 2 3] ; [4 5 6] ]   or  [ 1 2 3 ; 4 5 6 ]
+#     IDL:			a = [ [1,2,3] , [4,5,6] ]
+#     NumPy:		a = array( [1,2,3], [4,5,6] )
+#     
+#     SciRuby:      a = N[ [1,2,3], [4,5,6] ]
+#     Ruby array:   a =  [ [1,2,3], [4,5,6] ]
+#
+
+class N
+
+	def N.[](*params)
+		dtype = params.last.is_a?(Symbol) ? params.pop : :float64
+		
+		#
+		# First find the dimensions of the array.
+		#
+		i = 0
+		dim = []
+		foo = params
+		while foo.is_a?(Array)
+			dim[i] = foo.length
+			foo    = foo[0]
+			i += 1
+		end
+		
+		#
+		# Then flatten the array.
+		#
+		NMatrix.new( dim, params.flatten, dtype )
+	end
+end
