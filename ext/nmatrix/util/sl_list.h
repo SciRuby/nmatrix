@@ -78,6 +78,7 @@ void	mark(LIST* list, size_t recursions);
 ///////////////
 
 NODE* insert(LIST* list, bool replace, size_t key, void* val);
+NODE* insert_with_copy(LIST *list, size_t key, void *val, size_t size);
 NODE* insert_after(NODE* node, size_t key, void* val);
 void* remove(LIST* list, size_t key);
 

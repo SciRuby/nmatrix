@@ -83,7 +83,7 @@ namespace nm { namespace dense_storage {
 extern "C" {
 
 static size_t* stride(size_t* shape, size_t dim);
-static void slice_copy(DENSE_STORAGE *dest, const DENSE_STORAGE *src, size_t* lengths, size_t psrc, size_t pdest, size_t n);
+static void slice_copy(DENSE_STORAGE *dest, const DENSE_STORAGE *src, size_t* lengths, size_t pdest, size_t psrc, size_t n);
 
 /*
  * Functions
@@ -235,7 +235,7 @@ void* nm_dense_storage_get(STORAGE* storage, SLICE* slice) {
     ns->elements   = ALLOC_N(char, DTYPE_SIZES[ns->dtype] * count);
     NM_CHECK_ALLOC(ns->elements);
 
-    slice_copy(ns, s, slice->lengths, nm_dense_storage_pos(s, slice->coords), 0, 0);
+    slice_copy(ns, s, slice->lengths, 0, nm_dense_storage_pos(s, slice->coords), 0);
     return ns;
   }
 }
@@ -274,7 +274,7 @@ void* nm_dense_storage_ref(STORAGE* storage, SLICE* slice) {
     ns->stride     = s->stride;
     ns->elements   = s->elements;
     
-    ((DENSE_STORAGE*)((DENSE_STORAGE*)s->src))->count++;
+    s->src->count++;
     ns->src = s->src;
 
     return ns;
@@ -393,11 +393,12 @@ static size_t* stride(size_t* shape, size_t dim) {
 /*
  * Recursive slicing for N-dimensional matrix.
  */
-static void slice_copy(DENSE_STORAGE *dest, const DENSE_STORAGE *src, size_t* lengths, size_t psrc, size_t pdest, size_t n) {
+static void slice_copy(DENSE_STORAGE *dest, const DENSE_STORAGE *src, size_t* lengths, size_t pdest, size_t psrc, size_t n) {
   if (src->dim - n > 1) {
     for (size_t i = 0; i < lengths[n]; ++i) {
       slice_copy(dest, src, lengths,
-                                    psrc + src->stride[n]*i, pdest + dest->stride[n]*i,
+                                    pdest + dest->stride[n]*i,
+                                    psrc + src->stride[n]*i, 
                                     n + 1);
     }
   } else {
@@ -443,11 +444,11 @@ DENSE_STORAGE* nm_dense_storage_copy(const DENSE_STORAGE* rhs) {
       memcpy(lhs->elements, rhs->elements, DTYPE_SIZES[rhs->dtype] * count);
     else // slice whole matrix
       slice_copy(lhs,
-                 reinterpret_cast<const DENSE_STORAGE*>(rhs->src),
-                 rhs->shape,
-                 nm_dense_storage_pos(reinterpret_cast<const DENSE_STORAGE*>(rhs->src), rhs->offset),
-                 0,
-                 0);
+           reinterpret_cast<const DENSE_STORAGE*>(rhs->src),
+           rhs->shape,
+           0,
+           nm_dense_storage_pos(reinterpret_cast<const DENSE_STORAGE*>(rhs->src), rhs->offset),
+           0);
   }
 
   return lhs;

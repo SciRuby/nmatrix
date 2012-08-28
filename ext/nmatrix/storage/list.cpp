@@ -102,9 +102,13 @@ LIST_STORAGE* nm_list_storage_create(dtype_t dtype, size_t* shape, size_t dim, v
   s->shape = shape;
   s->dtype = dtype;
 
-  s->rows  = list::create();
+  s->offset = ALLOC_N(size_t, s->dim);
+  memset(s->offset, 0, s->dim * sizeof(s->dim));
 
+  s->rows  = list::create();
   s->default_val = init_val;
+  s->count = 1;
+  s->src = s;
 
   return s;
 }
@@ -115,11 +119,27 @@ LIST_STORAGE* nm_list_storage_create(dtype_t dtype, size_t* shape, size_t dim, v
 void nm_list_storage_delete(STORAGE* s) {
   if (s) {
     LIST_STORAGE* storage = (LIST_STORAGE*)s;
+    if (storage->count-- == 1) {
+      list::del( storage->rows, storage->dim - 1 );
 
-    list::del( storage->rows, storage->dim - 1 );
+      free(storage->shape);
+      free(storage->offset);
+      free(storage->default_val);
+      free(s);
+    }
+  }
+}
 
+/*
+ * Documentation goes here.
+ */
+void nm_list_storage_delete_ref(STORAGE* s) {
+  if (s) {
+    LIST_STORAGE* storage = (LIST_STORAGE*)s;
+
+    nm_list_storage_delete( reinterpret_cast<STORAGE*>(storage->src ) );
     free(storage->shape);
-    free(storage->default_val);
+    free(storage->offset);
     free(s);
   }
 }
@@ -140,15 +160,97 @@ void nm_list_storage_mark(void* storage_base) {
 // Accessors //
 ///////////////
 
+/*
+ * Documentation goes here.
+ */
+NODE* list_storage_get_single_node(LIST_STORAGE* s, SLICE* slice)
+{
+  size_t r;
+  LIST*  l = s->rows;
+  NODE*  n;
+
+  for (r = 0; r < s->dim; r++) {
+    n = list::find(l, s->offset[r] + slice->coords[r]);
+    if (n)  l = reinterpret_cast<LIST*>(n->val);
+    else return NULL;
+  }
+
+  return n;
+}
+
+
+static LIST* list_storage_slice_copy(const LIST_STORAGE *src, SLICE *slice, LIST *src_rows, size_t n)
+{
+  NODE *src_node;
+  LIST *dst_rows = NULL;
+  void *val = NULL;
+  
+  dst_rows = list::create();
+
+  if (src->dim - n > 1) {
+    for (size_t i = 0; i < slice->lengths[n]; i++) {
+      src_node = list::find(src_rows, src->offset[n] + slice->coords[n] + i);
+      
+      if (src_node && src_node->val) {
+        
+        val = list_storage_slice_copy(src, slice, 
+            reinterpret_cast<LIST*>(src_node->val), 
+            n + 1);  
+
+        if (val) {
+          list::insert_with_copy(dst_rows, i, val, sizeof(LIST));          
+        }
+      }
+    }
+  }
+  else {
+    for (size_t i = 0; i < slice->lengths[n]; i++) {
+      src_node = list::find(src_rows, src->offset[n] + slice->coords[n] + i);
+
+      if (src_node && src_node->val) {
+        list::insert_with_copy(dst_rows, i, src_node->val, DTYPE_SIZES[src->dtype]);
+      }
+    }
+  }
+
+  return dst_rows;
+}
 
 /*
  * Documentation goes here.
  */
 void* nm_list_storage_get(STORAGE* storage, SLICE* slice) {
-  //LIST_STORAGE* s = (LIST_STORAGE*)storage;
-  rb_raise(rb_eNotImpError, "This type of slicing not supported yet");
-}
+  LIST_STORAGE* s = (LIST_STORAGE*)storage;
+  LIST_STORAGE* ns = NULL;
+  NODE* n;
 
+  if (slice->single) {
+    n = list_storage_get_single_node(s, slice); 
+    return (n ? n->val : s->default_val);
+  } 
+  else {
+    ns = ALLOC( LIST_STORAGE );
+    
+    ns->dim = s->dim;
+    ns->dtype = s->dtype;
+    ns->offset     = ALLOC_N(size_t, ns->dim);
+    ns->shape      = ALLOC_N(size_t, ns->dim);
+
+    for (size_t i = 0; i < ns->dim; ++i) {
+      ns->offset[i] = 0; 
+      ns->shape[i]  = slice->lengths[i];
+    }
+
+    ns->default_val = ALLOC_N(char, DTYPE_SIZES[ns->dtype]);
+    memcpy(ns->default_val, s->default_val, DTYPE_SIZES[ns->dtype]);
+    
+    ns->count = 1;
+    ns->src = ns;
+    
+    ns->rows = list_storage_slice_copy(s, slice, s->rows, 0);
+    return ns;
+  }
+}
 
 /*
  * Get the contents of some set of coordinates. Note: Does not make a copy!
@@ -156,19 +258,35 @@ void* nm_list_storage_get(STORAGE* storage, SLICE* slice) {
  */
 void* nm_list_storage_ref(STORAGE* storage, SLICE* slice) {
   LIST_STORAGE* s = (LIST_STORAGE*)storage;
-  size_t r;
-  NODE*  n;
-  LIST*  l = s->rows;
+  LIST_STORAGE* ns = NULL;
+  NODE* n;
 
-  for (r = s->dim; r > 1; --r) {
-    n = list::find(l, slice->coords[s->dim - r]);
-    if (n)  l = reinterpret_cast<LIST*>(n->val);
-    else return s->default_val;
+  //TODO: It needs a refactoring.
+  if (slice->single) {
+    n = list_storage_get_single_node(s, slice); 
+    return (n ? n->val : s->default_val);
+  } 
+  else {
+    ns = ALLOC( LIST_STORAGE );
+    
+    ns->dim = s->dim;
+    ns->dtype = s->dtype;
+    ns->offset     = ALLOC_N(size_t, ns->dim);
+    ns->shape      = ALLOC_N(size_t, ns->dim);
+
+    for (size_t i = 0; i < ns->dim; ++i) {
+      ns->offset[i] = slice->coords[i] + s->offset[i];
+      ns->shape[i]  = slice->lengths[i];
+    }
+
+    ns->rows = s->rows;
+    ns->default_val = s->default_val;
+    
+    s->src->count++;
+    ns->src = s->src;
+    
+    return ns;
   }
-
-  n = list::find(l, slice->coords[s->dim - r]);
-  if (n) return n->val;
-  else   return s->default_val;
 }
 
 /*
@@ -187,11 +305,11 @@ void* nm_list_storage_insert(STORAGE* storage, SLICE* slice, void* val) {
 
   // drill down into the structure
   for (r = s->dim; r > 1; --r) {
-    n = list::insert(l, false, slice->coords[s->dim - r], list::create());
+    n = list::insert(l, false, s->offset[s->dim - r] + slice->coords[s->dim - r], list::create());
     l = reinterpret_cast<LIST*>(n->val);
   }
 
-  n = list::insert(l, true, slice->coords[s->dim - r], val);
+  n = list::insert(l, true, s->offset[s->dim - r] + slice->coords[s->dim - r], val);
   return n->val;
 }
 
@@ -208,11 +326,11 @@ void* nm_list_storage_remove(STORAGE* storage, SLICE* slice) {
   void*  rm = NULL;
 
   // keep track of where we are in the traversals
-  NODE** stack = ALLOCA_N( NODE*, s->dim - 1 );
+  NODE** stack = ALLOC_N( NODE*, s->dim - 1 );
 
   for (r = (int)(s->dim); r > 1; --r) {
   	// does this row exist in the matrix?
-    n = list::find(l, slice->coords[s->dim - r]);
+    n = list::find(l, s->offset[s->dim - r] + slice->coords[s->dim - r]);
 
     if (!n) {
     	// not found
@@ -226,7 +344,7 @@ void* nm_list_storage_remove(STORAGE* storage, SLICE* slice) {
     }
   }
 
-  rm = list::remove(l, slice->coords[s->dim - r]);
+  rm = list::remove(l, s->offset[s->dim -r] + slice->coords[s->dim - r]);
 
   // if we removed something, we may now need to remove parent lists
   if (rm) {
@@ -234,7 +352,7 @@ void* nm_list_storage_remove(STORAGE* storage, SLICE* slice) {
     	// walk back down the stack
       
       if (((LIST*)(stack[r]->val))->first == NULL)
-        free(list::remove(reinterpret_cast<LIST*>(stack[r]->val), slice->coords[r]));
+        free(list::remove(reinterpret_cast<LIST*>(stack[r]->val), s->offset[r] + slice->coords[r]));
       else break; // no need to continue unless we just deleted one.
 
     }

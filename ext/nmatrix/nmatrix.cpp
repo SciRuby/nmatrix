@@ -308,7 +308,7 @@ static void nm_delete(NMATRIX* mat) {
 static void nm_delete_ref(NMATRIX* mat) {
   static void (*ttable[nm::NUM_STYPES])(STORAGE*) = {
     nm_dense_storage_delete_ref,
-    nm_list_storage_delete,  // FIXME: Should these be _ref?
+    nm_list_storage_delete_ref, 
     nm_yale_storage_delete
   };
   ttable[mat->stype](mat->storage);
@@ -792,9 +792,13 @@ static VALUE nm_init_yale_from_old_yale(VALUE shape, VALUE dtype, VALUE ia, VALU
  * Check to determine whether matrix is a reference to another matrix.
  */
 static VALUE nm_is_ref(VALUE self) {
-	// Refs only allowed for dense matrices.
+	// Refs only allowed for dense and list matrices.
   if (NM_STYPE(self) == DENSE_STORE) {
     return (NM_DENSE_SRC(self) == NM_STORAGE(self)) ? Qfalse : Qtrue;
+  }
+
+  if (NM_STYPE(self) == LIST_STORE) {
+    return (NM_LIST_SRC(self) == NM_STORAGE(self)) ? Qfalse : Qtrue;
   }
 
   return Qfalse;
@@ -999,7 +1003,7 @@ static VALUE nm_xslice(int argc, VALUE* argv, void* (*slice_func)(STORAGE*, SLIC
   if (NM_DIM(self) == (size_t)(argc)) {
     SLICE* slice = get_slice((size_t)(argc), argv, self);
 
-    // TODO: Slice for List, Yale types
+    // TODO: Slice for Yale types
 
     if (slice->single) {
 
@@ -1024,7 +1028,8 @@ static VALUE nm_xslice(int argc, VALUE* argv, void* (*slice_func)(STORAGE*, SLIC
 
     } else {
 
-      if (NM_STYPE(self) == DENSE_STORE) {
+      if (NM_STYPE(self) == DENSE_STORE 
+          || NM_STYPE(self) == LIST_STORE) {
         STYPE_MARK_TABLE(mark_table);
 
         NMATRIX* mat = ALLOC(NMATRIX);
@@ -1032,7 +1037,7 @@ static VALUE nm_xslice(int argc, VALUE* argv, void* (*slice_func)(STORAGE*, SLIC
         mat->storage = (STORAGE*)((*slice_func)( NM_STORAGE(self), slice ));
         result = Data_Wrap_Struct(cNMatrix, mark_table[mat->stype], delete_func, mat);
       } else {
-        rb_raise(rb_eNotImpError, "slicing only implemented for dense so far");
+        rb_raise(rb_eNotImpError, "slicing only implemented for dense and list so far");
       }
     }
 

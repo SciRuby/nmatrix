@@ -75,6 +75,7 @@ extern "C" {
 
   LIST_STORAGE*	nm_list_storage_create(dtype_t dtype, size_t* shape, size_t dim, void* init_val);
   void					nm_list_storage_delete(STORAGE* s);
+  void					nm_list_storage_delete_ref(STORAGE* s);
   void					nm_list_storage_mark(void*);
 
   ///////////////
