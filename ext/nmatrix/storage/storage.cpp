@@ -488,7 +488,7 @@ namespace yale_storage { // FIXME: Move to yale.cpp
     YALE_STORAGE* lhs = nm_yale_storage_create(l_dtype, shape, 2, shape[0] + ndnz + 1);
 
     if (lhs->capacity < request_capacity)
-      rb_raise(nm_eStorageTypeError, "conversion failed; capacity of %d requested, max allowable is %d", request_capacity, lhs->capacity);
+      rb_raise(nm_eStorageTypeError, "conversion failed; capacity of %d requested, max allowable is %d", (int)request_capacity, (int)lhs->capacity);
 
     LDType* lhs_a     = reinterpret_cast<LDType*>(lhs->a);
     LIType* lhs_ija   = reinterpret_cast<LIType*>(lhs->ija);
@@ -552,7 +552,7 @@ namespace yale_storage { // FIXME: Move to yale.cpp
     YALE_STORAGE* lhs = nm_yale_storage_create(l_dtype, shape, 2, request_capacity);
 
     if (lhs->capacity < request_capacity)
-      rb_raise(nm_eStorageTypeError, "conversion failed; capacity of %d requested, max allowable is %d", request_capacity, lhs->capacity);
+      rb_raise(nm_eStorageTypeError, "conversion failed; capacity of %d requested, max allowable is %d", (int)request_capacity, (int)lhs->capacity);
 
     // Initialize the A and IJA arrays
     init<LDType,LIType>(lhs);
@@ -564,8 +564,6 @@ namespace yale_storage { // FIXME: Move to yale.cpp
 
     for (NODE* i_curr = rhs->rows->first; i_curr; i_curr = i_curr->next) {
 
-      // indicate the beginning of a row in the IJA array
-      lhs_ija[i_curr->key] = ija;
 
       for (NODE* j_curr = ((LIST*)(i_curr->val))->first; j_curr; j_curr = j_curr->next) {
         LDType cast_jcurr_val = *reinterpret_cast<RDType*>(j_curr->val);
@@ -573,15 +571,21 @@ namespace yale_storage { // FIXME: Move to yale.cpp
         if (i_curr->key == j_curr->key)
           lhs_a[i_curr->key] = cast_jcurr_val; // set diagonal
         else {
-
           lhs_ija[ija] = j_curr->key;    // set column value
+
           lhs_a[ija]   = cast_jcurr_val;                      // set cell value
 
           ++ija;
+
+          // indicate the beginning of a row in the IJA array
+          for (size_t i = i_curr->key + 1; i < shape[0]; ++i) {
+            lhs_ija[i] = ija;
+          }
+
         }
       }
 
-      if (!i_curr->next) lhs_ija[i_curr->key] = ija; // indicate the end of the last row
+      if (!i_curr->next) lhs_ija[rhs->shape[0]] = ija; // indicate the end of the last row
     }
 
     lhs->ndnz = ndnz;

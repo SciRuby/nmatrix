@@ -356,14 +356,16 @@ describe NMatrix do
 
   it "converts from list to yale properly" do
     m = NMatrix.new(:list, 3, 0)
+    m[0,2] = 333 
     m[2,2] = 777
     n = m.cast(:yale, :int32)
     puts n.capacity
     n.extend NMatrix::YaleFunctions
     puts n.yale_ija.inspect
+    puts n.yale_a.inspect
     n[0,0].should == 0
     n[0,1].should == 0
-    n[0,2].should == 0
+    n[0,2].should == 333
     n[1,0].should == 0
     n[1,1].should == 0
     n[1,2].should == 0
