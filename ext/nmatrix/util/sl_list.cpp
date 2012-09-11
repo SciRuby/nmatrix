@@ -203,6 +203,7 @@ NODE* insert_with_copy(LIST *list, size_t key, void *val, size_t size) {
   void *copy_val = ALLOC_N(char, size);
   memcpy(copy_val, val, size);
 
+
   return insert(list, false, key, copy_val);
 }
 /*

@@ -187,16 +187,15 @@ static LIST* slice_copy(const LIST_STORAGE *src, LIST *src_rows, size_t *coords,
   NODE *src_node;
   LIST *dst_rows = NULL;
   void *val = NULL;
-  size_t offset, key;
+  int key;
   
   dst_rows = list::create();
-  offset = src->offset[n] + coords[n];
   src_node = src_rows->first;
 
   while (src_node) {
-    key = src_node->key - offset;
+    key = src_node->key - (src->offset[n] + coords[n]);
     
-    if (key >= 0) {
+    if (key >= 0 && (size_t)key < lengths[n]) {
       if (src->dim - n > 1) {
         val = slice_copy(src,  
           reinterpret_cast<LIST*>(src_node->val), 
@@ -472,7 +471,9 @@ size_t nm_list_storage_count_nd_elements(const LIST_STORAGE* s) {
 
   for (i_curr = s->rows->first; i_curr; i_curr = i_curr->next) {
     for (j_curr = ((LIST*)(i_curr->val))->first; j_curr; j_curr = j_curr->next) {
-      if (i_curr->key != j_curr->key) {
+      int i = i_curr->key - s->offset[0];
+      int j = j_curr->key - s->offset[1];
+      if (i >= 0 && j >= 0 && i != j) {
       	++count;
       }
     }

@@ -61,7 +61,9 @@ extern "C" {
   /*
    * Macros
    */
-  #define NM_YALE_MINIMUM(sptr)               (((YALE_STORAGE*)(sptr))->shape[0]*2 + 1) // arbitrarily defined
+
+  #define NM_MAX_DIM(a,b)                     (a > b ? a : b)
+  #define NM_YALE_MINIMUM(sptr)               (NM_MAX_DIM(((YALE_STORAGE*)(sptr))->shape[0], ((YALE_STORAGE*)(sptr))->shape[1]) + 1) // arbitrarily defined
   #define NM_YALE_MAX_SIZE(sptr)              (((YALE_STORAGE*)(sptr))->shape[0] * ((YALE_STORAGE*)(sptr))->shape[1] + 1)
 
   #ifndef NM_CHECK_ALLOC
