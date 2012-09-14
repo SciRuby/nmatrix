@@ -62,9 +62,7 @@ extern "C" {
    * Macros
    */
 
-  #define NM_MAX_DIM(a,b)                     (a > b ? a : b)
-  #define NM_YALE_MINIMUM(sptr)               (NM_MAX_DIM(((YALE_STORAGE*)(sptr))->shape[0], ((YALE_STORAGE*)(sptr))->shape[1]) + 1) // arbitrarily defined
-  #define NM_YALE_MAX_SIZE(sptr)              (((YALE_STORAGE*)(sptr))->shape[0] * ((YALE_STORAGE*)(sptr))->shape[1] + 1)
+  #define NM_YALE_MINIMUM(sptr)               (((YALE_STORAGE*)(sptr))->shape[0] + 1) // arbitrarily defined
 
   #ifndef NM_CHECK_ALLOC
    #define NM_CHECK_ALLOC(x) if (!x) rb_raise(rb_eNoMemError, "insufficient memory");

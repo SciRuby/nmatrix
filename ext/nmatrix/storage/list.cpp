@@ -470,12 +470,14 @@ size_t nm_list_storage_count_nd_elements(const LIST_STORAGE* s) {
   }
 
   for (i_curr = s->rows->first; i_curr; i_curr = i_curr->next) {
+    int i = i_curr->key - s->offset[0];
+    if (i < 0 || i >= (int)s->shape[0]) continue;
+
     for (j_curr = ((LIST*)(i_curr->val))->first; j_curr; j_curr = j_curr->next) {
-      int i = i_curr->key - s->offset[0];
       int j = j_curr->key - s->offset[1];
-      if (i >= 0 && j >= 0 && i != j) {
-      	++count;
-      }
+      if (j < 0 || j >= (int)s->shape[1]) continue;
+
+      if (i != j)  	++count;
     }
   }
   

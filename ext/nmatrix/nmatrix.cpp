@@ -1061,42 +1061,23 @@ static VALUE nm_xslice(int argc, VALUE* argv, void* (*slice_func)(STORAGE*, SLIC
   if (NM_DIM(self) == (size_t)(argc)) {
     SLICE* slice = get_slice((size_t)(argc), argv, self);
 
-    // TODO: Slice for Yale types
-
     if (slice->single) {
-
       static void* (*ttable[nm::NUM_STYPES])(STORAGE*, SLICE*) = {
         nm_dense_storage_ref,
         nm_list_storage_ref,
         nm_yale_storage_ref
       };
 
-      /* // Debugging for slice
-      fprintf(stderr, "single: ");
-      for (size_t i = 0; i < NM_DIM(self); ++i) {
-        fprintf(stderr, "%u(%u) ", slice->coords[i], slice->lengths[i]);
-      }
-      fprintf(stderr, "\n");
-      */
-
-      //DENSE_STORAGE* s = NM_STORAGE_DENSE(self);
-
       if (NM_DTYPE(self) == RUBYOBJ)  result = *reinterpret_cast<VALUE*>( ttable[NM_STYPE(self)](NM_STORAGE(self), slice) );
       else                            result = rubyobj_from_cval( ttable[NM_STYPE(self)](NM_STORAGE(self), slice), NM_DTYPE(self) ).rval;
 
     } else {
+      STYPE_MARK_TABLE(mark_table);
 
-      if (NM_STYPE(self) == DENSE_STORE 
-          || NM_STYPE(self) == LIST_STORE) {
-        STYPE_MARK_TABLE(mark_table);
-
-        NMATRIX* mat = ALLOC(NMATRIX);
-        mat->stype = NM_STYPE(self);
-        mat->storage = (STORAGE*)((*slice_func)( NM_STORAGE(self), slice ));
-        result = Data_Wrap_Struct(cNMatrix, mark_table[mat->stype], delete_func, mat);
-      } else {
-        rb_raise(rb_eNotImpError, "slicing only implemented for dense and list so far");
-      }
+      NMATRIX* mat = ALLOC(NMATRIX);
+      mat->stype = NM_STYPE(self);
+      mat->storage = (STORAGE*)((*slice_func)( NM_STORAGE(self), slice ));
+      result = Data_Wrap_Struct(cNMatrix, mark_table[mat->stype], delete_func, mat);
     }
 
     free(slice);
