@@ -328,10 +328,10 @@ LIST_STORAGE* create_from_yale_storage(const YALE_STORAGE* rhs, dtype_t l_dtype)
 
   RIType* rhs_ija  = reinterpret_cast<RIType*>(rhs->ija);
 
-  NODE *last_added = NULL, *last_row_added = NULL;
-
+  NODE *last_row_added = NULL;
   // Walk through rows and columns as if RHS were a dense matrix
   for (RIType i = 0; i < rhs->shape[0]; ++i) {
+    NODE *last_added = NULL;
 
     // Get boundaries of beginning and end of row
     RIType ija      = rhs_ija[i],
@@ -385,8 +385,8 @@ LIST_STORAGE* create_from_yale_storage(const YALE_STORAGE* rhs, dtype_t l_dtype)
       }
 
       // Now add the list at the appropriate location
-      if (last_row_added)  	last_row_added = list::insert_after(last_row_added, i, curr_row);
-      else                 	last_row_added = list::insert(lhs->rows, false, i, curr_row);
+      if (last_row_added)   last_row_added = list::insert_after(last_row_added, i, curr_row);
+      else                  last_row_added = list::insert(lhs->rows, false, i, curr_row);
     }
 
 		// end of walk through rows
