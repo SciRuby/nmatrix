@@ -22,7 +22,7 @@
 #
 # == shortcuts.rb
 #
-# These are shortcuts for NMatrix creation, contributed by Daniel
+# These are shortcuts for NMatrix and NVector creation, contributed by Daniel
 # Carrera (dcarrera@hush.com) and Carlos Agarie (carlos@onox.com.br).
 
 class NMatrix
@@ -38,18 +38,21 @@ class NMatrix
     #
     # Examples:
     #
-    #   zeros(3) # =>  0.0   0.0   0.0
+    #   zeros(2) # =>  0.0   0.0   
+    #                  0.0   0.0
     #
-    #   zeros(2,3,:int32) # =>  0  0  0
-    #                           0  0  0
+    #   zeros([2, 3], :int32) # =>  0  0  0
+    #                            0  0  0
     #
-    #   zeros(:list, 5, :int32) # =>  0  0  0  0  0
+    #   zeros(:list, [1, 5], :int32) # =>  0  0  0  0  0
     #
+    
     def zeros(*params)
-      dtype = params.last.is_a?(Symbol) ? params.pop   : :float64
-      store = params.first.is_a?(Symbol) ? params.shift : :dense
+      dtype = params.last.is_a?(Symbol) ? params.pop : :float64
+      stype = params.first.is_a?(Symbol) ? params.shift : :dense
+      dim = params.first
 
-      NMatrix.new(store, params, 0, dtype)
+      NMatrix.new(stype, dim, 0, dtype)
     end
 
     alias :zeroes :zeros
@@ -62,20 +65,22 @@ class NMatrix
     #
     # Examples:
     #
-    #   ones(3) # =>  1.0   1.0   1.0
+    #   ones([1, 3]) # =>  1.0   1.0   1.0
     #
-    #   ones(2,3,:int32) # =>  1  1  1
-    #                          1  1  1
+    #   ones([2, 3], :int32) # =>  1  1  1
+    #                              1  1  1
     #
+    
     def ones(*params)
-        dtype = params.last.is_a?(Symbol) ? params.pop   : :float64
+      dtype = params.last.is_a?(Symbol) ? params.pop : :float64
+      dim = params.first
 
-        NMatrix.new(params, 1, dtype)
+      NMatrix.new(dim, 1, dtype)
     end
 
     # identity() or eye()
     #
-    #     Creates an identitiy matrix (square matrix rank 2) of the size
+    #     Creates an identity matrix (square matrix rank 2) of the size
     #     supplied as a parameter. Optional parameters include:
     #
     #     * A storage type as the first parameter (default is :dense).
@@ -96,16 +101,45 @@ class NMatrix
     #
 
     def eye(*params)
-      dtype = params.last.is_a?(Symbol) ? params.pop   : :float64
-      store = params.first.is_a?(Symbol) ? params.shift : :dense
+      dtype = params.last.is_a?(Symbol) ? params.pop : :float64
+      stype = params.first.is_a?(Symbol) ? params.shift : :dense
 
-      n = params[0]
-      m = zeros(store,n,n,dtype)
-      (0..n-1).each { |i| m[i,i] = 1 }
+      dim = params.first
+      
+      # Fill the diagonal with 1's.
+      m = NMatrix.zeros(stype, dim, dtype)
+      (0 .. (dim - 1)).each do |i| 
+        m[i, i] = 1
+      end
+      
       m
     end
 
     alias :identity :eye
+    
+    # random()
+    #
+    #     Creates a :dense NMatrix with random numbers between 0 and 1 generated
+    #     by Random::rand. The parameter is the dimension of the matrix.
+    #
+    # Examples:
+    #
+    #   rand([2, 2]) # => 0.4859439730644226   0.1783195585012436
+    #                     0.23193766176700592  0.4503345191478729
+    #
+
+    def random(*params)
+      rng = Random.new
+
+      product = params.reduce(1) { |prod, n| prod *= n }
+
+      random_values = []
+      product.times { |i| random_values << rng.rand }
+      
+      dim = params.first
+
+      NMatrix.new(:dense, dim, random_values, :float64)
+    end
 
     # seq()
     #
@@ -116,41 +150,34 @@ class NMatrix
     #
     # Examples:
     #
-    #   seq(4) # =>   0   1   2   3
+    #   seq(2) # =>   0   1
+    #                 2   3
     #
-    #   seq(3,3, :float32) # =>  0.0  1.0  2.0
-    #                            3.0  4.0  5.0
-    #                            6.0  7.0  8.0
+    #   seq([3, 3], :float32) # =>  0.0  1.0  2.0
+    #                               3.0  4.0  5.0
+    #                               6.0  7.0  8.0
     #
+    
     def seq(*params)
       dtype = params.last.is_a?(Symbol) ? params.pop : nil
-
-      product = params.reduce(1) { |prod, n| prod *= n }
-
-      NMatrix.new(params,  (0..product-1).to_a, dtype )
-    end
-
-    # rand()
-    #
-    #     Creates a :dense NMatrix with random numbers between 0 and 1 generated
-    #     by Random::rand. The parameters to the method are the dimensions of the
-    #     matrix.
-    #
-    # Examples:
-    #
-    #   rand(3,3) # => 0.4859439730644226   0.1783195585012436
-    #                  0.23193766176700592  0.4503345191478729
-    #
-
-    def rand(*params)
-      rng = Random.new
-
-      product = params.reduce(1) { |prod, n| prod *= n }
-
-      random_values = []
-      product.times { |i| random_values << rng.rand }
-
-      NMatrix.new params, random_values, :float32
+      dim = params.first
+      
+      # Must provide the dimension as an Integer for a square matrix or as an
+      # 2 element array (e.g. [2,4]).
+      unless dim.is_a? Integer || (dim.is_a? Array && dim.size < 3)
+        raise "NMatrix::seq handles only n-by-n matrices."
+      end
+      
+      # Construct the values of the final matrix based on the dimension.
+      if dim.is_a? Integer
+        values = (0 .. (dim * dim - 1)).to_a
+      else
+        # Dimensions given by a 2 element array.
+        values = (0 .. (dim.first * dim.last - 1)).to_a
+      end
+      
+      # It'll produce :int32, except if a dtype is provided.
+      NMatrix.new(:dense, dim, values, dtype)
     end
 
     #########################################
@@ -174,21 +201,154 @@ class NMatrix
     #
 
     def indgen(n)
-      seq(n, :int32)
+      NMatrix.seq(n, :int32)
     end
 
     def findgen(n)
-      seq(n, :float32)
+      NMatrix.seq(n, :float32)
     end
 
     def bindgen(n)
-      seq(n, :byte)
+      NMatrix.seq(n, :byte)
     end
 
     def cindgen(n)
-      seq(n, :complex64)
+      NMatrix.seq(n, :complex64)
+    end
+  end
+end
+
+class NVector < NMatrix
+  
+  class << self
+    # zeros() or zeroes()
+    #
+    #     Creates a new matrix of zeros with the dimensions supplied as
+    #     parameters. Optional parameters include:
+    #
+    #     * A storage type as the first parameter (default is :dense).
+    #     * A dtype as the last parameter (default is :float64).
+    #
+    # Examples:
+    #
+    #   zeros(2) # =>  0.0   0.0   
+    #
+    #   zeros(3, :int32) # =>  0  0  0
+    #
+    
+    def zeros(*params)
+      dtype = params.last.is_a?(Symbol) ? params.pop : :float64
+      dim = params.first
+
+      NVector.new(dim, 0, dtype)
     end
 
+    alias :zeroes :zeros
+
+    # ones()
+    #
+    #     Creates a :dense matrix of ones with the dimensions supplied
+    #     as parameters. Optionaly, one can specify a dtype as the last
+    #     parameter (default is :float64).
+    #
+    # Examples:
+    #
+    #   ones(3) # =>  1.0   1.0   1.0
+    #
+    #   ones(2, :int32) # =>  1  1
+    #
+    
+    def ones(*params)
+      dtype = params.last.is_a?(Symbol) ? params.pop : :float64
+      dim = params.first
+
+      NVector.new(dim, 1, dtype)
+    end
+    
+    # random()
+    #
+    #     Creates a :dense NMatrix with random numbers between 0 and 1 generated
+    #     by Random::rand. The parameter is the dimension of the matrix.
+    #
+    # Examples:
+    #
+    #   rand(2) # => 0.4859439730644226   0.1783195585012436
+    #
+
+    def random(*params)
+      rng = Random.new
+
+      product = params.reduce(1) { |prod, n| prod *= n }
+
+      random_values = []
+      product.times { |i| random_values << rng.rand }
+      
+      dim = params.first
+
+      NVector.new(dim, random_values, :float64)
+    end
+
+    # seq()
+    #
+    #     Creates a :dense NMatrix with a sequence of integers starting at
+    #     zero until the matrix is filled. The parameters to the method
+    #     are the dimensions of the matrix. Optionaly, one can specify a
+    #     dtype as the last parameter (default is :float64).
+    #
+    # Examples:
+    #
+    #   seq(2) # =>   0   1
+    #
+    #   seq(3, :float32) # =>  0.0  1.0  2.0
+    #
+    
+    def seq(*params)
+      dtype = params.last.is_a?(Symbol) ? params.pop : nil
+      
+      # dim is assumed to be an Integer.
+      dim = params.first
+            
+      values = (0 .. (dim - 1)).to_a
+      
+      NVector.new(dim, values, dtype)
+    end
+
+    #########################################
+    # FUNCTIONS FOR MATLAB AND IDL REFUGEES #
+    #########################################
+
+    #
+    # These are functions that replicate existing functionality, but
+    # would probably be appreciated by MATLAB or IDL users.
+    #
+
+    # indgen() , findgen() , bindgen() , cindgen()
+    #
+    #      These IDL functions are similar to seq() but less flexible.
+    #      They produce one-dimensional vectors:
+    #
+    #      indgen    -- Integer vector   --   seq(n, :int32)
+    #      findgen   -- Float vector     --   seq(n, :float32)
+    #      bindgen   -- Byte vector      --   seq(n, :byte)
+    #      cindgen   -- Complex vector   --   seq(n, :complex64)
+    #
+
+    def indgen(n)
+      NVector.seq(n, :int32)
+    end
+
+    def findgen(n)
+      NVector.seq(n, :float32)
+    end
+
+    def bindgen(n)
+      NVector.seq(n, :byte)
+    end
+
+    def cindgen(n)
+      NVector.seq(n, :complex64)
+    end
+   
     # linspace()
     #
     #      This MATLAB function somewhat resembles seq(), but it differs
@@ -198,22 +358,30 @@ class NMatrix
     #
     #      linspace( a, b, n )
     #
-    #      This returns a vector with n values from a to b.
+    #      This returns a vector with n values equally spaced from a to b,
+    #      inclusive.
+    #      
+    #      Following the MATLAB implementation, if n isn't provided it's
+    #      assumed to be 100.
     #
     # Ex:  x = linspace(0, pi, 1000)
     #      y = sin(x)
     #
 
-    def linspace(a, b, nsteps)
-      #
-      # Algorithm:  seq(n) * (b-a)/(n-1) + a
-      #
-      step = (b-a) * 1.0 / (nsteps - 1)
-      seq(nsteps) * NMatrix.new([nsteps], step) + NMatrix.new([nsteps], a)
+    def linspace(a, b, n = 100)
+      # See: http://www.mathworks.com/help/matlab/ref/linspace.html
+      # Formula:  seq(n) * step + a
+      
+      # step = ((b - a) / (n - 1))
+      step = (b - a) * (1.0 / (n - 1))
+      
+      # dtype = :float64 is used to prevent integer coercion.
+      result = NVector.seq(n, :float64) * NVector.new(n, step, :float64)
+      result += NVector.new(n, a, :float64)
+      result
     end
   end
 end
-
 
 # NMatrix needs to have a succinct way to create a matrix by specifying
 # the components directly. This is very usefeul for using NMatrix as an
@@ -242,14 +410,13 @@ end
 #     SciRuby:      a = N[ [1,2,3], [4,5,6] ]
 #     Ruby array:   a =  [ [1,2,3], [4,5,6] ]
 #
+
 class N
   class << self
     def [](*params)
       dtype = params.last.is_a?(Symbol) ? params.pop : nil
 
-      #
       # First find the dimensions of the array.
-      #
       i = 0
       dim = []
       foo = params
@@ -259,10 +426,18 @@ class N
         i += 1
       end
 
-      #
       # Then flatten the array.
-      #
-      NMatrix.new( dim, params.flatten, dtype )
+      NMatrix.new(dim, params.flatten, dtype)
     end
+  end
+end
+
+# The module responsible for the shortcut handling
+class NMatrix
+  module Shortcuts
+    
+    # TODO Make all the shortcuts available through this module
+    # and considering whether the user wants a NMatrix or a NVector
+    # based on the dimension input.
   end
 end
