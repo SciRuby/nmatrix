@@ -129,14 +129,26 @@ class NMatrix
     #
 
     def random(*params)
+      dim = params.first
       rng = Random.new
 
-      product = params.reduce(1) { |prod, n| prod *= n }
+      # Must provide the dimension as an Integer for a square matrix or as an
+      # array, e.g. [2, 4, 7].
+      unless dim.is_a?(Integer) || dim.is_a?(Array)
+        raise ArgumentError, "random() accepts only integers or arrays as \
+dimension."
+      end
 
       random_values = []
-      product.times { |i| random_values << rng.rand }
       
-      dim = params.first
+      # Construct the values of the final matrix based on the dimension.
+      if dim.is_a?(Integer)
+        (dim * dim - 1).times { |i| random_values << rng.rand }
+      else
+        # Dimensions given by an array. Get the product of the array elements
+        # and generate this number of random values.
+        dim.reduce(1, :*).times { |i| random_values << rng.rand }
+      end
 
       NMatrix.new(:dense, dim, random_values, :float64)
     end
@@ -163,13 +175,14 @@ class NMatrix
       dim = params.first
       
       # Must provide the dimension as an Integer for a square matrix or as an
-      # 2 element array (e.g. [2,4]).
-      unless dim.is_a? Integer || (dim.is_a? Array && dim.size < 3)
-        raise "NMatrix::seq handles only n-by-n matrices."
+      # 2 element array, e.g. [2,4].
+      unless dim.is_a?(Integer) || (dim.is_a?(Array) && dim.size < 3)
+        raise ArgumentError, "seq() accepts only integers or 2-element arrays \
+as dimension."
       end
       
       # Construct the values of the final matrix based on the dimension.
-      if dim.is_a? Integer
+      if dim.is_a?(Integer)
         values = (0 .. (dim * dim - 1)).to_a
       else
         # Dimensions given by a 2 element array.
@@ -214,6 +227,41 @@ class NMatrix
 
     def cindgen(n)
       NMatrix.seq(n, :complex64)
+    end
+  
+  end
+
+  #
+  # These shortcuts are to be called directly from a NMatrix object, i.e.:
+  #
+  # >> m = NMatrix.random(3)
+  # >> m.column(2)
+  #
+
+  # column()
+  #
+  #     Returns the column specified. The second parameter defaults to
+  #     :copy, which returns a copy of the selected column, but it can be
+  #     specified as :reference, which will return a reference to it.
+  #
+  # Examples:
+  #
+  #   m = NMatrix.new(2, [1, 4, 9, 14], :int32) # =>  1   4
+  #                                                   9  14
+  #   
+  #   m.column(1) # =>   4
+  #                     14
+  #
+    
+  def column(column_number, get_by = :copy)
+    unless [:copy, :reference].include?(get_by)
+      raise ArgumentError, "column() 2nd parameter must be :copy or :reference"
+    end
+    
+    if get_by == :copy
+      self.slice(0 ... self.shape[0], column_number)
+    else # by reference
+      self[0 ... self.shape[0], column_number]
     end
   end
 end
@@ -277,14 +325,11 @@ class NVector < NMatrix
 
     def random(*params)
       rng = Random.new
-
-      product = params.reduce(1) { |prod, n| prod *= n }
-
-      random_values = []
-      product.times { |i| random_values << rng.rand }
-      
       dim = params.first
 
+      random_values = []
+      dim.times { |i| random_values << rng.rand }
+      
       NVector.new(dim, random_values, :float64)
     end
 
@@ -304,9 +349,12 @@ class NVector < NMatrix
     
     def seq(*params)
       dtype = params.last.is_a?(Symbol) ? params.pop : nil
-      
-      # dim is assumed to be an Integer.
       dim = params.first
+      
+      unless dim.is_a?(Integer)
+        raise ArgumentError, "NVector::seq() only accepts integers as \
+dimension."
+      end
             
       values = (0 .. (dim - 1)).to_a
       
@@ -432,12 +480,7 @@ class N
   end
 end
 
-# The module responsible for the shortcut handling
-class NMatrix
-  module Shortcuts
-    
-    # TODO Make all the shortcuts available through this module
-    # and considering whether the user wants a NMatrix or a NVector
-    # based on the dimension input.
-  end
-end
+# TODO Make all the shortcuts available through modules, allowing someone
+# to include them to make "MATLAB-like" scripts.
+#
+# There are some questions to be answered before this can be done, tho.

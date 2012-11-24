@@ -22,7 +22,7 @@
 #
 # == shortcuts_spec.rb
 #
-# Basic tests for the shortcuts used in NMatrix and NVector.
+# Specs for the shortcuts used in NMatrix and in NVector.
 #
 
 # Can we use require_relative here instead?
@@ -52,37 +52,61 @@ describe NMatrix do
   end
   
   it "random() creates a matrix of random numbers" do
-    m = NMatrix.random(3)
+    m = NMatrix.random(2)
+    
     m.stype.should == :dense
     m.dtype.should == :float64
   end
   
   it "seq() creates a matrix of integers, sequentially" do
-    m = NMatrix.seq(2)
-    i = 0
+    m = NMatrix.seq(2) # 2x2 matrix.
+    value = 0
     
-    m.each do |elem|
-      elem.should == i
-      i += 1
+    2.times do |i|
+      2.times do |j|
+        m[i, j].should == value
+        value += 1
+      end
     end
   end
   
+  it "seq() only accepts an integer or a 2-element array as dimension" do
+    expect { NMatrix.seq([1, 2, 3]) }.to raise_error
+    expect { NMatrix.seq("not an array or integer") }.to raise_error
+  end
+  
+  it "column() returns a NMatrix" do
+    m = NMatrix.random(3)
+    
+    m.column(2).is_a?(NMatrix).should be_true
+  end
+  
+  it "column() accepts a second parameter (only :copy or :reference)" do
+    m = NMatrix.random(3)
+    
+    expect { m.column(1, :copy) }.to_not raise_error
+    expect { m.column(1, :reference) }.to_not raise_error
+    
+    expect { m.column(1, :derp) }.to raise_error
+  end
 end
 
 describe "NVector" do
       
   it "zeros() creates a vector of zeros" do
     v = NVector.zeros(4)
-    u = NVector.new(4, 0)
     
-    v.should.eql? u
+    4.times do |i|
+      v[i].should == 0
+    end
   end
   
   it "ones() creates a vector of ones" do
     v = NVector.ones(3)
-    u = NVector.new(3, 1)
     
-    v.should.eql? u
+    3.times do |i|
+      v[i].should == 1
+    end
   end
   
   it "random() creates a vector of random numbers" do
@@ -101,6 +125,13 @@ describe "NVector" do
     end
   end
   
+  it "seq() only accepts integers as dimension" do
+    expect { NVector.seq(3) }.to_not raise_error
+
+    expect { NVector.seq([1, 3]) }.to raise_error
+    expect { NVector.seq(:wtf) }.to raise_error
+  end
+  
   it "linspace() creates a vector with n values equally spaced between a and b" do
     v = NVector.linspace(0, 2, 5)
     i = 0
@@ -109,8 +140,7 @@ describe "NVector" do
       elem.should == i * 0.5
       i += 1
     end
-  end
-  
+  end  
 end
 
 describe "Inline constructor" do
