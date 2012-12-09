@@ -86,6 +86,14 @@ class NMatrix
 	end
 	alias :pp :pretty_print
 
+  # These shortcuts use #shape to return the number of rows and columns.
+  def rows
+    shape[0]
+  end
+  
+  def cols
+    shape[1]
+  end
 
   # Use LAPACK to calculate the inverse of the matrix (in-place). Only works on dense matrices.
   #

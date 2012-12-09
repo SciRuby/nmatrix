@@ -288,6 +288,11 @@ describe NMatrix do
         NMatrix.new(storage_type, [3,2,8], 0).shape.should == [3,2,8]
         NMatrix.new(storage_type, [3,2,8], 0).dim.should  == 3
       end
+      
+      it "returns number of rows and columns" do
+        NMatrix.new(storage_type, [7, 4], 3).rows.should == 7
+        NMatrix.new(storage_type, [7, 4], 3).cols.should == 4
+      end
     end unless storage_type == :yale
   end
 
