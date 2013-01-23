@@ -58,6 +58,16 @@ describe NMatrix do
     m.dtype.should == :float64
   end
   
+  it "random() only accepts an integer or an array as dimension" do
+    m = NMatrix.random([2, 2])
+    
+    m.stype.should == :dense
+    m.dtype.should == :float64
+
+    expect { NMatrix.random(2.0) }.to raise_error
+    expect { NMatrix.random("not an array or integer") }.to raise_error
+  end
+ 
   it "seq() creates a matrix of integers, sequentially" do
     m = NMatrix.seq(2) # 2x2 matrix.
     value = 0
@@ -69,12 +79,71 @@ describe NMatrix do
       end
     end
   end
-  
+
   it "seq() only accepts an integer or a 2-element array as dimension" do
+    m = NMatrix.seq([2, 2])
+    value = 0
+    
+    2.times do |i|
+      2.times do |j|
+        m[i, j].should == value
+        value += 1
+      end
+    end
+
     expect { NMatrix.seq([1, 2, 3]) }.to raise_error
     expect { NMatrix.seq("not an array or integer") }.to raise_error
   end
   
+  it "indgen() creates a matrix of integers as well as seq()" do
+    m = NMatrix.indgen(2) # 2x2 matrix.
+    value = 0
+    
+    2.times do |i|
+      2.times do |j|
+        m[i, j].should == value
+        value += 1
+      end
+    end
+  end
+
+  it "findgen creates a matrix of floats, sequentially" do
+    m = NMatrix.findgen(2) # 2x2 matrix.
+    value = 0
+    
+    2.times do |i|
+      2.times do |j|
+        (m[i, j]/10).should be_within(Float::EPSILON).of(value.to_f/10)
+        value += 1
+      end
+    end
+  end
+ 
+  it "bindgen() creates a matrix of bytes" do
+    m = NMatrix.bindgen(2) # 2x2 matrix.
+    value = 0
+    
+    2.times do |i|
+      2.times do |j|
+        m[i, j].should == value
+        value += 1
+      end
+    end
+  end
+
+  it "cindgen() creates a matrix of complexes" do
+    m = NMatrix.cindgen(2) # 2x2 matrix.
+    value = 0
+    
+    2.times do |i|
+      2.times do |j|
+        m[i, j].real.should be_within(Float::EPSILON).of(value)
+        m[i, j].imag.should be_within(Float::EPSILON).of(0.0)
+        value += 1
+      end
+    end
+  end
+
   it "column() returns a NMatrix" do
     m = NMatrix.random(3)
     
@@ -110,7 +179,7 @@ describe "NVector" do
   end
   
   it "random() creates a vector of random numbers" do
-    v = NVector.zeros(4)
+    v = NVector.random(4)
     v.dtype.should == :float64
     v.stype.should == :dense
   end
@@ -132,6 +201,46 @@ describe "NVector" do
     expect { NVector.seq(:wtf) }.to raise_error
   end
   
+  it "indgen() creates a vector of integers as well as seq()" do
+    v = NVector.indgen(7)
+    i = 0 
+
+    v.each do |elem|
+      elem.should == i
+      i += 1
+    end
+  end
+
+  it "findgen creates a vector of floats, sequentially" do
+    v = NVector.findgen(2)
+    
+    2.times do |i|
+      (v[i]/10).should be_within(Float::EPSILON).of(i.to_f/10)
+    end
+  end
+ 
+  it "bindgen() creates a vector of bytes, sequentially" do
+    v = NVector.bindgen(7)
+    i = 0
+
+    v.each do |elem|
+      elem.should == i
+      i += 1
+    end
+  end
+
+  it "cindgen() creates a vector of complexes, sequentially" do
+    v = NVector.cindgen(2)
+    value = 0
+    
+    2.times do |i|
+      v[i].real.should be_within(Float::EPSILON).of(value)
+      v[i].imag.should be_within(Float::EPSILON).of(0.0)
+      value += 1
+    end
+  end
+
+
   it "linspace() creates a vector with n values equally spaced between a and b" do
     v = NVector.linspace(0, 2, 5)
     i = 0
