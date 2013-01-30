@@ -39,5 +39,59 @@ describe NVector do
     v[0] = 1.555
     v[0].should == 1.555
   end
+  
+  it "transpose() changes raw and coloumn stored structure" do
+    v = NVector.new 5, :float64
+    v = v.transpose
+    v.shape[0].should == 1
+    v.shape[1].should == 5
+    v[0] = 1.555
+    v[0].should == 1.555
+  end
 
+  it "transpose!() changes destructively its raw and column stored structure" do
+    v = NVector.new 5, :float64
+    v.transpose!
+    v.shape[0].should == 1
+    v.shape[1].should == 5
+  end
+
+  it "multiply() multiples itself by another NVector" do
+    v1 = NVector.new 2, :float64
+    v2 = NVector.new 2, :float64
+    v1[0] = 1.5
+    v1[1] = 2.3
+    v2[0] = 1.3
+    v2[1] = 2.5
+    v1.multiply(v2).should == 12.0
+  end
+
+  it "multiply!() multiples destructively itself by another NVector" do
+    v1 = NVector.new 2, :float64
+    v2 = NVector.new 2, :float64
+    v1[0] = 1.5
+    v1[1] = 2.3
+    v2[0] = 1.3
+    v2[1] = 2.5
+    v1.multiply!(v2)
+    v1.should == 12.0
+  end
+
+  it "pretty_print() prints values to standard output with a pretty format" do
+    v = NVector.new(5, 0)
+    $stdout = StringIO.new
+    v.pretty_print
+    out = $stdout.string
+    $stdout = STDOUT
+    out.should == "0  0  0  0  0\n"
+  end
+
+  it "inspect() formats the output with inspected, namely human readable format" do
+    v = NVector.new(5, 0)
+    $stdout = StringIO.new
+    p v
+    out = $stdout.string
+    $stdout = STDOUT
+    out.should == "0  0  0  0  0\n"
+  end
 end
