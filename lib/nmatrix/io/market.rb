@@ -1,3 +1,4 @@
+#--
 # = NMatrix
 #
 # A linear algebra library for scientific computation in Ruby.
@@ -24,6 +25,8 @@
 #
 # MatrixMarket reader and writer.
 #
+#++
+
 module NMatrix::IO::Market
   CONVERTER_AND_DTYPE = {
       :real => [:to_f, :float64],
@@ -38,8 +41,17 @@ module NMatrix::IO::Market
   }
 
   class << self
+    #
+    # call-seq:
+    #     load(filename) -> 
+    #
+    # * *Arguments* :
+    #   - +filename+ -> String with the filename to be saved.
+    # * *Raises* :
+    #   - +IOError+ -> expected type code line beginning with '%%MatrixMarket matrix'
+    #
     # Load a MatrixMarket file. Requires a filename as an argument.
-    def load filename
+    def load(filename)
 
       f = File.new(filename, "r")
 
@@ -60,10 +72,22 @@ module NMatrix::IO::Market
       end
     end
 
-
-    # Can optionally set :symmetry to :general, :symmetric, :hermitian; and can set :pattern => true if you're writing
-    # a sparse matrix and don't want values stored.
-    def save matrix, filename, options = {}
+    #
+    # call-seq:
+    #     save(matrix, filename, options = {}) -> true
+    #
+    # Can optionally set :symmetry to :general, :symmetric, :hermitian; and can
+    # set :pattern => true if you're writing a sparse matrix and don't want
+    # values stored.
+    #
+    # * *Arguments* :
+    #   - +matrix+ -> NMatrix with the data to be saved.
+    #   - +filename+ -> String with the filename to be saved.
+    # * *Raises* :
+    #   - +DataTypeError+ -> MatrixMarket does not support rational or Ruby objects.
+    #   - +ArgumentError+ -> Expected two-dimensional NMatrix.
+    #
+    def save(matrix, filename, options = {})
       options = {:pattern => false,
                  :symmetry => :general}.merge(options)
 

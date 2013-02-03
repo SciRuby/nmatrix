@@ -29,7 +29,7 @@ require "mkmf"
 
 
 # Function derived from NArray's extconf.rb.
-def have_type(type, header=nil)
+def have_type(type, header=nil) #:nodoc:
   printf "checking for %s... ", type
   STDOUT.flush
 
@@ -60,7 +60,7 @@ SRC
 end
 
 # Function derived from NArray's extconf.rb.
-def create_conf_h(file)
+def create_conf_h(file) #:nodoc:
   print "creating #{file}\n"
   File.open(file, 'w') do |hfile|
   	header_guard = file.upcase.sub(/\s|\./, '_')
@@ -138,7 +138,7 @@ $objs = %w{nmatrix ruby_constants data/data util/io util/math util/sl_list stora
 #CONFIG['CXX'] = 'clang++'
 CONFIG['CXX'] = 'g++'
 
-def find_newer_gplusplus
+def find_newer_gplusplus #:nodoc:
   [7,6,5,4,3].each do |minor|
     result = `which g++-4.#{minor}`
     next if result.empty?
@@ -148,7 +148,7 @@ def find_newer_gplusplus
   false
 end
 
-def gplusplus_version
+def gplusplus_version #:nodoc:
   `#{CONFIG['CXX']} -v 2>&1`.lines.to_a.last.match(/gcc\sversion\s(\d\.\d.\d)/).captures.first
 end
 

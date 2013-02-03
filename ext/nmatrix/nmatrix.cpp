@@ -23,9 +23,9 @@
 //
 // == nmatrix.cpp
 //
-// Main C++ source file for NMatrix. Contains Init_nmatrix and most Ruby instance and
-// class methods for NMatrix. Also responsible for calling Init methods on related
-// modules.
+// Main C++ source file for NMatrix. Contains Init_nmatrix and most Ruby
+// instance and class methods for NMatrix. Also responsible for calling Init
+// methods on related modules.
 
 /*
  * Standard Includes
@@ -44,6 +44,7 @@ extern "C" {
 /*
  * Project Includes
  */
+
 #include "types.h"
 #include "data/data.h"
 #include "util/math.h"
@@ -76,7 +77,6 @@ extern "C" {
 /*
  * Global Variables
  */
-
 
 namespace nm {
 
@@ -144,7 +144,6 @@ namespace nm {
     return bytes_written;
   }
 
-
   /*
    * We need to specialize for Hermitian matrices. The next six functions accomplish that specialization, basically
    * by ensuring that non-complex matrices cannot read or write hermitians (which would cause big problems).
@@ -186,7 +185,6 @@ namespace nm {
       }
     }
   }
-
 
   /*
    * Read the elements of a dense storage matrix from a binary file, padded to 64-bits.
@@ -259,8 +257,6 @@ namespace nm {
     if (bytes_read % 8) f.ignore(bytes_read % 8);
   }
 
-
-
   template <typename DType, typename IType>
   void write_padded_yale_elements(std::ofstream& f, YALE_STORAGE* storage, size_t length, nm::symm_t symm) {
     if (symm != nm::NONSYMM) rb_raise(rb_eNotImpError, "Yale matrices can only be read/written in full form");
@@ -298,8 +294,6 @@ namespace nm {
 
     f.read(reinterpret_cast<char*>(&padding), bytes_read % 8);
   }
-
-
 
   /*
    * Write the elements of a dense storage matrix to a binary file, padded to 64-bits.
@@ -339,7 +333,6 @@ namespace nm {
   }
 
 } // end of namespace nm
-
 
 extern "C" {
 
@@ -429,15 +422,54 @@ static VALUE nm_upcast(VALUE self, VALUE t1, VALUE t2);
 static double get_time(void);
 #endif
 
-/*
- * Functions
- */
-
 ///////////////////
 // Ruby Bindings //
 ///////////////////
 
 void Init_nmatrix() {
+	
+	#ifdef 0
+		rb_define_singleton_method(cNMatrix, "upcast", nm_upcast, 2);
+		rb_define_singleton_method(cNMatrix, "itype_by_shape", nm_itype_by_shape, 1);	
+		rb_define_method(cNMatrix, "initialize", nm_init, -1);
+		rb_define_method(cNMatrix, "initialize_copy", nm_init_copy, 1);
+		rb_define_method(cNMatrix, "transpose", nm_init_transposed, 0);
+		rb_define_method(cNMatrix, "dtype", nm_dtype, 0);
+		rb_define_method(cNMatrix, "itype", nm_itype, 0);
+		rb_define_method(cNMatrix, "stype", nm_stype, 0);
+		rb_define_method(cNMatrix, "cast",  nm_init_cast_copy, 2);
+		rb_define_method(cNMatrix, "[]", nm_mref, -1);
+		rb_define_method(cNMatrix, "slice", nm_mget, -1);
+		rb_define_method(cNMatrix, "[]=", nm_mset, -1);
+		rb_define_method(cNMatrix, "is_ref?", nm_is_ref, 0);
+		rb_define_method(cNMatrix, "dimensions", nm_dim, 0);
+		rb_define_method(cNMatrix, "to_hash", nm_to_hash, 0);
+		rb_define_alias(cNMatrix,  "to_h",    "to_hash");
+		rb_define_method(cNMatrix, "shape", nm_shape, 0);
+		rb_define_method(cNMatrix, "det_exact", nm_det_exact, 0);
+		//rb_define_method(cNMatrix, "transpose!", nm_transpose_self, 0);
+		rb_define_method(cNMatrix, "complex_conjugate!", nm_complex_conjugate_bang, 0);
+		rb_define_method(cNMatrix, "each", nm_each, 0);
+		rb_define_method(cNMatrix, "==",	  nm_eqeq,				1);
+		rb_define_method(cNMatrix, "+",			nm_ew_add,			1);
+		rb_define_method(cNMatrix, "-",			nm_ew_subtract,	1);
+	  rb_define_method(cNMatrix, "*",			nm_ew_multiply,	1);
+		rb_define_method(cNMatrix, "/",			nm_ew_divide,		1);
+	  //rb_define_method(cNMatrix, "%",			nm_ew_mod,			1);
+		rb_define_method(cNMatrix, "=~", nm_ew_eqeq, 1);
+		rb_define_method(cNMatrix, "!~", nm_ew_neq, 1);
+		rb_define_method(cNMatrix, "<=", nm_ew_leq, 1);
+		rb_define_method(cNMatrix, ">=", nm_ew_geq, 1);
+		rb_define_method(cNMatrix, "<", nm_ew_lt, 1);
+		rb_define_method(cNMatrix, ">", nm_ew_gt, 1);
+		rb_define_method(cNMatrix, "dot",		nm_multiply,		1);
+		rb_define_method(cNMatrix, "factorize_lu", nm_factorize_lu, 0);
+		rb_define_method(cNMatrix, "symmetric?", nm_symmetric, 0);
+		rb_define_method(cNMatrix, "hermitian?", nm_hermitian, 0);
+		rb_define_method(cNMatrix, "capacity", nm_capacity, 0);
+		rb_define_alias(cNMatrix, "dim", "dimensions");
+		rb_define_alias(cNMatrix, "equal?", "eql?");
+	#endif
 	
 	///////////////////////
 	// Class Definitions //
@@ -447,8 +479,16 @@ void Init_nmatrix() {
 	cNVector = rb_define_class("NVector", cNMatrix);
 	
 	// Special exceptions
-	nm_eDataTypeError    = rb_define_class("DataTypeError",			rb_eStandardError);
-	nm_eStorageTypeError = rb_define_class("StorageTypeError",	rb_eStandardError);
+	
+	/*
+	 * Exception raised when there's a problem with data.
+	 */
+	nm_eDataTypeError    = rb_define_class("DataTypeError", rb_eStandardError);
+	
+	/*
+	 * Exception raised when something goes wrong with the storage of a matrix.
+	 */
+	nm_eStorageTypeError = rb_define_class("StorageTypeError", rb_eStandardError);
 
 	///////////////////
 	// Class Methods //
@@ -574,8 +614,6 @@ static VALUE nm_alloc(VALUE klass) {
   return Data_Wrap_Struct(klass, NULL, nm_delete, mat);
 }
 
-
-
 /*
  * Find the capacity of an NMatrix. The capacity only differs from the size for
  * Yale matrices, which occasionally allocate more space than they need. For
@@ -629,17 +667,22 @@ static void nm_delete_ref(NMATRIX* mat) {
 }
 
 /*
+ * call-seq:
+ *     dtype -> Symbol
+ *
  * Get the data type (dtype) of a matrix, e.g., :byte, :int8, :int16, :int32,
  * :int64, :float32, :float64, :complex64, :complex128, :rational32,
- * :rational64, :rational128, or :object (the last is a Ruby object).
+ * :rational64, :rational128, or :object (a Ruby object).
  */
 static VALUE nm_dtype(VALUE self) {
   ID dtype = rb_intern(DTYPE_NAMES[NM_DTYPE(self)]);
   return ID2SYM(dtype);
 }
 
-
 /*
+ * call-seq:
+ *     itype -> Symbol or nil
+ *
  * Get the index data type (dtype) of a matrix. Defined only for yale; others return nil.
  */
 static VALUE nm_itype(VALUE self) {
@@ -649,7 +692,6 @@ static VALUE nm_itype(VALUE self) {
   }
   return Qnil;
 }
-
 
 /*
  * Get the index data type (dtype) of a matrix. Defined only for yale; others return nil.
@@ -665,8 +707,10 @@ static VALUE nm_itype_by_shape(VALUE self, VALUE shape_arg) {
   return ID2SYM(itype_id);
 }
 
-
 /*
+ * call-seq:
+ *     upcast(first_dtype, second_dtype) ->
+ *
  * Given a binary operation between types t1 and t2, what type will be returned?
  *
  * This is a singleton method on NMatrix, e.g., NMatrix.upcast(:int32, :int64)
@@ -678,7 +722,6 @@ static VALUE nm_upcast(VALUE self, VALUE t1, VALUE t2) {
 
   return ID2SYM(rb_intern( DTYPE_NAMES[ Upcast[d1][d2] ] ));
 }
-
 
 /*
  * Each: Yield objects directly (suitable only for a dense matrix of Ruby objects).
@@ -710,7 +753,6 @@ static VALUE nm_dense_each_indirect(VALUE nm) {
   return nm;
 }
 
-
 /*
  * Borrowed this function from NArray. Handles 'each' iteration on a dense
  * matrix.
@@ -734,8 +776,10 @@ static VALUE nm_dense_each(VALUE nmatrix) {
   }
 }
 
-
 /*
+ * call-seq:
+ *     each -> 
+ *
  * Iterate over the matrix as you would an Enumerable (e.g., Array).
  *
  * Currently only works for dense.
@@ -750,8 +794,6 @@ static VALUE nm_each(VALUE nmatrix) {
     rb_raise(rb_eNotImpError, "only dense matrix's each method works right now");
   }
 }
-
-
 
 /*
  * Equality operator. Returns a single true or false value indicating whether
@@ -803,6 +845,9 @@ DEF_ELEMENTWISE_RUBY_ACCESSOR(LT, lt)
 DEF_ELEMENTWISE_RUBY_ACCESSOR(GT, gt)
 
 /*
+ * call-seq:
+ *     hermitian? -> Boolean
+ *
  * Is this matrix hermitian?
  *
  * Definition: http://en.wikipedia.org/wiki/Hermitian_matrix
@@ -814,6 +859,9 @@ static VALUE nm_hermitian(VALUE self) {
 }
 
 /*
+ * call-seq:
+ * complex_conjugate -> NMatrix
+ *
  * Transform the matrix (in-place) to its complex conjugate. Only works on complex matrices.
  *
  * FIXME: For non-complex matrices, someone needs to implement a non-in-place complex conjugate (which doesn't use a bang).
@@ -860,7 +908,6 @@ static VALUE nm_complex_conjugate_bang(VALUE self) {
   return self;
 }
 
-
 /*
  * Helper function for creating a matrix. You have to create the storage and pass it in, but you don't
  * need to worry about deleting it.
@@ -875,6 +922,9 @@ NMATRIX* nm_create(nm::stype_t stype, STORAGE* storage) {
 }
 
 /*
+ * call-seq:
+ *     new -> NMatrix
+ *
  * Create a new NMatrix.
  *
  * There are several ways to do this. At a minimum, dimensions and either a dtype or initial values are needed, e.g.,
@@ -1007,8 +1057,10 @@ static VALUE nm_init(int argc, VALUE* argv, VALUE nm) {
   return nm;
 }
 
-
 /*
+ * call-seq:
+ *     to_hash -> Hash
+ * 
  * Create a Ruby Hash from an NMatrix.
  *
  * Currently only works for list storage.
@@ -1020,7 +1072,6 @@ static VALUE nm_to_hash(VALUE self) {
 
   return nm_list_storage_to_hash(NM_STORAGE_LIST(self), NM_DTYPE(self));
 }
-
 
 /*
  * Copy constructor for changing dtypes and stypes.
@@ -1046,7 +1097,6 @@ static VALUE nm_init_cast_copy(VALUE self, VALUE new_stype_symbol, VALUE new_dty
   return Data_Wrap_Struct(CLASS_OF(self), mark[lhs->stype], nm_delete, lhs);
 }
 
-
 /*
  * Copy constructor for transposing.
  */
@@ -1065,7 +1115,6 @@ static VALUE nm_init_transposed(VALUE self) {
 
   return Data_Wrap_Struct(CLASS_OF(self), mark[lhs->stype], nm_delete, lhs);
 }
-
 
 /*
  * Copy constructor for no change of dtype or stype (used for #initialize_copy hook).
@@ -1088,7 +1137,6 @@ static VALUE nm_init_copy(VALUE copy, VALUE original) {
 
   return copy;
 }
-
 
 /*
  * Get major, minor, and release components of NMatrix::VERSION. Store in function parameters.
@@ -1402,9 +1450,10 @@ static VALUE nm_is_ref(VALUE self) {
   return Qfalse;
 }
 
-
-
 /*
+ * call-seq:
+ *     slice -> ...
+ *
  * Access the contents of an NMatrix at given coordinates, using copying.
  *
  *     n.slice(3,3)  # => 5.0
@@ -1422,6 +1471,9 @@ static VALUE nm_mget(int argc, VALUE* argv, VALUE self) {
 }
 
 /*
+ * call-seq:
+ *     matrix[indexes] -> ...
+ *
  * Access the contents of an NMatrix at given coordinates by reference.
  *
  *     n[3,3]  # => 5.0
@@ -1528,9 +1580,10 @@ static VALUE nm_multiply(VALUE left_v, VALUE right_v) {
   return Qnil;
 }
 
-
-
 /*
+ * call-seq:
+ *     matrix.factorize_lu -> ...
+ *
  * LU factorization of a matrix.
  *
  * FIXME: For some reason, getrf seems to require that the matrix be transposed first -- and then you have to transpose the
@@ -1573,6 +1626,9 @@ static VALUE nm_factorize_lu(VALUE self) {
 }
 
 /*
+ * call-seq:
+ *     dim -> Integer
+ *
  * Get the number of dimensions of a matrix.
  *
  * In other words, if you set your matrix to be 3x4, the dim is 2. If the
@@ -1586,6 +1642,9 @@ static VALUE nm_dim(VALUE self) {
 }
 
 /*
+ * call-seq:
+ *     shape -> Array
+ *
  * Get the shape (dimensions) of a matrix.
  */
 static VALUE nm_shape(VALUE self) {
@@ -1601,6 +1660,9 @@ static VALUE nm_shape(VALUE self) {
 }
 
 /*
+ * call-seq:
+ *     stype -> Symbol
+ *
  * Get the storage type (stype) of a matrix, e.g., :yale, :dense, or :list.
  */
 static VALUE nm_stype(VALUE self) {
@@ -1609,6 +1671,9 @@ static VALUE nm_stype(VALUE self) {
 }
 
 /*
+ * call-seq:
+ *     symmetric? -> Boolean
+ *
  * Is this matrix symmetric?
  */
 static VALUE nm_symmetric(VALUE self) {
@@ -1711,8 +1776,6 @@ static VALUE elementwise_op(nm::ewop_t op, VALUE left_val, VALUE right_val) {
 	return Data_Wrap_Struct(cNMatrix, mark[result->stype], nm_delete, result);
 }
 
-
-
 /*
  * Check to determine whether matrix is a reference to another matrix.
  */
@@ -1750,7 +1813,6 @@ static VALUE is_symmetric(VALUE self, bool hermitian) {
 
   return Qfalse;
 }
-
 
 ///////////////////////
 // Utility Functions //
@@ -1996,11 +2058,9 @@ static nm::stype_t interpret_stype(VALUE arg) {
   }
 }
 
-
 //////////////////
 // Math Helpers //
 //////////////////
-
 
 STORAGE* matrix_storage_cast_alloc(NMATRIX* matrix, nm::dtype_t new_dtype) {
   if (matrix->storage->dtype == new_dtype && !is_ref(matrix))
@@ -2009,7 +2069,6 @@ STORAGE* matrix_storage_cast_alloc(NMATRIX* matrix, nm::dtype_t new_dtype) {
   STYPE_CAST_COPY_TABLE(cast_copy_storage);
   return cast_copy_storage[matrix->stype][matrix->stype](matrix->storage, new_dtype);
 }
-
 
 STORAGE_PAIR binary_storage_cast_alloc(NMATRIX* left_matrix, NMATRIX* right_matrix) {
   STORAGE_PAIR casted;
@@ -2020,7 +2079,6 @@ STORAGE_PAIR binary_storage_cast_alloc(NMATRIX* left_matrix, NMATRIX* right_matr
 
   return casted;
 }
-
 
 static VALUE matrix_multiply_scalar(NMATRIX* left, VALUE scalar) {
   rb_raise(rb_eNotImpError, "matrix-scalar multiplication not implemented yet");
@@ -2070,10 +2128,6 @@ static VALUE matrix_multiply(NMATRIX* left, NMATRIX* right) {
   return Qnil; // Only if we try to multiply list matrices should we return Qnil.
 }
 
-
-
-
-
 /*
  * Calculate the exact determinant of a dense matrix.
  *
@@ -2093,13 +2147,9 @@ static VALUE nm_det_exact(VALUE self) {
   return rubyobj_from_cval(result, NM_DTYPE(self)).rval;
 }
 
-
-
-
 /////////////////
 // Exposed API //
 /////////////////
-
 
 /*
  * Create a dense matrix. Used by the NMatrix GSL fork. Unlike nm_create, this one copies all of the
@@ -2142,7 +2192,6 @@ VALUE rb_nmatrix_dense_create(nm::dtype_t dtype, size_t* shape, size_t dim, void
   return Data_Wrap_Struct(klass, nm_dense_storage_mark, nm_dense_storage_delete, nm);
 }
 
-
 /*
  * Create a dense vector. Used by the NMatrix GSL fork.
  *
@@ -2158,4 +2207,3 @@ VALUE rb_nvector_dense_create(nm::dtype_t dtype, void* elements, size_t length) 
 }
 
 } // end of extern "C"
-

@@ -51,16 +51,9 @@
 		rb_raise(rb_eTypeError, "Expected NMatrix on left-hand side of operation.");
 
 /*
- * Types
- */
-
-/*
- * Data
- */
-
-/*
  * Classes and Functions
  */
+
 namespace nm {
 template<typename T, typename U>
 struct made_from_same_template : std::false_type {}; 

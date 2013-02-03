@@ -22,7 +22,7 @@
 #
 # == slec_spec.rb
 #
-# Test of slice operations. 
+# Test of slice operations.
 #
 require File.dirname(__FILE__) + "/spec_helper.rb"
 
@@ -239,7 +239,7 @@ describe "Slice operation" do
   end
 
   # Stupid but independent comparison
-  def nm_eql(n, m)
+  def nm_eql(n, m) #:nodoc:
     if n.shape != m.shape
       false
     else

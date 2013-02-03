@@ -35,18 +35,6 @@
 #include <ruby.h>
 
 /*
- * Project Includes
- */
-
-/*
- * Macros
- */
-
-/*
- * Types
- */
-
-/*
  * Data
  */
 

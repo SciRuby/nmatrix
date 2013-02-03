@@ -34,7 +34,7 @@ COMPLEX_MATRIX32A_ARRAY = MATRIX32A_ARRAY.zip(MATRIX32A_ARRAY.reverse).collect {
 RATIONAL_MATRIX43A_ARRAY = MATRIX43A_ARRAY.collect { |x| x.to_r }
 RATIONAL_MATRIX32A_ARRAY = MATRIX32A_ARRAY.collect { |x| x.to_r }
 
-def create_matrix(stype)
+def create_matrix(stype) #:nodoc:
   m = NMatrix.new(stype, [3,3], 0, :int32)
 
   m[0,0] = 0

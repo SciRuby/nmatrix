@@ -1,3 +1,4 @@
+#--
 # = NMatrix
 #
 # A linear algebra library for scientific computation in Ruby.
@@ -24,12 +25,14 @@
 #
 # Matlab version 5 .mat file reader (and eventually writer too).
 #
+#++
 
-
-require_relative 'mat_reader.rb'
+require_relative './mat_reader.rb'
 
 module NMatrix::IO::Matlab
+  #
 	# Reader (and eventual writer) for a version 5 .mat file.
+  #
 	class Mat5Reader < MatReader
 		attr_reader :file_header, :first_tag_field, :first_data_field
 
@@ -39,6 +42,15 @@ module NMatrix::IO::Matlab
 
       attr_reader :byte_order
 
+      #
+      # call-seq:
+      #     new(stream = nil, byte_order = nil, content_or_bytes = nil) -> Mat5Reader::Compressed
+      #
+      # * *Arguments* :
+      #   - ++ -> 
+      # * *Raises* :
+      #   - ++ -> 
+      #
       def initialize(stream = nil, byte_order = nil, content_or_bytes = nil)
         @stream			= stream
         @byte_order	= byte_order
@@ -53,30 +65,64 @@ module NMatrix::IO::Matlab
         end
       end
 
+      #
+      # call-seq:
+      #     compressed -> 
+      #
       def compressed
         require "zlib"
         # [2..-5] removes headers
         @compressed ||= Zlib::Deflate.deflate(content)
       end
 
+      #
+      # call-seq:
+      #     content -> 
+      #
       def content
         @content ||= extract
       end
 
+      #
+      # call-seq:
+      #     padded_bytes ->
+      #
       def padded_bytes
         @padded_bytes ||= content.size % 4 == 0 ? content.size : (content.size / 4 + 1) * 4
       end
 
-      def write_packed(packedio, options)
+      #
+      # call-seq:
+      #     write_packed(packedio, options = {}) -> 
+      #
+      # * *Arguments* :
+      #   - ++ -> 
+      # * *Returns* :
+      #   -
+      #
+      def write_packed(packedio, options = {})
         packedio << [compressed, {:bytes => padded_bytes}.merge(options)]
       end
 
+      #
+      # call-seq:
+      #     read_packed(packedio, options = {}) -> 
+      #
+      # * *Arguments* :
+      #   - ++ -> 
+      # * *Returns* :
+      #   -
+      #
       def read_packed(packedio, options)
         @compressed = (packedio >> [String, options]).first
         content
       end
 
       protected
+      #
+      # call-seq:
+      #     extract -> 
+      #
       def extract
         require 'zlib'
 
@@ -97,19 +143,36 @@ module NMatrix::IO::Matlab
     class MatrixData < MatrixDataStruct
       include Packable
 
+      #
+      # call-seq:
+      #     write_packed(packedio, options) -> 
+      #
+      # * *Arguments* :
+      #   - ++ -> 
+      # * *Returns* :
+      #   -
+      #
       def write_packed(packedio, options)
         raise NotImplementedError
         packedio << [info, {:bytes => padded_bytes}.merge(options)]
       end
 
-      # Figure out the appropriate Ruby type to convert to, and do it. There are basically two possible types: NMatrix
-      # and Ruby Array. This function is recursive, so an Array is going to contain other Arrays and/or NMatrix objects.
+      #
+      # call-seq:
+      #     to_ruby -> NMatrix or Array
+      #
+      # Figure out the appropriate Ruby type to convert to, and do it. There
+      # are basically two possible types: +NMatrix+ and +Array+. This method
+      # is recursive, so an +Array+ is going to contain other +Array+s and/or
+      # +NMatrix+ objects.
       #
       # mxCELL types (cells) will be converted to the Array type.
       #
-      # mxSPARSE and other types will be converted to NMatrix, with the appropriate stype (:yale or :dense, respectively).
+      # mxSPARSE and other types will be converted to NMatrix, with the
+      # appropriate stype (:yale or :dense, respectively).
       #
       # See also to_nm, which is responsible for NMatrix instantiation.
+      #
       def to_ruby
         case matlab_class
         when :mxSPARSE	then	return to_nm
@@ -118,9 +181,15 @@ module NMatrix::IO::Matlab
         end
       end
 
+      #
+      # call-seq:
+      #     guess_dtype_from_mdtype -> Symbol
+      #
       # Try to determine what dtype and such to use.
       #
-      # TODO: Needs to be verified that unsigned MATLAB types are being converted to the correct NMatrix signed dtypes.
+      # TODO: Needs to be verified that unsigned MATLAB types are being
+      # converted to the correct NMatrix signed dtypes.
+      #
       def guess_dtype_from_mdtype
         dtype = MatReader::MDTYPE_TO_DTYPE[self.real_part.tag.data_type]
 
@@ -129,10 +198,16 @@ module NMatrix::IO::Matlab
         dtype == :float32 ? :complex64 : :complex128
       end
 
+      #
+      # call-seq:
+      #     unpacked_data(real_mdtype = nil, imag_mdtype = nil) -> 
+      #
       # Unpacks data without repacking it.
       #
-      # Used only for dense matrix creation. Yale matrix creation uses repacked_data.
-      def unpacked_data real_mdtype=nil, imag_mdtype=nil
+      # Used only for dense matrix creation. Yale matrix creation uses
+      # repacked_data.
+      #
+      def unpacked_data(real_mdtype = nil, imag_mdtype = nil)
         # Get Matlab data type and unpack args
         real_mdtype ||= self.real_part.tag.data_type
         real_unpack_args = MatReader::MDTYPE_UNPACK_ARGS[real_mdtype]
@@ -153,22 +228,30 @@ module NMatrix::IO::Matlab
 
       end
 
+      #
+      # call-seq:
+      #     repacked_data(to_dtype = nil) -> 
+      #
       # Unpacks and repacks data into the appropriate format for NMatrix.
       #
-      # If data is already in the appropriate format, does not unpack or repack, just returns directly.
+      # If data is already in the appropriate format, does not unpack or
+      # repack, just returns directly.
       #
-      # Complex is always unpacked and repacked, as the real and imaginary components must be merged together (MATLAB
-      # stores them separately for some crazy reason).
+      # Complex is always unpacked and repacked, as the real and imaginary
+      # components must be merged together (MATLAB stores them separately for
+      # some crazy reason).
       #
       # Used only for Yale storage creation. For dense, see unpacked_data.
       #
-      # This function calls repack and complex_merge, which are both defined in io.cpp.
+      # This function calls repack and complex_merge, which are both defined in
+      # io.cpp.
       def repacked_data(to_dtype = nil)
 
         real_mdtype = self.real_part.tag.data_type
 
-        # Figure out what dtype to use based on the MATLAB data-types (mdtypes). They could be different for real and
-        # imaginary, so call upcast to figure out what to use.
+        # Figure out what dtype to use based on the MATLAB data-types
+        # (mdtypes). They could be different for real and imaginary, so call
+        # upcast to figure out what to use.
 
         components = [] # real and imaginary parts or just the real part
 
@@ -208,10 +291,15 @@ module NMatrix::IO::Matlab
          to_dtype]
       end
 
-
+      #
+      # call-seq:
+      #     repacked_indices(to_itype) ->
+      #
       # Unpacks and repacks index data into the appropriate format for NMatrix.
       #
-      # If data is already in the appropriate format, does not unpack or repack, just returns directly.
+      # If data is already in the appropriate format, does not unpack or
+      # repack, just returns directly.
+      #
       def repacked_indices(to_itype)
         return [row_index.data, column_index.data] if to_itype == :uint32 # No need to re-pack -- already correct
 
@@ -222,18 +310,27 @@ module NMatrix::IO::Matlab
         [repacked_row_indices, repacked_col_indices]
       end
 
-
+      #
+      # call-seq:
+      #     to_nm(dtype = nil) -> NMatrix
+      #
       # Create an NMatrix from a MATLAB .mat (v5) matrix.
       #
-      # This function matches the storage type exactly. That is, a regular matrix in MATLAB will be a dense NMatrix, and
-      # a sparse (old Yale) matrix in MATLAB will be a :yale (new Yale) matrix in NMatrix.
+      # This function matches the storage type exactly. That is, a regular
+      # matrix in MATLAB will be a dense NMatrix, and a sparse (old Yale) one
+      # in MATLAB will be a :yale (new Yale) matrix in NMatrix.
       #
-      # Note that NMatrix has no old Yale type, so this uses a semi-hidden version of the NMatrix constructor to pass in
-      # -- as directly as possible -- the stored bytes in a MATLAB sparse matrix. This constructor should also be used
-      # for other IO formats that want to create sparse matrices from IA and JA vectors (e.g., SciPy).
+      # Note that NMatrix has no old Yale type, so this uses a semi-hidden
+      # version of the NMatrix constructor to pass in --- as directly as
+      # possible -- the stored bytes in a MATLAB sparse matrix. This
+      # constructor should also be used for other IO formats that want to
+      # create sparse matrices from IA and JA vectors (e.g., SciPy).
       #
-      # This is probably not the fastest code. An ideal solution would be a C plugin of some sort for reading the MATLAB
-      # .mat file. However, .mat v5 is a really complicated format, and lends itself to an object-oriented solution.
+      # This is probably not the fastest code. An ideal solution would be a C
+      # plugin of some sort for reading the MATLAB .mat file. However, .mat v5
+      # is a really complicated format, and lends itself to an object-oriented
+      # solution.
+      #
       def to_nm(dtype = nil)
         # Hardest part is figuring out from_dtype, from_index_dtype, and dtype.
         dtype			||= guess_dtype_from_mdtype
@@ -261,6 +358,15 @@ module NMatrix::IO::Matlab
         end
       end
 
+      #
+      # call-seq:
+      #     read_packed(packedio, options) -> 
+      #
+      # * *Arguments* :
+      #   - ++ -> 
+      # * *Returns* :
+      #   -
+      #
       def read_packed(packedio, options)
         flags_class, self.nonzero_max = packedio.read([Element, options]).data
 
@@ -313,7 +419,16 @@ module NMatrix::IO::Matlab
         end
       end
 
-      def ignore_padding packedio, bytes
+      #
+      # call-seq:
+      #     ignore_padding(packedio, bytes) ->
+      #
+      # * *Arguments* :
+      #   - ++ -> 
+      # * *Returns* :
+      #   -
+      #
+      def ignore_padding(packedio, bytes)
         packedio.read([Integer, {:unsigned => true, :bytes => bytes}]) if bytes > 0
       end
     end

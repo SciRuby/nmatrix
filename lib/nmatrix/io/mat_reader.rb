@@ -1,4 +1,4 @@
-require "packable"
+#--
 # = NMatrix
 #
 # A linear algebra library for scientific computation in Ruby.
@@ -25,10 +25,12 @@ require "packable"
 #
 # Base class for .mat file reading (Matlab files).
 #
+#++
 
 require 'packable'
 
 module NMatrix::IO::Matlab
+  #
 	# Class for parsing a .mat file stream.
 	#
 	# The full format of .mat files is available here:
@@ -143,7 +145,14 @@ module NMatrix::IO::Matlab
 		]
 
 		attr_reader :byte_order
-
+    
+    #
+    # call-seq:
+    #     new(stream, options = {}) -> MatReader
+    #
+    # * *Raises* :
+    #   - +ArgumentError+ -> First argument must be IO.
+    #
 		def initialize(stream, options = {})
 			raise ArgumentError, 'First arg must be IO.' unless stream.is_a?(::IO)
 
@@ -151,12 +160,17 @@ module NMatrix::IO::Matlab
 			@byte_order = options[:byte_order] || guess_byte_order
 		end
 
+    #
+    # call-seq:
+    #     guess_byte_order -> Symbol
+    #
 		def guess_byte_order
 			# Assume native, since we don't know what type of file we have.
 			:native
 		end
 
 		protected
-		attr_reader :stream
+
+      attr_reader :stream
 	end
 end

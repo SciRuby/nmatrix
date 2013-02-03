@@ -32,14 +32,6 @@
 #include <ruby.h>
 
 /*
- * Project Includes
- */
-
-/*
- * Macros
- */
-
-/*
  * Global Variables
  */
 
@@ -90,10 +82,6 @@ VALUE cNMatrix,
 			nm_eStorageTypeError;
 
 /*
- * Forward Declarations
- */
-
-/*
  * Functions
  */
 
@@ -135,4 +123,3 @@ void nm_init_ruby_constants(void) {
 	nm_rb_unit              = rb_intern("unit");
 	nm_rb_nonunit           = rb_intern("nonunit");
 }
-

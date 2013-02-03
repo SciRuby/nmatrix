@@ -35,10 +35,6 @@
 #include <stdint.h>
 
 /*
- * Project Includes
- */
-
-/*
  * Macros
  */
 
@@ -52,14 +48,5 @@
 
 typedef float		float32_t;
 typedef double	float64_t;
-
-
-/*
- * Data
- */
-
-/*
- * Functions
- */
 
 #endif

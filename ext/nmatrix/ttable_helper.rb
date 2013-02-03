@@ -2,7 +2,7 @@
 
 # A helper file for generating and maintaining template tables.
 
-def nullify(disabled)
+def nullify(disabled) #:nodoc:
 	DTYPES.map { |t| if disabled.include?(t) then :NULL else t end }
 end
 

@@ -61,15 +61,11 @@
 /*
  * Macros
  */
+
 #ifndef NM_MAX
 #define NM_MAX(a,b) (((a)>(b))?(a):(b))
 #define NM_MIN(a,b) (((a)<(b))?(a):(b))
 #endif
-
-
-/*
- * Global Variables
- */
 
 /*
  * Forward Declarations
@@ -89,8 +85,6 @@ extern "C" {
   static VALUE nm_ija(VALUE self);
 
 } // end extern "C" block
-
-
 
 namespace nm { namespace yale_storage {
 
@@ -1155,6 +1149,20 @@ static STORAGE* matrix_multiply(const STORAGE_PAIR& casted_storage, size_t* resu
 extern "C" {
 
 void nm_init_yale_functions() {
+	#ifdef 0
+	  rb_define_method(cNMatrix_YaleFunctions, "yale_ija", nm_ija, 0);
+	  rb_define_method(cNMatrix_YaleFunctions, "yale_a", nm_a, 0);
+	  rb_define_method(cNMatrix_YaleFunctions, "yale_size", nm_size, 0);
+	  rb_define_method(cNMatrix_YaleFunctions, "yale_ia", nm_ia, 0);
+	  rb_define_method(cNMatrix_YaleFunctions, "yale_ja", nm_ja, 0);
+	  rb_define_method(cNMatrix_YaleFunctions, "yale_d", nm_d, 0);
+	  rb_define_method(cNMatrix_YaleFunctions, "yale_lu", nm_lu, 0);
+	#endif
+	
+	/*
+	 * This module stores methods that are useful for debugging Yale matrices,
+	 * i.e. the ones with +:yale+ stype.	
+	 */
   cNMatrix_YaleFunctions = rb_define_module_under(cNMatrix, "YaleFunctions");
 
   rb_define_method(cNMatrix_YaleFunctions, "yale_ija", (METHOD)nm_ija, 0);
@@ -1466,6 +1474,9 @@ YALE_STORAGE* nm_yale_storage_create_from_old_yale(nm::dtype_t dtype, size_t* sh
 //////////////////////////////////////////////
 
 /*
+ * call-seq:
+ *     yale_size -> Integer
+ *
  * Get the size of a Yale matrix (the number of elements actually stored).
  *
  * For capacity (the maximum number of elements that can be stored without a resize), use capacity instead.
@@ -1478,6 +1489,9 @@ static VALUE nm_size(VALUE self) {
 
 
 /*
+ * call-seq:
+ *     yale_a -> Array
+ *
  * Get the A array of a Yale matrix (which stores the diagonal and the LU portions of the matrix).
  */
 static VALUE nm_a(VALUE self) {
@@ -1499,6 +1513,9 @@ static VALUE nm_a(VALUE self) {
 
 
 /*
+ * call-seq:
+ *     yale_d -> Array
+ *
  * Get the diagonal ("D") portion of the A array of a Yale matrix.
  */
 static VALUE nm_d(VALUE self) {
@@ -1513,6 +1530,9 @@ static VALUE nm_d(VALUE self) {
 }
 
 /*
+ * call-seq:
+ *     yale_lu -> Array
+ *
  * Get the non-diagonal ("LU") portion of the A array of a Yale matrix.
  */
 static VALUE nm_lu(VALUE self) {
@@ -1535,6 +1555,9 @@ static VALUE nm_lu(VALUE self) {
 }
 
 /*
+ * call-seq:
+ *     yale_ia -> Array
+ *
  * Get the IA portion of the IJA array of a Yale matrix. This gives the start and end positions of rows in the
  * JA and LU portions of the IJA and A arrays, respectively.
  */
@@ -1551,6 +1574,9 @@ static VALUE nm_ia(VALUE self) {
 }
 
 /*
+ * call-seq:
+ *     yale_ja -> Array
+ *
  * Get the JA portion of the IJA array of a Yale matrix. This gives the column indices for entries in corresponding
  * positions in the LU portion of the A array.
  */
@@ -1574,6 +1600,9 @@ static VALUE nm_ja(VALUE self) {
 }
 
 /*
+ * call-seq:
+ *     yale_ija -> Array
+ *
  * Get the IJA array of a Yale matrix.
  */
 static VALUE nm_ija(VALUE self) {

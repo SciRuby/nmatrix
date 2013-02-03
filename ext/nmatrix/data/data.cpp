@@ -36,12 +36,7 @@
  */
 
 #include "types.h"
-
 #include "data.h"
-
-/*
- * Macros
- */
 
 /*
  * Global Variables

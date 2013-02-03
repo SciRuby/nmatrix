@@ -42,8 +42,6 @@
   #include <string.h>
 #endif
 
-
-
 #ifdef BENCHMARK
 	// SOURCE: http://stackoverflow.com/questions/2349776/how-can-i-benchmark-a-c-program-easily
   #ifdef __cplusplus
@@ -56,14 +54,8 @@
 #endif
 
 /*
- * Project Includes
- */
-
-
-/*
  * Macros
  */
-
 
 #define RUBY_ZERO INT2FIX(0)
 
@@ -318,10 +310,6 @@ typedef VALUE (*METHOD)(...);
 #ifdef __cplusplus
 //}; // end of namespace nm
 #endif
-
-/*
- * Data
- */
 
 /*
  * Functions

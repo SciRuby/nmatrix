@@ -1,3 +1,4 @@
+#--
 # = NMatrix
 #
 # A linear algebra library for scientific computation in Ruby.
@@ -19,9 +20,16 @@
 # our Contributor Agreement:
 #
 # * https://github.com/SciRuby/sciruby/wiki/Contributor-Agreement
-#
+#++
 
 class NMatrix
-  VERSION = '0.0.3'
+  module VERSION #:nodoc:
+    # Based on Rails. https://github.com/rails/rails/blob/master/version.rb
+    MAJOR = '0'
+    MINOR = '0'
+    TINY = '2'
+
+    STRING = [MAJOR, MINOR, TINY].compact.join('.')
+  end
 end
 

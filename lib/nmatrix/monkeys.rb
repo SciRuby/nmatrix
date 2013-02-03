@@ -1,3 +1,4 @@
+#--
 # = NMatrix
 #
 # A linear algebra library for scientific computation in Ruby.
@@ -23,6 +24,7 @@
 # == monkeys.rb
 #
 # Ruby core extensions for NMatrix.
+#++
 
 #######################
 # Classes and Modules #
@@ -52,19 +54,19 @@ class Array
 	end
 
   unless method_defined?(:max)
-    def max
+    def max #:nodoc:
       self.inject(self.first) { |m, n| if n > m then n else m end }
     end
   end
 
   unless method_defined?(:min)
-    def min
+    def min #:nodoc:
       self.inject(self.first) { |m, n| if n < m then n else m end }
     end
   end
 end
 
-class Object
+class Object #:nodoc:
 	def returning(value)
 		yield(value)
 		value
