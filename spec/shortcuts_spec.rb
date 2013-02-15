@@ -158,6 +158,21 @@ describe NMatrix do
     
     expect { m.column(1, :derp) }.to raise_error
   end
+  
+  it "row() returns a NMatrix" do
+    m = NMatrix.random(3)
+    
+    m.row(2).is_a?(NMatrix).should be_true
+  end
+  
+  it "row() accepts a second parameter (only :copy or :reference)" do
+    m = NMatrix.random(3)
+    
+    expect { m.row(1, :copy) }.to_not raise_error
+    expect { m.row(1, :reference) }.to_not raise_error
+    
+    expect { m.row(1, :derp) }.to raise_error
+  end
 end
 
 describe "NVector" do

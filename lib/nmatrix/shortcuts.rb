@@ -314,6 +314,29 @@ as dimension."
       self[0 ... self.shape[0], column_number]
     end
   end
+  
+  #
+  # call-seq:
+  #     row(row_number) -> NMatrix
+  #     row(row_number, get_by) -> NMatrix
+  #
+  # * *Arguments* :
+  #   - +row_number+ -> Integer.
+  #   - +get_by+ -> Type of slicing to use, +:copy+ or +:reference+.
+  # * *Returns* :
+  #   - A NMatrix representing the requested row .
+  #
+  def row(row_number, get_by = :copy)
+    unless [:copy, :reference].include?(get_by)
+      raise ArgumentError, "row() 2nd parameter must be :copy or :reference"
+    end
+    
+    if get_by == :copy
+      self.slice(row_number, 0 ... self.shape[1])
+    else # by reference
+      self[row_number, 0 ... self.shape[1]]
+    end    
+  end
 end
 
 class NVector < NMatrix
