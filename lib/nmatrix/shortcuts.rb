@@ -419,9 +419,9 @@ class NVector < NMatrix
       rng = Random.new
 
       random_values = []
-      dim.times { |i| random_values << rng.rand }
+      size.times { |i| random_values << rng.rand }
       
-      NVector.new(dim, random_values, :float64)
+      NVector.new(size, random_values, :float64)
     end
 
     #
