@@ -2,9 +2,9 @@
 
 Fast Numerical Linear Algebra Library for Ruby
 
+* {Installation guide}[https://github.com/SciRuby/nmatrix/wiki/Installation]
 * {sciruby.com}[http://sciruby.com]
 * {Google+}[https://plus.google.com/109304769076178160953/posts]
-* {Installation guide}[http://sciruby.com/docs#installation]
 
 == Description
 
@@ -12,44 +12,35 @@ NMatrix is a fast numerical linear algebra library for Ruby, written mostly in C
 
 NMatrix was inspired by and based heavily upon {NArray}[http://narray.rubyforge.org], by Masahiro Tanaka.
 
-== INSTALLATION
+== Installation
 
-For full instructions, please see sciruby.com/nmatrix. Generally, you should be able to do
+To install the latest stable version:
 
     gem install nmatrix
 
-However, you will need to install ATLAS with CBLAS first. Those directions can be found at our website.
+However, you will need to install {ATLAS}[http://math-atlas.sourceforge.net/] with {CBLAS}[http://www.prism.gatech.edu/~ndantam3/cblas-doc/doc/html/main.html] (C interface to {BLAS}[http://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms]) first. Those directions can be found {here}[https://github.com/SciRuby/nmatrix/wiki/Installation]. The requirements for NMatrix are:
 
-NOTE: The above command will not give you 0.0.2, which is not yet complete. To obtain the latest code, you should use the following sequence of commands:
+* ATLAS
+* {LAPACK}[http://www.netlib.org/lapack/#_presentation] (it's not recommended on OSX)
+* GCC 4.3+
+* Ruby 1.9 (we're working on supporting 2.0)
+* {packable}[http://github.com/marcandre/packable] 1.3.5 (used for I/O)
+
+Also, if you want to obtain the latest code, you should do:
 
     git clone https://github.com/SciRuby/nmatrix.git
     cd nmatrix/
-    rake compile
-    rake repackage
-    gem install pkg/nmatrix-0.0.4.gem
+    rake install
 
-If you get errors about clapack.h or cblas.h, figure out where your ATLAS headers are using:
+If you get errors about clapack.h or cblas.h, you should look {in the installation page}[https://github.com/SciRuby/nmatrix/wiki/Installation] for information on how to solve it. If that's not enough, open an {issue}[https://github.com/SciRuby/nmatrix/issues] or send a message in the {mailing list}[https://groups.google.com/forum/?fromgroups#!forum/sciruby-dev].
 
-    locate clapack.h
+== Documentation
 
-If you're a Mac user, we recommend you search for cblas.h instead.
+There's {API documentation in our website}[http://sciruby.com/nmatrix/docs/], a guide about {how to create a NMatrix}[https://github.com/SciRuby/nmatrix/wiki/How-to-create-a-NMatrix] and some tips on {how to use the shortcuts}[http://sciruby.com/blog/2012/12/07/how-to-use-nmatrix-shortcuts/].
 
-Then, tell your system:
+We're working to improve the documentation. The best way to get help is by posting {issues}[https://github.com/SciRuby/nmatrix/issues] or sending e-mails to our {mailing list}[https://groups.google.com/forum/?fromgroups#!forum/sciruby-dev]. The one responsible for this is @agarie, so send him an e-mail or look for `agarie` on #sciruby at chat.freenode.net if you want to ask questions or offer suggestions.
 
-    export C_INCLUDE_PATH=/usr/local/atlas/include
-    export CPLUS_INCLUDE_PATH=/usr/local/atlas/include
-
-Finally, try compiling again.
-
-== REQUIREMENTS
-
-* ATLAS
-* LAPACK, probably
-* GCC 4.3
-* Ruby 1.9
-* {packable}[http://github.com/marcandre/packable] 1.3.5 (used for I/O)
-
-== EXAMPLES
+== Examples
 
 Create a new NMatrix from a ruby array: 
 
@@ -60,23 +51,23 @@ Create a new NMatrix from a ruby array:
 
 Create a new NMatrix using the +N+ shortcut:
 
-  	>> m = N[ [2, 3, 4], [7, 8, 9] ]
-  	=> #<NMatrix:0x007f8e121b6cf8shape:[2,3] dtype:int32 stype:dense> 
-  	>> m.pp
-  	  [2, 3, 4]
-  	  [7, 8, 9]
+    >> m = N[ [2, 3, 4], [7, 8, 9] ]
+    => #<NMatrix:0x007f8e121b6cf8shape:[2,3] dtype:int32 stype:dense> 
+    >> m.pp
+      [2, 3, 4]
+      [7, 8, 9]
 
 If you want to learn more about how to create a matrix, {read the guide in our wiki}[https://github.com/SciRuby/nmatrix/wiki/How-to-create-a-NMatrix].
 
-We will add more examples here soon. :)
+You can find the complete API documentation {in our website}[http://sciruby.com/nmatrix/docs/].
 
-== DEVELOPERS:
+== Developers
 
 Read the instructions in +CONTRIBUTING.md+ if you want to help NMatrix.
 
 == Features
 
-The following features exist in the current version of NMatrix (0.0.2):
+The following features exist in the current version of NMatrix (0.0.3):
 
 * Matrix storage containers: dense, yale, list (more to come)
 * Data types: uint8, int8, int16, int32, int64, float32, float64, complex64, complex128, rational64, rational128
@@ -106,33 +97,17 @@ The following features exist in the current version of NMatrix (0.0.2):
 * Matrix inversions (requires LAPACK; BLAS dtypes only)
 * Determinant calculation for BLAS dtypes
 
-=== Planned Features (Short-to-Medium Term)
+You can find what we're working on in our {roadmap}[https://github.com/SciRuby/nmatrix/wiki/Roadmap].
 
-These are features planned for NMatrix 0.1.0, our first beta.
+== Warning
 
-* calculation of determinant (LAPACK-free), trace, and eigenvalues (characteristic polynomial) (0.1.0)
-* exponentials and square roots
-* matrix inversions (LAPACK-free)
-* matrix decomposition/factorization
-* calculation of norms
-* tensor products
-* principal component analysis (PCA)
-* improved file I/O
-  * compression of yale symmetries in I/O
-* operation scheduling
-* parallelization of some types of operations
-* optimization of non-BLAS data types on BLAS-like operations (e.g., matrix multiplication for rational numbers)
-* Ruby/GSL interoperability
+Please be aware that SciRuby and NMatrix are in *alpha* status. If you're thinking of using SciRuby/NMatrix to write mission-critical code, such as for driving a car or flying a space shuttle, you may wish to choose other software for now.
 
-=== Warning
+You should also be aware that NMatrix and NArray are incompatible with one another: you should not install both at the same time. Unfortunately, that causes problems with Ruby/GSL, which currently depends upon NArray. As such, we are working on a {patch for Ruby/GSL}[https://github.com/SciRuby/rb-gsl].
 
-Please be aware that SciRuby and NMatrix are *alpha* status. If you're thinking of using SciRuby/NMatrix to write mission-critical code, such as for driving a car or flying a space shuttle, you may wish to choose other software for now.
+If you're developing something that needs Ruby/GSL and/or NArray, you might find it useful to create {gemsets with RVM}[https://rvm.io/gemsets/basics/].
 
-You should also be aware that NMatrix and NArray are incompatible with one another; you should not try to require both
-at the same time. Unfortunately, that causes problems with Ruby/GSL, which currently depends upon NArray. As such, we
-are working on a {patch for Ruby/GSL}[https://github.com/SciRuby/rb-gsl].
-
-== LICENSE
+== License
 
 Copyright (c) 2012--13, The Ruby Science Foundation.
 
@@ -145,4 +120,4 @@ NMatrix, along with SciRuby, is licensed under the BSD 2-clause license. See
 
 Support a SciRuby Fellow:
 
-{<img src=https://www.pledgie.com/campaigns/15783.png?skin_name=chrome>}[http://www.pledgie.com/campaigns/15783]
+{<img src=http://pledgie.com/campaigns/15783.png?skin_name=chrome%3E}[http://www.pledgie.com/campaigns/15783]
