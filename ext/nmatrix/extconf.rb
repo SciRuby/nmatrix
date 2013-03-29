@@ -111,9 +111,13 @@ $srcs = [
 ]
 # add smmp in to get generic transp; remove smmp2 to eliminate funcptr transp
 
-# The next line allows the user to supply --with-atlas-include=/usr/local/atlas, for example,
-# and tell the compiler where to look for ATLAS.
-dir_config("atlas")
+# The next line allows the user to supply --with-atlas-dir=/usr/local/atlas,
+# --with-atlas-lib or --with-atlas-include and tell the compiler where to look
+# for ATLAS. The same for all the others
+dir_config("atlas", [], ["/usr/local/lib", "/usr/local/atlas/lib", "/usr/lib"])
+dir_config("lapack", [], ["/usr/local/lib", "/usr/local/atlas/lib"])
+dir_config("clapack", ["/usr/local/atlas/include"], [])
+dir_config("cblas", ["/usr/local/atlas/include"], ["/usr/local/lib", "/usr/local/atlas/lib"])
 
 # Is g++ having trouble finding your header files?
 # Try this:
@@ -121,13 +125,13 @@ dir_config("atlas")
 #   export CPLUS_INCLUDE_PATH=/usr/local/atlas/include
 # (substituting in the path of your cblas.h and clapack.h for the path I used). -- JW 8/27/12
 
-find_library("lapack", "clapack_dgetrf", "/usr/local/lib", "/usr/local/atlas/lib")
-find_header("clapack.h", "/usr/local/atlas/include")
+find_library("lapack", "clapack_dgetrf")
+find_header("clapack.h")
 have_header("clapack.h")
 
-find_library("cblas", "cblas_dgemm", "/usr/local/lib", "/usr/local/atlas/lib")
-find_library("atlas", "ATL_dgemmNN", "/usr/local/lib", "/usr/local/atlas/lib", "/usr/lib")
-find_header("cblas.h", "/usr/local/atlas/include")
+find_library("cblas", "cblas_dgemm")
+find_library("atlas", "ATL_dgemmNN")
+find_header("cblas.h")
 have_header("cblas.h")
 
 # Order matters here: ATLAS has to go after LAPACK: http://mail.scipy.org/pipermail/scipy-user/2007-January/010717.html
