@@ -31,10 +31,10 @@ require_relative './mat_reader.rb'
 
 module NMatrix::IO::Matlab
   #
-	# Reader (and eventual writer) for a version 5 .mat file.
+  # Reader (and eventual writer) for a version 5 .mat file.
   #
-	class Mat5Reader < MatReader
-		attr_reader :file_header, :first_tag_field, :first_data_field
+  class Mat5Reader < MatReader
+    attr_reader :file_header, :first_tag_field, :first_data_field
 
     class Compressed
       include Packable
@@ -47,9 +47,9 @@ module NMatrix::IO::Matlab
       #     new(stream = nil, byte_order = nil, content_or_bytes = nil) -> Mat5Reader::Compressed
       #
       # * *Arguments* :
-      #   - ++ -> 
+      #   - ++ ->
       # * *Raises* :
-      #   - ++ -> 
+      #   - ++ ->
       #
       def initialize(stream = nil, byte_order = nil, content_or_bytes = nil)
         @stream			= stream
@@ -60,14 +60,14 @@ module NMatrix::IO::Matlab
 
         elsif content_or_bytes.is_a?(Fixnum)
           @padded_bytes = content_or_bytes
-        #else
-        #  raise ArgumentError, "Need a content string or a number of bytes; content_or_bytes is #{content_or_bytes.class.to_s}."
+          #else
+          #  raise ArgumentError, "Need a content string or a number of bytes; content_or_bytes is #{content_or_bytes.class.to_s}."
         end
       end
 
       #
       # call-seq:
-      #     compressed -> 
+      #     compressed ->
       #
       def compressed
         require "zlib"
@@ -77,7 +77,7 @@ module NMatrix::IO::Matlab
 
       #
       # call-seq:
-      #     content -> 
+      #     content ->
       #
       def content
         @content ||= extract
@@ -96,7 +96,7 @@ module NMatrix::IO::Matlab
       #     write_packed(packedio, options = {}) ->
       #
       # * *Arguments* :
-      #   - ++ -> 
+      #   - ++ ->
       # * *Returns* :
       #   -
       #
@@ -106,10 +106,10 @@ module NMatrix::IO::Matlab
 
       #
       # call-seq:
-      #     read_packed(packedio, options = {}) -> 
+      #     read_packed(packedio, options = {}) ->
       #
       # * *Arguments* :
-      #   - ++ -> 
+      #   - ++ ->
       # * *Returns* :
       #   -
       #
@@ -121,7 +121,7 @@ module NMatrix::IO::Matlab
       protected
       #
       # call-seq:
-      #     extract -> 
+      #     extract ->
       #
       def extract
         require 'zlib'
@@ -136,19 +136,19 @@ module NMatrix::IO::Matlab
     end
 
     MatrixDataStruct = Struct.new(
-      :cells, :logical, :global, :complex, :nonzero_max,
-      :matlab_class, :dimensions, :matlab_name, :real_part,
-      :imaginary_part, :row_index, :column_index)
+                                  :cells, :logical, :global, :complex, :nonzero_max,
+                                  :matlab_class, :dimensions, :matlab_name, :real_part,
+                                  :imaginary_part, :row_index, :column_index)
 
     class MatrixData < MatrixDataStruct
       include Packable
 
       #
       # call-seq:
-      #     write_packed(packedio, options) -> 
+      #     write_packed(packedio, options) ->
       #
       # * *Arguments* :
-      #   - ++ -> 
+      #   - ++ ->
       # * *Returns* :
       #   -
       #
@@ -200,7 +200,7 @@ module NMatrix::IO::Matlab
 
       #
       # call-seq:
-      #     unpacked_data(real_mdtype = nil, imag_mdtype = nil) -> 
+      #     unpacked_data(real_mdtype = nil, imag_mdtype = nil) ->
       #
       # Unpacks data without repacking it.
       #
@@ -230,7 +230,7 @@ module NMatrix::IO::Matlab
 
       #
       # call-seq:
-      #     repacked_data(to_dtype = nil) -> 
+      #     repacked_data(to_dtype = nil) ->
       #
       # Unpacks and repacks data into the appropriate format for NMatrix.
       #
@@ -360,10 +360,10 @@ module NMatrix::IO::Matlab
 
       #
       # call-seq:
-      #     read_packed(packedio, options) -> 
+      #     read_packed(packedio, options) ->
       #
       # * *Arguments* :
-      #   - ++ -> 
+      #   - ++ ->
       # * *Returns* :
       #   -
       #
@@ -424,7 +424,7 @@ module NMatrix::IO::Matlab
       #     ignore_padding(packedio, bytes) ->
       #
       # * *Arguments* :
-      #   - ++ -> 
+      #   - ++ ->
       # * *Returns* :
       #   -
       #
@@ -434,249 +434,249 @@ module NMatrix::IO::Matlab
     end
 
 
-		MDTYPE_UNPACK_ARGS =
-		MatReader::MDTYPE_UNPACK_ARGS.merge({
-			:miCOMPRESSED	=> [Compressed, {}],
-			:miMATRIX			=> [MatrixData, {}]
-		})
-		# include TaggedDataEnumerable
-		
-		FIRST_TAG_FIELD_POS = 128
-		
-		####################
-		# Instance Methods #
-		####################
+    MDTYPE_UNPACK_ARGS =
+      MatReader::MDTYPE_UNPACK_ARGS.merge({
+                                            :miCOMPRESSED	=> [Compressed, {}],
+                                            :miMATRIX			=> [MatrixData, {}]
+                                          })
+    # include TaggedDataEnumerable
 
-		def initialize(stream, options = {})
-			super(stream, options)
-			@file_header = seek_and_read_file_header
-		end
+    FIRST_TAG_FIELD_POS = 128
 
-		def to_a
-			returning(Array.new) do |ary|
-				self.each { |el| ary << el }
-			end
-		end
+    ####################
+    # Instance Methods #
+    ####################
 
-		def to_ruby
-			ary = self.to_a
-			
-			if ary.size == 1
-				ary.first.to_ruby 
-			else
-				ary.collect { |item| item.to_ruby }
-			end
-		end
+    def initialize(stream, options = {})
+      super(stream, options)
+      @file_header = seek_and_read_file_header
+    end
 
-		def guess_byte_order
-			stream.seek(Header::BYTE_ORDER_POS)
-			mi = stream.read(Header::BYTE_ORDER_LENGTH)
-			stream.seek(0)
-			mi == 'IM' ? :little : :big
-		end
+    def to_a
+      returning(Array.new) do |ary|
+        self.each { |el| ary << el }
+      end
+    end
 
-		def seek_and_read_file_header
-			stream.seek(0)
-			stream.read(FIRST_TAG_FIELD_POS).unpack(Header, {:endian => byte_order})
-		end
+    def to_ruby
+      ary = self.to_a
 
-		def each(&block)
-			stream.each(Element, {:endian => byte_order}) do |element|
-				if element.data.is_a?(Compressed)
-					StringIO.new(element.data.content, 'rb').each(Element, {:endian => byte_order}) do |compressed_element|
-						yield compressed_element.data
-					end
-					
-				else
-					yield element.data
-				end
-			end
-			
-			# Go back to the beginning in case we want to do it again.
-			stream.seek(FIRST_TAG_FIELD_POS)
-			
-			self
-		end
-		
-		####################
-		# Internal Classes #
-		####################
-		
-		class Header < Struct.new(:desc, :data_offset, :version, :endian)
+      if ary.size == 1
+        ary.first.to_ruby
+      else
+        ary.collect { |item| item.to_ruby }
+      end
+    end
 
-			include Packable
+    def guess_byte_order
+      stream.seek(Header::BYTE_ORDER_POS)
+      mi = stream.read(Header::BYTE_ORDER_LENGTH)
+      stream.seek(0)
+      mi == 'IM' ? :little : :big
+    end
 
-			BYTE_ORDER_LENGTH		= 2
-			DESC_LENGTH					= 116
-			DATA_OFFSET_LENGTH	= 8
-			VERSION_LENGTH			= 2
-			BYTE_ORDER_POS			= 126
+    def seek_and_read_file_header
+      stream.seek(0)
+      stream.read(FIRST_TAG_FIELD_POS).unpack(Header, {:endian => byte_order})
+    end
 
-			## TODO: TEST WRITE.
-			def write_packed(packedio, options)
-				packedio <<	[desc,				{:bytes => DESC_LENGTH				}] <<
-                    [data_offset,	{:bytes => DATA_OFFSET_LENGTH	}] <<
-                    [version,			{:bytes => VERSION_LENGTH			}] <<
-                    [byte_order,	{:bytes => BYTE_ORDER_LENGTH	}]
-			end
+    def each(&block)
+      stream.each(Element, {:endian => byte_order}) do |element|
+        if element.data.is_a?(Compressed)
+          StringIO.new(element.data.content, 'rb').each(Element, {:endian => byte_order}) do |compressed_element|
+            yield compressed_element.data
+          end
 
-			def read_packed(packedio, options)
-				self.desc, self.data_offset, self.version, self.endian = packedio >>
+        else
+          yield element.data
+        end
+      end
+
+      # Go back to the beginning in case we want to do it again.
+      stream.seek(FIRST_TAG_FIELD_POS)
+
+      self
+    end
+
+    ####################
+    # Internal Classes #
+    ####################
+
+    class Header < Struct.new(:desc, :data_offset, :version, :endian)
+
+      include Packable
+
+      BYTE_ORDER_LENGTH		= 2
+      DESC_LENGTH					= 116
+      DATA_OFFSET_LENGTH	= 8
+      VERSION_LENGTH			= 2
+      BYTE_ORDER_POS			= 126
+
+      ## TODO: TEST WRITE.
+      def write_packed(packedio, options)
+        packedio <<	[desc,				{:bytes => DESC_LENGTH				}] <<
+          [data_offset,	{:bytes => DATA_OFFSET_LENGTH	}] <<
+          [version,			{:bytes => VERSION_LENGTH			}] <<
+          [byte_order,	{:bytes => BYTE_ORDER_LENGTH	}]
+      end
+
+      def read_packed(packedio, options)
+        self.desc, self.data_offset, self.version, self.endian = packedio >>
           [String,	{:bytes => DESC_LENGTH																	}] >>
-					[String,	{:bytes => DATA_OFFSET_LENGTH														}] >>
-					[Integer,	{:bytes => VERSION_LENGTH, :endian => options[:endian]	}] >>
-					[String,	{:bytes => 2																						}]
-				
-				self.desc.strip!
-				self.data_offset.strip!
-				self.data_offset = nil if self.data_offset.empty?
-				
-				self.endian == 'IM' ? :little : :big
-			end
-		end
-		
-		class Tag < Struct.new(:data_type, :raw_data_type, :bytes, :small)
-			include Packable
-			
-			DATA_TYPE_OPTS = BYTES_OPTS = {:bytes => 4, :signed => false}
-			LENGTH = DATA_TYPE_OPTS[:bytes] + BYTES_OPTS[:bytes]
-			
-			## TODO: TEST WRITE.
-			def write_packed packedio, options
-				packedio << [data_type, DATA_TYPE_OPTS] << [bytes, BYTES_OPTS]
-			end
-			
-			def small?
-				self.bytes > 0 and self.bytes <= 4
-			end
-			
-			def size
-				small? ? 4 : 8
-			end
-			
-			def read_packed packedio, options
-				self.raw_data_type = packedio.read([Integer, DATA_TYPE_OPTS.merge(options)])
-				
-				# Borrowed from a SciPy patch
-				upper = self.raw_data_type >> 16
-				lower = self.raw_data_type & 0xFFFF
-				
-				if upper > 0
-					# Small data element format
-					raise IOError, 'Small data element format indicated, but length is more than 4 bytes!' if upper > 4
-					
-					self.bytes					= upper
-					self.raw_data_type	= lower
-					
-				else
-					self.bytes = packedio.read([Integer, BYTES_OPTS.merge(options)])
-				end
-				
-				self.data_type = MatReader::MDTYPES[self.raw_data_type]
-			end
+          [String,	{:bytes => DATA_OFFSET_LENGTH														}] >>
+          [Integer,	{:bytes => VERSION_LENGTH, :endian => options[:endian]	}] >>
+          [String,	{:bytes => 2																						}]
 
-			def inspect
-				"#<#{self.class.to_s} data_type=#{data_type}[#{raw_data_type}][#{raw_data_type.to_s(2)}] bytes=#{bytes} size=#{size}#{small? ? ' small' : ''}>"
-			end
-		end
+        self.desc.strip!
+        self.data_offset.strip!
+        self.data_offset = nil if self.data_offset.empty?
 
+        self.endian == 'IM' ? :little : :big
+      end
+    end
 
-		class ElementDataIOError < IOError
-			attr_reader :tag
-			
-			def initialize(tag = nil, msg = nil)
-				@tag = tag
-				super msg
-			end
+    class Tag < Struct.new(:data_type, :raw_data_type, :bytes, :small)
+      include Packable
 
-			def to_s
-				@tag.inspect + "\n" + super
-			end
-		end
+      DATA_TYPE_OPTS = BYTES_OPTS = {:bytes => 4, :signed => false}
+      LENGTH = DATA_TYPE_OPTS[:bytes] + BYTES_OPTS[:bytes]
+
+      ## TODO: TEST WRITE.
+      def write_packed packedio, options
+        packedio << [data_type, DATA_TYPE_OPTS] << [bytes, BYTES_OPTS]
+      end
+
+      def small?
+        self.bytes > 0 and self.bytes <= 4
+      end
+
+      def size
+        small? ? 4 : 8
+      end
+
+      def read_packed packedio, options
+        self.raw_data_type = packedio.read([Integer, DATA_TYPE_OPTS.merge(options)])
+
+        # Borrowed from a SciPy patch
+        upper = self.raw_data_type >> 16
+        lower = self.raw_data_type & 0xFFFF
+
+        if upper > 0
+          # Small data element format
+          raise IOError, 'Small data element format indicated, but length is more than 4 bytes!' if upper > 4
+
+          self.bytes					= upper
+          self.raw_data_type	= lower
+
+        else
+          self.bytes = packedio.read([Integer, BYTES_OPTS.merge(options)])
+        end
+
+        self.data_type = MatReader::MDTYPES[self.raw_data_type]
+      end
+
+      def inspect
+        "#<#{self.class.to_s} data_type=#{data_type}[#{raw_data_type}][#{raw_data_type.to_s(2)}] bytes=#{bytes} size=#{size}#{small? ? ' small' : ''}>"
+      end
+    end
 
 
-		class Element < Struct.new(:tag, :data)
-			include Packable
+    class ElementDataIOError < IOError
+      attr_reader :tag
 
-			def write_packed packedio, options
-				packedio << [tag, {}] << [data, {}]
-			end
+      def initialize(tag = nil, msg = nil)
+        @tag = tag
+        super msg
+      end
 
-			def read_packed(packedio, options)
-				raise(ArgumentError, 'Missing mandatory option :endian.') unless options.has_key?(:endian)
-				
-				tag = packedio.read([Tag, {:endian => options[:endian]}])
-				#STDERR.puts tag.inspect
-				data_type = MDTYPE_UNPACK_ARGS[tag.data_type]
-				
-				self.tag = tag
-				#STDERR.puts self.tag.inspect
-				
-				raise ElementDataIOError.new(tag, "Unrecognized Matlab type #{tag.raw_data_type}") if data_type.nil?
+      def to_s
+        @tag.inspect + "\n" + super
+      end
+    end
 
-				if tag.bytes == 0
-					self.data = []
-					
-				else
-					number_of_reads = data_type[1].has_key?(:bytes) ? tag.bytes / data_type[1][:bytes] : 1
-					data_type[1].merge!({:endian => options[:endian]})
 
-					if number_of_reads == 1
-						self.data = packedio.read(data_type)
-						
-					else
-						self.data =
-						returning(Array.new) do |ary|
-							number_of_reads.times { ary << packedio.read(data_type) }
-						end
-					end
-				
-					begin
-						ignore_padding(packedio, (tag.bytes + tag.size) % 8) unless [:miMATRIX, :miCOMPRESSED].include?(tag.data_type)
-						
-					rescue EOFError
-						STDERR.puts self.tag.inspect
-						raise(ElementDataIOError.new(tag, "Ignored too much"))
-					end
-				end
-			end
+    class Element < Struct.new(:tag, :data)
+      include Packable
 
-			def ignore_padding(packedio, bytes)
-				if bytes > 0
-					#STDERR.puts "Ignored #{8 - bytes} on #{self.tag.data_type}"
-					ignored = packedio.read(8 - bytes)
-					ignored_unpacked = ignored.unpack("C*")
-					raise(IOError, "Nonzero padding detected: #{ignored_unpacked}") if ignored_unpacked.any? { |i| i != 0 }
-				end
-			end
+      def write_packed packedio, options
+        packedio << [tag, {}] << [data, {}]
+      end
 
-			def to_ruby
-				data.to_ruby
-			end
-		end
+      def read_packed(packedio, options)
+        raise(ArgumentError, 'Missing mandatory option :endian.') unless options.has_key?(:endian)
 
-		# Doesn't unpack the contents of the element, e.g., if we want to handle
-		# manually, or pass the raw string of bytes into NMatrix.
-		class RawElement < Element
-			def read_packed(packedio, options)
-				raise(ArgumentError, 'Missing mandatory option :endian.') unless options.has_key?(:endian)
+        tag = packedio.read([Tag, {:endian => options[:endian]}])
+        #STDERR.puts tag.inspect
+        data_type = MDTYPE_UNPACK_ARGS[tag.data_type]
 
-				self.tag	= packedio.read([Tag,			{:endian => options[:endian]											}])
-				self.data	= packedio.read([String,	{:endian => options[:endian], :bytes => tag.bytes	}])
+        self.tag = tag
+        #STDERR.puts self.tag.inspect
 
-				begin
-					ignore_padding(packedio, (tag.bytes + tag.size) % 8) unless [:miMATRIX, :miCOMPRESSED].include?(tag.data_type)
-					
-				rescue EOFError
-					STDERR.puts self.tag.inspect
-					raise ElementDataIOError.new(tag, 'Ignored too much.')
-				end
-			end
-		end
-		
-		#####################
-		# End of Mat5Reader #
-		#####################
-		
-	end
+        raise ElementDataIOError.new(tag, "Unrecognized Matlab type #{tag.raw_data_type}") if data_type.nil?
+
+        if tag.bytes == 0
+          self.data = []
+
+        else
+          number_of_reads = data_type[1].has_key?(:bytes) ? tag.bytes / data_type[1][:bytes] : 1
+          data_type[1].merge!({:endian => options[:endian]})
+
+          if number_of_reads == 1
+            self.data = packedio.read(data_type)
+
+          else
+            self.data =
+              returning(Array.new) do |ary|
+              number_of_reads.times { ary << packedio.read(data_type) }
+            end
+          end
+
+          begin
+            ignore_padding(packedio, (tag.bytes + tag.size) % 8) unless [:miMATRIX, :miCOMPRESSED].include?(tag.data_type)
+
+          rescue EOFError
+            STDERR.puts self.tag.inspect
+            raise(ElementDataIOError.new(tag, "Ignored too much"))
+          end
+        end
+      end
+
+      def ignore_padding(packedio, bytes)
+        if bytes > 0
+          #STDERR.puts "Ignored #{8 - bytes} on #{self.tag.data_type}"
+          ignored = packedio.read(8 - bytes)
+          ignored_unpacked = ignored.unpack("C*")
+          raise(IOError, "Nonzero padding detected: #{ignored_unpacked}") if ignored_unpacked.any? { |i| i != 0 }
+        end
+      end
+
+      def to_ruby
+        data.to_ruby
+      end
+    end
+
+    # Doesn't unpack the contents of the element, e.g., if we want to handle
+    # manually, or pass the raw string of bytes into NMatrix.
+    class RawElement < Element
+      def read_packed(packedio, options)
+        raise(ArgumentError, 'Missing mandatory option :endian.') unless options.has_key?(:endian)
+
+        self.tag	= packedio.read([Tag,			{:endian => options[:endian]											}])
+        self.data	= packedio.read([String,	{:endian => options[:endian], :bytes => tag.bytes	}])
+
+        begin
+          ignore_padding(packedio, (tag.bytes + tag.size) % 8) unless [:miMATRIX, :miCOMPRESSED].include?(tag.data_type)
+
+        rescue EOFError
+          STDERR.puts self.tag.inspect
+          raise ElementDataIOError.new(tag, 'Ignored too much.')
+        end
+      end
+    end
+
+    #####################
+    # End of Mat5Reader #
+    #####################
+
+  end
 end

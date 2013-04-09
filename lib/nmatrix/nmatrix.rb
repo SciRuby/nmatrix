@@ -31,9 +31,9 @@ require_relative './shortcuts.rb'
 require_relative './lapack.rb'
 
 class NMatrix
-	# Read and write extensions for NMatrix. These are only loaded when needed.
+  # Read and write extensions for NMatrix. These are only loaded when needed.
   #
-	module IO
+  module IO
     module Matlab
       class << self
         def load_mat file_path
@@ -50,9 +50,9 @@ class NMatrix
     autoload :Market, 'nmatrix/io/market'
   end
 
-	# TODO: Make this actually pretty.
-	def pretty_print(q = nil) #:nodoc:
-		if dim != 2 || (dim == 2 && shape[1] > 10) # FIXME: Come up with a better way of restricting the display
+  # TODO: Make this actually pretty.
+  def pretty_print(q = nil) #:nodoc:
+    if dim != 2 || (dim == 2 && shape[1] > 10) # FIXME: Come up with a better way of restricting the display
       inspect
     else
 
@@ -60,10 +60,10 @@ class NMatrix
         ary = []
         (0...shape[1]).each do |j|
           o = begin
-            self[i, j]
-          rescue ArgumentError
-            nil
-          end
+                self[i, j]
+              rescue ArgumentError
+                nil
+              end
           ary << (o.nil? ? 'nil' : o)
         end
         ary.inspect
@@ -78,8 +78,8 @@ class NMatrix
       end
 
     end
-	end
-	alias :pp :pretty_print
+  end
+  alias :pp :pretty_print
 
   #
   # call-seq:
@@ -91,7 +91,7 @@ class NMatrix
   def rows
     shape[0]
   end
-  
+
   #
   # call-seq:
   #     cols -> Integer
@@ -229,35 +229,35 @@ class NMatrix
   #     complex_conjugate -> NMatrix
   #     complex_conjugate(new_stype) -> NMatrix
   #
-	# Get the complex conjugate of this matrix. See also complex_conjugate! for
-	# an in-place operation (provided the dtype is already +:complex64+ or
-	# +:complex128+).
-	#
-	# Doesn't work on list matrices, but you can optionally pass in the stype you
-	# want to cast to if you're dealing with a list matrix.
+  # Get the complex conjugate of this matrix. See also complex_conjugate! for
+  # an in-place operation (provided the dtype is already +:complex64+ or
+  # +:complex128+).
+  #
+  # Doesn't work on list matrices, but you can optionally pass in the stype you
+  # want to cast to if you're dealing with a list matrix.
   #
   # * *Arguments* :
   #   - +new_stype+ -> stype for the new matrix.
   # * *Returns* :
   #   - If the original NMatrix isn't complex, the result is a +:complex128+ NMatrix. Otherwise, it's the original dtype.
   #
-	def complex_conjugate(new_stype = self.stype)
-		self.cast(new_stype, NMatrix::upcast(dtype, :complex64)).complex_conjugate!
-	end
+  def complex_conjugate(new_stype = self.stype)
+    self.cast(new_stype, NMatrix::upcast(dtype, :complex64)).complex_conjugate!
+  end
 
   #
   # call-seq:
   #     conjugate_transpose -> NMatrix
   #
-	# Calculate the conjugate transpose of a matrix. If your dtype is already
-	# complex, this should only require one copy (for the transpose).
+  # Calculate the conjugate transpose of a matrix. If your dtype is already
+  # complex, this should only require one copy (for the transpose).
   #
   # * *Returns* :
   #   - The conjugate transpose of the matrix as a copy.
   #
-	def conjugate_transpose
-		self.transpose.complex_conjugate!
-	end
+  def conjugate_transpose
+    self.transpose.complex_conjugate!
+  end
 
   #
   # call-seq:
@@ -269,30 +269,30 @@ class NMatrix
   # * *Returns* :
   #   - True if +self+ is a hermitian matrix, nil otherwise.
   #
-	def hermitian?
-		return false if self.dim != 2 or self.shape[0] != self.shape[1]
-		
-		if [:complex64, :complex128].include?(self.dtype)
-			# TODO: Write much faster Hermitian test in C
-			self.eql?(self.conjugate_transpose)
-		else
-			symmetric?
-		end
-	end
+  def hermitian?
+    return false if self.dim != 2 or self.shape[0] != self.shape[1]
 
-	def inspect #:nodoc:
-		original_inspect = super()
-		original_inspect = original_inspect[0...original_inspect.size-1]
-		original_inspect + inspect_helper.join(" ") + ">"
-	end
+    if [:complex64, :complex128].include?(self.dtype)
+      # TODO: Write much faster Hermitian test in C
+      self.eql?(self.conjugate_transpose)
+    else
+      symmetric?
+    end
+  end
 
-	def __yale_ary__to_s(sym) #:nodoc:
-		ary = self.send("__yale_#{sym.to_s}__".to_sym)
-		
-		'[' + ary.collect { |a| a ? a : 'nil'}.join(',') + ']'
-	end
+  def inspect #:nodoc:
+    original_inspect = super()
+    original_inspect = original_inspect[0...original_inspect.size-1]
+    original_inspect + inspect_helper.join(" ") + ">"
+  end
 
-	class << self
+  def __yale_ary__to_s(sym) #:nodoc:
+    ary = self.send("__yale_#{sym.to_s}__".to_sym)
+
+    '[' + ary.collect { |a| a ? a : 'nil'}.join(',') + ']'
+  end
+
+  class << self
     #
     # call-seq:
     #     load_file(path) -> Mat5Reader
@@ -302,28 +302,28 @@ class NMatrix
     # * *Returns* :
     #   - A Mat5Reader object.
     #
-		def load_file(file_path)
-			NMatrix::IO::Mat5Reader.new(File.open(file_path, 'rb')).to_ruby
-		end
-	end
+    def load_file(file_path)
+      NMatrix::IO::Mat5Reader.new(File.open(file_path, 'rb')).to_ruby
+    end
+  end
 
-protected
-	def inspect_helper #:nodoc:
-		ary = []
-		ary << "shape:[#{shape.join(',')}]" << "dtype:#{dtype}" << "stype:#{stype}"
+  protected
+  def inspect_helper #:nodoc:
+    ary = []
+    ary << "shape:[#{shape.join(',')}]" << "dtype:#{dtype}" << "stype:#{stype}"
 
-		if stype == :yale
-			ary <<	"capacity:#{capacity}"
+    if stype == :yale
+      ary <<	"capacity:#{capacity}"
 
       # These are enabled by the DEBUG_YALE compiler flag in extconf.rb.
       if respond_to?(:__yale_a__)
         ary << "ija:#{__yale_ary__to_s(:ija)}" << "ia:#{__yale_ary__to_s(:ia)}" <<
-				  			"ja:#{__yale_ary__to_s(:ja)}" << "a:#{__yale_ary__to_s(:a)}" << "d:#{__yale_ary__to_s(:d)}" <<
-					  		"lu:#{__yale_ary__to_s(:lu)}" << "yale_size:#{__yale_size__}"
+          "ja:#{__yale_ary__to_s(:ja)}" << "a:#{__yale_ary__to_s(:a)}" << "d:#{__yale_ary__to_s(:d)}" <<
+          "lu:#{__yale_ary__to_s(:lu)}" << "yale_size:#{__yale_size__}"
       end
 
-		end
+    end
 
-		ary
-	end
+    ary
+  end
 end

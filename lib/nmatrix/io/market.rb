@@ -29,21 +29,21 @@
 
 module NMatrix::IO::Market
   CONVERTER_AND_DTYPE = {
-      :real => [:to_f, :float64],
-      :complex => [:to_c, :complex128],
-      :integer => [:to_i, :int64],
-      :pattern => [:to_i, :byte]
+    :real => [:to_f, :float64],
+    :complex => [:to_c, :complex128],
+    :integer => [:to_i, :int64],
+    :pattern => [:to_i, :byte]
   }
 
   ENTRY_TYPE = {
-      :byte => :integer, :int8 => :integer, :int16 => :integer, :int32 => :integer, :int64 => :integer,
-      :float32 => :real, :float64 => :real, :complex64 => :complex, :complex128 => :complex
+    :byte => :integer, :int8 => :integer, :int16 => :integer, :int32 => :integer, :int64 => :integer,
+    :float32 => :real, :float64 => :real, :complex64 => :complex, :complex128 => :complex
   }
 
   class << self
     #
     # call-seq:
-    #     load(filename) -> 
+    #     load(filename) ->
     #
     # * *Arguments* :
     #   - +filename+ -> String with the filename to be saved.
@@ -89,7 +89,7 @@ module NMatrix::IO::Market
     #
     def save(matrix, filename, options = {})
       options = {:pattern => false,
-                 :symmetry => :general}.merge(options)
+        :symmetry => :general}.merge(options)
 
       mode = matrix.stype == :dense ? :array : :coordinate
       if [:rational32,:rational64,:rational128,:object].include?(matrix.dtype)
@@ -115,7 +115,7 @@ module NMatrix::IO::Market
     end
 
 
-  protected
+    protected
 
     def save_coordinate matrix, file, symmetry, pattern
       # Convert to a hash in order to store

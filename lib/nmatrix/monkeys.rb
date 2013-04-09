@@ -31,27 +31,27 @@
 #######################
 
 class Array
-	# Convert a Ruby Array to an NMatrix.
-	#
-	# You must provide a shape for the matrix as the first argument.
-	#
-	# == Arguments:
-	# <tt>shape</tt> :: Array describing matrix dimensions (or Fixnum for square) -- REQUIRED!
-	# <tt>dtype</tt> :: Override data type (e.g., to store a Float as :float32 instead of :float64) -- optional.
-	# <tt>stype</tt> :: Optional storage type (defaults to :dense)
-	def to_nm(shape, dtype = nil, stype = :dense)
-		dtype ||=
-		case self[0]
-		when Fixnum		then :int64
-		when Float		then :float64
-		when Rational	then :rational128
-		when Complex	then :complex128
-		end
-	
-		matrix = NMatrix.new(:dense, shape, self, dtype)
-	
-		if stype != :dense then matrix.cast(stype, dtype) else matrix end
-	end
+  # Convert a Ruby Array to an NMatrix.
+  #
+  # You must provide a shape for the matrix as the first argument.
+  #
+  # == Arguments:
+  # <tt>shape</tt> :: Array describing matrix dimensions (or Fixnum for square) -- REQUIRED!
+  # <tt>dtype</tt> :: Override data type (e.g., to store a Float as :float32 instead of :float64) -- optional.
+  # <tt>stype</tt> :: Optional storage type (defaults to :dense)
+  def to_nm(shape, dtype = nil, stype = :dense)
+    dtype ||=
+      case self[0]
+      when Fixnum		then :int64
+      when Float		then :float64
+      when Rational	then :rational128
+      when Complex	then :complex128
+      end
+
+    matrix = NMatrix.new(:dense, shape, self, dtype)
+
+    if stype != :dense then matrix.cast(stype, dtype) else matrix end
+  end
 
   unless method_defined?(:max)
     def max #:nodoc:
@@ -67,10 +67,10 @@ class Array
 end
 
 class Object #:nodoc:
-	def returning(value)
-		yield(value)
-		value
-	end
+  def returning(value)
+    yield(value)
+    value
+  end
 end
 
 class String #:nodoc:

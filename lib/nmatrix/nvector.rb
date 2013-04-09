@@ -46,8 +46,8 @@ class NVector < NMatrix
   # * *Returns* :
   #   -
   #
-	def initialize(length, *args)
-		super(:dense, [length, 1], *args)
+  def initialize(length, *args)
+    super(:dense, [length, 1], *args)
     orientation
   end
 
@@ -55,12 +55,12 @@ class NVector < NMatrix
   # call-seq:
   #     orientation -> Symbol
   #
-	# Orientation defaults to column (e.g., [3,1] is a column of length 3). It
-	# may also be row, e.g., for [1,5].
+  # Orientation defaults to column (e.g., [3,1] is a column of length 3). It
+  # may also be row, e.g., for [1,5].
   #
-	def orientation
-		@orientation ||= :column
-	end
+  def orientation
+    @orientation ||= :column
+  end
 
   #
   # call-seq:
@@ -71,10 +71,10 @@ class NVector < NMatrix
   # * *Returns* :
   #   - NVector containing the transposed vector.
   #
-	def transpose
-		t = super()
+  def transpose
+    t = super()
     t.flip!
-	end
+  end
 
   #
   # call-seq:
@@ -85,14 +85,14 @@ class NVector < NMatrix
   # * *Returns* :
   #   - NVector containing the transposed vector.
   #
-	def transpose!
-		super()
-		self.flip!
-	end
+  def transpose!
+    super()
+    self.flip!
+  end
 
   #
   # call-seq:
-  #     multiply(m) -> 
+  #     multiply(m) ->
   #
   # ...
   #
@@ -101,10 +101,10 @@ class NVector < NMatrix
   # * *Returns* :
   #   -
   #
-	def multiply(m)
-		t = super(m)
+  def multiply(m)
+    t = super(m)
     t.flip!
-	end
+  end
 
   #
   # call-seq:
@@ -117,9 +117,9 @@ class NVector < NMatrix
   # * *Returns* :
   #   -
   #
-	def multiply!(m)
-		super().flip!
-	end
+  def multiply!(m)
+    super().flip!
+  end
 
   #
   # call-seq:
@@ -135,11 +135,11 @@ class NVector < NMatrix
   #   u[0] + u[1]       # => 30
   #   u[0 .. 1].shape   # => [2, 1]
   #
-	def [](i)
-		case @orientation
-		when :column;	super(i, 0)
-		when :row;	  super(0, i)
-		end
+  def [](i)
+    case @orientation
+    when :column;	super(i, 0)
+    when :row;	  super(0, i)
+    end
   end
 
   #
@@ -148,12 +148,12 @@ class NVector < NMatrix
   #
   # Stores +value+ at position +index+.
   #
-	def []=(i, val)
-		case @orientation
-		when :column;	super(i, 0, val)
-		when :row;	  super(0, i, val)
-		end
-	end
+  def []=(i, val)
+    case @orientation
+    when :column;	super(i, 0, val)
+    when :row;	  super(0, i, val)
+    end
+  end
 
   #
   # call-seq:
@@ -161,25 +161,25 @@ class NVector < NMatrix
   #
   # Returns the dimension of a vector, which is 1.
   #
-	def dim; 1; end
+  def dim; 1; end
 
   # shorthand for the dominant shape component
   def size
     shape[0] > 1 ? shape[0] : shape[1]
   end
 
-	# TODO: Make this actually pretty.
-	def pretty_print #:nodoc:
-		dim = @orientation == :row ? 1 : 0
-		
-		puts (0...shape[dim]).inject(Array.new) { |a, i| a << self[i] }.join('  ')
-	end
+  # TODO: Make this actually pretty.
+  def pretty_print #:nodoc:
+    dim = @orientation == :row ? 1 : 0
 
-protected
-	def inspect_helper #:nodoc:
-		super() << "orientation:#{self.orientation}"
-	end
-	
+    puts (0...shape[dim]).inject(Array.new) { |a, i| a << self[i] }.join('  ')
+  end
+
+  protected
+  def inspect_helper #:nodoc:
+    super() << "orientation:#{self.orientation}"
+  end
+
   #
   # call-seq:
   #     flip_orientation! -> NVector
@@ -189,8 +189,8 @@ protected
   # * *Returns* :
   #   - NVector with orientation changed.
   #
-	def flip_orientation!
-		returning(self) { @orientation = @orientation == :row ? :column : :row }
-	end
-	alias :flip! :flip_orientation!
+  def flip_orientation!
+    returning(self) { @orientation = @orientation == :row ? :column : :row }
+  end
+  alias :flip! :flip_orientation!
 end

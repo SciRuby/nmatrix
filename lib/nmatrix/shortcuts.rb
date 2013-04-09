@@ -38,8 +38,8 @@ class NMatrix
     #
     # call-seq:
     #    zeros(size) -> NMatrix
-    #    zeros(size, dtype) -> NMatrix    
-    #    zeros(stype, size, dtype) -> NMatrix 
+    #    zeros(size, dtype) -> NMatrix
+    #    zeros(stype, size, dtype) -> NMatrix
     #
     # Creates a new matrix of zeros with the dimensions supplied as
     # parameters.
@@ -53,14 +53,14 @@ class NMatrix
     #
     # Examples:
     #
-    #   NMatrix.zeros(2) # =>  0.0   0.0   
+    #   NMatrix.zeros(2) # =>  0.0   0.0
     #                          0.0   0.0
     #
     #   NMatrix.zeros([2, 3], :int32) # =>  0  0  0
     #                                       0  0  0
     #
     #   NMatrix.zeros(:list, [1, 5], :int32) # =>  0  0  0  0  0
-    #    
+    #
     def zeros(*params)
       dtype = params.last.is_a?(Symbol) ? params.pop : :float64
       stype = params.first.is_a?(Symbol) ? params.shift : :dense
@@ -101,7 +101,7 @@ class NMatrix
     # call-seq:
     #     eye(size) -> NMatrix
     #     eye(size, dtype) -> NMatrix
-    #     eye(stype, size, dtype) -> NMatrix    
+    #     eye(stype, size, dtype) -> NMatrix
     #
     # Creates an identity matrix (square matrix rank 2).
     #
@@ -130,13 +130,13 @@ class NMatrix
       stype = params.first.is_a?(Symbol) ? params.shift : :dense
 
       dim = params.first
-      
+
       # Fill the diagonal with 1's.
       m = NMatrix.zeros(stype, dim, dtype)
-      (0 .. (dim - 1)).each do |i| 
+      (0 .. (dim - 1)).each do |i|
         m[i, i] = 1
       end
-      
+
       m
     end
     alias :identity :eye
@@ -162,7 +162,7 @@ class NMatrix
       rng = Random.new
 
       random_values = []
-      
+
       # Construct the values of the final matrix based on the dimension.
       if size.is_a?(Integer)
         (size * size - 1).times { |i| random_values << rng.rand }
@@ -200,14 +200,14 @@ class NMatrix
     def seq(*params)
       dtype = params.last.is_a?(Symbol) ? params.pop : nil
       size = params.first
-      
+
       # Must provide the dimension as an Integer for a square matrix or as an
       # 2 element array, e.g. [2,4].
       unless size.is_a?(Integer) || (size.is_a?(Array) && size.size < 3)
         raise ArgumentError, "seq() accepts only integers or 2-element arrays \
 as dimension."
       end
-      
+
       # Construct the values of the final matrix based on the dimension.
       if size.is_a?(Integer)
         values = (0 .. (size * size - 1)).to_a
@@ -215,7 +215,7 @@ as dimension."
         # Dimensions given by a 2 element array.
         values = (0 .. (size.first * size.last - 1)).to_a
       end
-      
+
       # It'll produce :int32, except if a dtype is provided.
       NMatrix.new(:dense, size, values, dtype)
     end
@@ -279,7 +279,7 @@ as dimension."
     def cindgen(size)
       NMatrix.seq(size, :complex64)
     end
-  
+
   end
 
   #
@@ -299,7 +299,7 @@ as dimension."
   #
   #   m = NMatrix.new(2, [1, 4, 9, 14], :int32) # =>  1   4
   #                                                   9  14
-  #   
+  #
   #   m.column(1) # =>   4
   #                     14
   #
@@ -307,7 +307,7 @@ as dimension."
     unless [:copy, :reference].include?(get_by)
       raise ArgumentError, "column() 2nd parameter must be :copy or :reference"
     end
-    
+
     if get_by == :copy
       self.slice(0 ... self.shape[0], column_number)
     else # by reference
@@ -316,7 +316,7 @@ as dimension."
   end
 
   alias :col :column
-  
+
   #
   # call-seq:
   #     row(row_number) -> NMatrix
@@ -332,17 +332,17 @@ as dimension."
     unless [:copy, :reference].include?(get_by)
       raise ArgumentError, "row() 2nd parameter must be :copy or :reference"
     end
-    
+
     if get_by == :copy
       self.slice(row_number, 0 ... self.shape[1])
     else # by reference
       self[row_number, 0 ... self.shape[1]]
-    end    
+    end
   end
 end
 
 class NVector < NMatrix
-  
+
   class << self
     #
     # call-seq:
@@ -361,7 +361,7 @@ class NVector < NMatrix
     # Examples:
     #
     #   NVector.zeros(2) # =>  0.0
-    #                          0.0   
+    #                          0.0
     #
     #   NVector.zeros(3, :int32) # =>  0
     #                                  0
@@ -389,7 +389,7 @@ class NVector < NMatrix
     # Examples:
     #
     #   NVector.ones(2) # =>  1.0
-    #                         1.0   
+    #                         1.0
     #
     #   NVector.ones(3, :int32) # =>  1
     #                                 1
@@ -422,7 +422,7 @@ class NVector < NMatrix
 
       random_values = []
       size.times { |i| random_values << rng.rand }
-      
+
       NVector.new(size, random_values, :float64)
     end
 
@@ -453,9 +453,9 @@ class NVector < NMatrix
       unless n.is_a?(Integer)
         raise ArgumentError, "NVector::seq() only accepts integers as size."
       end
-            
+
       values = (0 ... n).to_a
-      
+
       NVector.new(n, values, dtype)
     end
 
@@ -540,7 +540,7 @@ class NVector < NMatrix
     # Example:
     #   x = NVector.linspace(0, Math::PI, 1000)
     #   => #<NMatrix:0x007f83921992f0shape:[1000,1] dtype:float64 stype:dense>
-    #   
+    #
     #   x.pp
     #     [0.0]
     #     [0.0031447373909807737]
@@ -549,15 +549,15 @@ class NVector < NMatrix
     #     [3.135303178807831]
     #     [3.138447916198812]
     #     [3.141592653589793]
-    #   => nil 
+    #   => nil
     #
     def linspace(a, b, n = 100)
       # See: http://www.mathworks.com/help/matlab/ref/linspace.html
       # Formula:  seq(n) * step + a
-      
+
       # step = ((b - a) / (n - 1))
       step = (b - a) * (1.0 / (n - 1))
-      
+
       # dtype = :float64 is used to prevent integer coercion.
       result = NVector.seq(n, :float64) * NVector.new(n, step, :float64)
       result += NVector.new(n, a, :float64)
