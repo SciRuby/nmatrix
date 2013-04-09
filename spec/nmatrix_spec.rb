@@ -42,14 +42,14 @@ describe NMatrix do
 
   it "allows stype casting of a dim 2 matrix between dense, sparse, and list (different dtypes)" do
     m = NMatrix.new(:dense, [3,3], [0,0,1,0,2,0,3,4,5], :int64).
-        cast(:yale, :int32).
-        cast(:dense, :float64).
-        cast(:list, :int32).
-        cast(:dense, :int16).
-        cast(:list, :int32).
-        cast(:yale, :int64) #.
-        #cast(:list, :int32).
-        #cast(:dense, :int16)
+      cast(:yale, :int32).
+      cast(:dense, :float64).
+      cast(:list, :int32).
+      cast(:dense, :int16).
+      cast(:list, :int32).
+      cast(:yale, :int64) #.
+    #cast(:list, :int32).
+    #cast(:dense, :int16)
     #m.should.equal?(original)
     # For some reason this causes some weird garbage collector problems when we uncomment these. The above lines won't
     # work at all in IRB, but work fine when run in a regular Ruby session.
@@ -241,7 +241,7 @@ describe NMatrix do
         NMatrix.new(storage_type, [3,2,8], 0).shape.should == [3,2,8]
         NMatrix.new(storage_type, [3,2,8], 0).dim.should  == 3
       end
-      
+
       it "returns number of rows and columns" do
         NMatrix.new(storage_type, [7, 4], 3).rows.should == 7
         NMatrix.new(storage_type, [7, 4], 3).cols.should == 4
@@ -263,7 +263,7 @@ describe NMatrix do
 
   it "converts from list to yale properly" do
     m = NMatrix.new(:list, 3, 0)
-    m[0,2] = 333 
+    m[0,2] = 333
     m[2,2] = 777
     n = m.cast(:yale, :int32)
     puts n.capacity

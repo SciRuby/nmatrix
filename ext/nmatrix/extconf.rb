@@ -63,19 +63,19 @@ end
 def create_conf_h(file) #:nodoc:
   print "creating #{file}\n"
   File.open(file, 'w') do |hfile|
-  	header_guard = file.upcase.sub(/\s|\./, '_')
-		
-		hfile.puts "#ifndef #{header_guard}"
-		hfile.puts "#define #{header_guard}"
-		hfile.puts
-		
-		for line in $defs
-		  line =~ /^-D(.*)/
-		  hfile.printf "#define %s 1\n", $1
-		end
-		
-		hfile.puts
-		hfile.puts "#endif"
+    header_guard = file.upcase.sub(/\s|\./, '_')
+
+    hfile.puts "#ifndef #{header_guard}"
+    hfile.puts "#define #{header_guard}"
+    hfile.puts
+
+    for line in $defs
+      line =~ /^-D(.*)/
+      hfile.printf "#define %s 1\n", $1
+    end
+
+    hfile.puts
+    hfile.puts "#endif"
   end
 end
 
@@ -84,7 +84,7 @@ if RUBY_VERSION < '1.9'
 else
   $INSTALLFILES = [['nmatrix.h', '$(archdir)'], ['nmatrix.hpp', '$(archdir)'], ['nmatrix_config.h', '$(archdir)']]
   if /cygwin|mingw/ =~ RUBY_PLATFORM
-	 $INSTALLFILES << ['libnmatrix.a', '$(archdir)']
+    $INSTALLFILES << ['libnmatrix.a', '$(archdir)']
   end
 end
 
@@ -96,19 +96,19 @@ $DEBUG = true
 $CFLAGS = ["-Wall ",$CFLAGS].join(" ")
 
 $srcs = [
-	'nmatrix.cpp',
-	'ruby_constants.cpp',
+         'nmatrix.cpp',
+         'ruby_constants.cpp',
 
-	'data/data.cpp',
-	'util/math.cpp',
-  'util/sl_list.cpp',
-  'util/io.cpp',
-  'storage/common.cpp',
-	'storage/storage.cpp',
-	'storage/dense.cpp',
-  'storage/yale.cpp',
-  'storage/list.cpp'
-]
+         'data/data.cpp',
+         'util/math.cpp',
+         'util/sl_list.cpp',
+         'util/io.cpp',
+         'storage/common.cpp',
+         'storage/storage.cpp',
+         'storage/dense.cpp',
+         'storage/yale.cpp',
+         'storage/list.cpp'
+        ]
 # add smmp in to get generic transp; remove smmp2 to eliminate funcptr transp
 
 # The next line allows the user to supply --with-atlas-dir=/usr/local/atlas,
@@ -174,10 +174,10 @@ end
 
 
 if CONFIG['CXX'] == 'clang++'
-	$CPP_STANDARD = 'c++11'
+  $CPP_STANDARD = 'c++11'
 
 else
-	version = gplusplus_version
+  version = gplusplus_version
   if version < '4.3.0' && CONFIG['CXX'] == 'g++'  # see if we can find a newer G++, unless it's been overridden by user
     if !find_newer_gplusplus
       raise("You need a version of g++ which supports -std=c++0x or -std=c++11. If you're on a Mac and using Homebrew, we recommend using mac-brew-gcc.sh to install a more recent g++.")
@@ -185,11 +185,11 @@ else
     version = gplusplus_version
   end
 
-	if version < '4.7.0'
-		$CPP_STANDARD = 'c++0x'
-	else
-		$CPP_STANDARD = 'c++11'
-	end
+  if version < '4.7.0'
+    $CPP_STANDARD = 'c++0x'
+  else
+    $CPP_STANDARD = 'c++11'
+  end
 end
 
 # For release, these next two should both be changed to -O3.

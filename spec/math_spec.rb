@@ -56,7 +56,7 @@ describe "math" do
     end
   end
 
-   # TODO: Get it working with ROBJ too
+  # TODO: Get it working with ROBJ too
   [:byte,:int8,:int16,:int32,:int64,:float32,:float64,:rational64,:rational128].each do |left_dtype|
     [:byte,:int8,:int16,:int32,:int64,:float32,:float64,:rational64,:rational128].each do |right_dtype|
 

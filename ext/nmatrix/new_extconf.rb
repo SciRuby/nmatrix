@@ -31,26 +31,25 @@ $CFLAGS							= '-I. -fPIC -Wall -pipe -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fst
 CONFIG['CXXFLAGS']	= '-std=c++11'
 
 if clang_path = find_executable('clang') and clang_pp_path = find_executable('clang++')
-	CONFIG['CC']	= clang_path
-	CONFIG['CXX']	= clang_pp_path
+  CONFIG['CC']	= clang_path
+  CONFIG['CXX']	= clang_pp_path
 end
 
 # Necessary header files.
-find_header('ruby/config.h') 
+find_header('ruby/config.h')
 
 # List the source files that need to be compiled.
 $srcs = [
-#	'nmatrix.cpp',
-	'ruby_constants.cpp',
-	
-	'data/data.cpp',
-	'math.cpp',
-	'storage/storage.cpp',
-	'storage/dense.cpp'
-]
+         #	'nmatrix.cpp',
+         'ruby_constants.cpp',
+
+         'data/data.cpp',
+         'math.cpp',
+         'storage/storage.cpp',
+         'storage/dense.cpp'
+        ]
 
 $objs = $srcs.map { |f| f.sub('.cpp', '.o') }
 
 # Create the actual Makefile.
 create_makefile('NMatrix')
-
