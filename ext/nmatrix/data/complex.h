@@ -132,23 +132,23 @@ class Complex {
 	
 	template <typename OtherType>
 	inline Complex<Type> operator*(const Complex<OtherType>& other) const {
-		return Complex<Type>(this->r * other.r - this->i * other.i, this->r * other.i - this->i * other.r);
+		return Complex<Type>(this->r * other.r - this->i * other.i, this->r * other.i + this->i * other.r);
 	}
 
   template <typename OtherType>
   inline Complex<Type>& operator*=(const Complex<OtherType>& other) {
     this->r = this->r * other.r - this->i * other.i;
-    this->i = this->r * other.i - this->i * other.r;
+    this->i = this->r * other.i + this->i * other.r;
     return *this;
   }
 
 	template <typename OtherType>
 	inline Complex<Type> operator/(const Complex<OtherType>& other) const {
 		Type new_r, new_i;
-		Type denom = this->i * this->i + other.r * other.r;
+		Type denom = other.i * other.i + other.r * other.r;
 		
 		new_r = (this->r * other.r + this->i * other.i) / denom;
-		new_i = (this->r * other.i - this->i * other.r) / denom;
+		new_i = (this->i * other.r - this->r * other.i) / denom;
 		
 		return Complex<Type>(new_r, new_i);
 	}
@@ -199,7 +199,7 @@ class Complex {
 	
 	template <typename RationalType>
 	inline Complex<Type> operator-(const Rational<RationalType>& other) const {
-		return *this * Complex<Type>(other);
+		return *this - Complex<Type>(other);
 	}
 	
 	template <typename RationalType>
