@@ -181,6 +181,53 @@ NODE* list_storage_get_single_node(LIST_STORAGE* s, SLICE* slice)
 
   return n;
 }
+ /*
+   * Each stored iterator, brings along the indices
+   */
+  VALUE nm_list_each_stored_with_indices(VALUE nmatrix) {
+
+    // If we don't have a block, return an enumerator.
+    RETURN_ENUMERATOR(nmatrix, 0, 0);
+    LIST_STORAGE* s = NM_STORAGE_LIST(nmatrix);
+    // Create indices and initialize to zero
+    size_t* coords = ALLOCA_N(size_t, s->dim);
+    memset(coords, 0, sizeof(size_t) * s->dim);
+
+    // Set up the LIST and NODE
+    LIST* l = s->rows;
+    NODE* curr = l->first;
+
+    // Levels...
+    while (curr) { // LOOPS through the rows
+      NODE* subnode = reinterpret_cast<LIST*>(curr->val)->first;
+      size_t row = curr->key;
+      // Iterate along each row, yielding the val, row, col for each non-default entry
+      while (subnode) {
+        VALUE ary = rb_ary_new();
+        size_t col = subnode->key;
+        
+        // Conditional type handling
+        if (NM_DTYPE(nmatrix) == nm::RUBYOBJ) {
+          rb_ary_push(ary, *reinterpret_cast<VALUE*>(subnode->val));
+        } else {
+          rb_ary_push(ary, rubyobj_from_cval((char*)(subnode->val ) , NM_DTYPE(nmatrix)).rval);
+        }
+
+        // Push the coordinate values into the ary
+        rb_ary_push(ary, INT2FIX(row));
+        rb_ary_push(ary, INT2FIX(col));
+
+        // Yield the ary
+        rb_yield(ary);
+
+        // Update the col position
+        subnode = subnode->next;
+      }
+      // Update the row node 
+      curr = curr->next;
+    }
+    return nmatrix;
+  }
 
 
 static LIST* slice_copy(const LIST_STORAGE *src, LIST *src_rows, size_t *coords, size_t *lengths, size_t n)

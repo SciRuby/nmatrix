@@ -194,7 +194,6 @@ describe NMatrix do
           end
 
           it "allows storage-based iteration of matrices" do
-            pending("list not implemented yet") if storage_type == :list
             n = storage_type == :yale ? NMatrix.new(storage_type, [3,3], dtype) : NMatrix.new(storage_type, [3,3], 0, dtype)
             n[0,0] = 1
             n[0,1] = 2
@@ -217,7 +216,7 @@ describe NMatrix do
             elsif storage_type == :list
               values.should == [1,2,4,3]
               is.should     == [0,0,2,2]
-              js.should     == [0,1,2,1]
+              js.should     == [0,1,1,2]
             elsif storage_type == :dense
               values.should == [1,2,0,0,0,0,0,4,3]
               is.should     == [0,0,0,1,1,1,2,2,2]

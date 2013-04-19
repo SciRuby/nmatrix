@@ -760,8 +760,10 @@ static VALUE nm_each_stored_with_indices(VALUE nmatrix) {
     return nm_yale_each_stored_with_indices(nm);
   case nm::DENSE_STORE:
     return nm_dense_each_with_indices(nm);
+  case nm::LIST_STORE:
+    return nm_list_each_stored_with_indices(nm);
   default:
-    rb_raise(rb_eNotImpError, "not yet implemented for list matrices");
+    rb_raise(nm_eDataTypeError, "Not a proper storage type");
   }
 }
 

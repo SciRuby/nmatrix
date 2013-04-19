@@ -82,6 +82,7 @@ extern "C" {
   // Accessors //
   ///////////////
 
+  VALUE nm_list_each_stored_with_indices(VALUE nmatrix);
   void* nm_list_storage_ref(STORAGE* s, SLICE* slice);
   void* nm_list_storage_get(STORAGE* s, SLICE* slice);
   void* nm_list_storage_insert(STORAGE* s, SLICE* slice, void* val);
