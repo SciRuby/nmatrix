@@ -428,51 +428,6 @@ static double get_time(void);
 ///////////////////
 
 void Init_nmatrix() {
-	
-	#ifdef RDOC
-		rb_define_singleton_method(cNMatrix, "upcast", nm_upcast, 2);
-		rb_define_singleton_method(cNMatrix, "itype_by_shape", nm_itype_by_shape, 1);	
-		rb_define_method(cNMatrix, "initialize", nm_init, -1);
-		rb_define_method(cNMatrix, "initialize_copy", nm_init_copy, 1);
-		rb_define_method(cNMatrix, "transpose", nm_init_transposed, 0);
-		rb_define_method(cNMatrix, "dtype", nm_dtype, 0);
-		rb_define_method(cNMatrix, "itype", nm_itype, 0);
-		rb_define_method(cNMatrix, "stype", nm_stype, 0);
-		rb_define_method(cNMatrix, "cast",  nm_init_cast_copy, 2);
-		rb_define_method(cNMatrix, "[]", nm_mref, -1);
-		rb_define_method(cNMatrix, "slice", nm_mget, -1);
-		rb_define_method(cNMatrix, "[]=", nm_mset, -1);
-		rb_define_method(cNMatrix, "is_ref?", nm_is_ref, 0);
-		rb_define_method(cNMatrix, "dimensions", nm_dim, 0);
-		rb_define_protected_method(cNMatrix, "to_hash_c", nm_to_hash, 0); // handles list and dense, which are n-dimensional
-		//rb_define_alias(cNMatrix,  "to_h",    "to_hash");
-		rb_define_method(cNMatrix, "shape", nm_shape, 0);
-		rb_define_method(cNMatrix, "det_exact", nm_det_exact, 0);
-		//rb_define_method(cNMatrix, "transpose!", nm_transpose_self, 0);
-		rb_define_method(cNMatrix, "complex_conjugate!", nm_complex_conjugate_bang, 0);
-		rb_define_method(cNMatrix, "each", nm_each, 0);
-		rb_define_method(cNMatrix, "each_stored_with_indices", nm_each_stored_with_indices, 0);
-		rb_define_method(cNMatrix, "==",	  nm_eqeq,				1);
-		rb_define_method(cNMatrix, "+",			nm_ew_add,			1);
-		rb_define_method(cNMatrix, "-",			nm_ew_subtract,	1);
-	  rb_define_method(cNMatrix, "*",			nm_ew_multiply,	1);
-		rb_define_method(cNMatrix, "/",			nm_ew_divide,		1);
-	  //rb_define_method(cNMatrix, "%",			nm_ew_mod,			1);
-		rb_define_method(cNMatrix, "=~", nm_ew_eqeq, 1);
-		rb_define_method(cNMatrix, "!~", nm_ew_neq, 1);
-		rb_define_method(cNMatrix, "<=", nm_ew_leq, 1);
-		rb_define_method(cNMatrix, ">=", nm_ew_geq, 1);
-		rb_define_method(cNMatrix, "<", nm_ew_lt, 1);
-		rb_define_method(cNMatrix, ">", nm_ew_gt, 1);
-		rb_define_method(cNMatrix, "dot",		nm_multiply,		1);
-		rb_define_method(cNMatrix, "factorize_lu", nm_factorize_lu, 0);
-		rb_define_method(cNMatrix, "symmetric?", nm_symmetric, 0);
-		rb_define_method(cNMatrix, "hermitian?", nm_hermitian, 0);
-		rb_define_method(cNMatrix, "capacity", nm_capacity, 0);
-		rb_define_alias(cNMatrix, "dim", "dimensions");
-		rb_define_alias(cNMatrix, "equal?", "eql?");
-	#endif
-	
 	///////////////////////
 	// Class Definitions //
 	///////////////////////

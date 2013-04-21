@@ -1259,16 +1259,6 @@ static VALUE yale_each_stored_with_indices(VALUE nm) {
 extern "C" {
 
 void nm_init_yale_functions() {
-	#ifdef RDOC
-	  rb_define_method(cNMatrix_YaleFunctions, "yale_ija", nm_ija, 0);
-	  rb_define_method(cNMatrix_YaleFunctions, "yale_a", nm_a, 0);
-	  rb_define_method(cNMatrix_YaleFunctions, "yale_size", nm_size, 0);
-	  rb_define_method(cNMatrix_YaleFunctions, "yale_ia", nm_ia, 0);
-	  rb_define_method(cNMatrix_YaleFunctions, "yale_ja", nm_ja, 0);
-	  rb_define_method(cNMatrix_YaleFunctions, "yale_d", nm_d, 0);
-	  rb_define_method(cNMatrix_YaleFunctions, "yale_lu", nm_lu, 0);
-	#endif
-	
 	/*
 	 * This module stores methods that are useful for debugging Yale matrices,
 	 * i.e. the ones with +:yale+ stype.	
