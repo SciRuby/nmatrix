@@ -28,16 +28,17 @@ To start helping with the code, you need to have all the dependencies in place:
 - GCC 4.3+
 - git
 - Ruby 1.9+
-- [gem install packable](http://github.com/marcandre/packable) 1.3.5 (used for I/O)
+- `bundler` gem
 
 Now, you need to clone the git repository:
 
     git clone git://github.com/SciRuby/nmatrix.git
 		cd nmatrix
+		bundle install
 		rake compile
 		rake spec
 
-This will compile the extension and run the specs. 
+This will install all dependencies, compile the extension and run the specs. 
 
 As of now (12/31/2012), there should be 25 specs failing, in elementwise\_spec, lapack\_spec and math\_spec. If you see more than 25 or from different specs, please report on the [mailing list][1] or on the [issue tracker][2].
 
