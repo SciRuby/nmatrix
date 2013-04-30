@@ -26,7 +26,7 @@ Rake::GemPackageTask.new(gemspec).define
 
 desc "install the gem locally"
 task :install => [:package] do
-  sh %{gem install pkg/nmatrix-#{NMatrix::VERSION}}
+  sh %{gem install pkg/nmatrix-#{NMatrix::VERSION}.gem}
 end
 
 require 'rspec/core/rake_task'
