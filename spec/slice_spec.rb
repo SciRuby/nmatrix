@@ -105,6 +105,8 @@ describe "Slice operation" do
         end
       end
 
+
+
       if stype == :yale
         context "by reference" do
           it "should raise an error" do
@@ -211,6 +213,45 @@ describe "Slice operation" do
                 end
               end
             end
+
+            context "operations" do 
+
+              it "correctly transposes slices" do
+                @m[0...3,0].transpose.should eq N[[0, 3, 6]]
+              end
+
+              it "adds slices" do 
+                (N[[0,0,0]] + @m[1,0..2]).should eq N[[3, 4, 5]]
+              end
+
+              it "scalar adds to slices" do 
+                (@m[1,0..2]+1).should eq N[[4, 5, 6]]
+              end
+
+              it "compares slices to scalars" do 
+                (@m[1, 0..2] > 2).each { |e| (e != 0).should be_true }
+              end
+
+              it "iterates only over elements in the slice" do 
+                els = []
+                @m[1, 0..2].each { |e| els << e }
+                els.size.should eq 3
+                els[0].should eq 3
+                els[1].should eq 4
+                els[2].should eq 5
+              end
+
+              it "iterates with index only over elements in the slice" do 
+                els = []
+                @m[1, 0..2].each_stored_with_indices { |a| els << a }
+                els.size.should eq 3
+                els[0].should eq [3, 0, 0]
+                els[1].should eq [4, 0, 1]
+                els[2].should eq [5, 0, 2]
+              end
+
+            end
+
           end
 
           it 'should be cleaned up by garbage collector without errors'  do

@@ -104,6 +104,7 @@ STORAGE* nm_dense_storage_matrix_multiply(const STORAGE_PAIR& casted_storage, si
 /////////////
 
 size_t nm_dense_storage_pos(const DENSE_STORAGE* s, const size_t* coords);
+void nm_dense_storage_coords(const DENSE_STORAGE* s, const size_t slice_pos, size_t* coords_out);
 
 /////////////////////////
 // Copying and Casting //

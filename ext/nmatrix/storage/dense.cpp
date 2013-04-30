@@ -55,6 +55,9 @@
 
 namespace nm { namespace dense_storage {
 
+  template<typename LDType, typename RDType>
+  void ref_slice_copy_transposed(const DENSE_STORAGE* rhs, DENSE_STORAGE* lhs);
+
   template <typename LDType, typename RDType>
   DENSE_STORAGE* cast_copy(const DENSE_STORAGE* rhs, nm::dtype_t new_dtype);
 	
@@ -113,7 +116,7 @@ DENSE_STORAGE* nm_dense_storage_create(nm::dtype_t dtype, size_t* shape, size_t 
 
   if (elements_length == count) {
   	s->elements = elements;
-  	
+    
   } else {
     s->elements = ALLOC_N(char, DTYPE_SIZES[dtype]*count);
 
@@ -149,7 +152,8 @@ void nm_dense_storage_delete(STORAGE* s) {
       free(storage->shape);
       free(storage->offset);
       free(storage->stride);
-      free(storage->elements);
+      if (storage->elements != NULL)
+        free(storage->elements);
       free(storage);
     }
   }
@@ -200,11 +204,19 @@ VALUE nm_dense_each_with_indices(VALUE nmatrix) {
   size_t* coords = ALLOCA_N(size_t, s->dim);
   memset(coords, 0, sizeof(size_t) * s->dim);
 
-  for (size_t k = 0; k < nm_storage_count_max_elements(s); ++k) {
+  size_t slice_index;
+  size_t* shape_copy = ALLOC_N(size_t, s->dim);
+  memcpy(shape_copy, s->shape, sizeof(size_t) * s->dim);
 
+  DENSE_STORAGE* sliced_dummy = nm_dense_storage_create(s->dtype, shape_copy, s->dim, NULL, nm_storage_count_max_elements(s));
+  
+
+  for (size_t k = 0; k < nm_storage_count_max_elements(s); ++k) {
+    nm_dense_storage_coords(sliced_dummy, k, coords);
+    slice_index = nm_dense_storage_pos(s, coords);
     VALUE ary = rb_ary_new();
-    if (NM_DTYPE(nm) == nm::RUBYOBJ) rb_ary_push(ary, reinterpret_cast<VALUE*>(s->elements)[k]);
-    else rb_ary_push(ary, rubyobj_from_cval((char*)(s->elements) + k*DTYPE_SIZES[NM_DTYPE(nm)], NM_DTYPE(nm)).rval);
+    if (NM_DTYPE(nm) == nm::RUBYOBJ) rb_ary_push(ary, reinterpret_cast<VALUE*>(s->elements)[slice_index]);
+    else rb_ary_push(ary, rubyobj_from_cval((char*)(s->elements) + slice_index*DTYPE_SIZES[NM_DTYPE(nm)], NM_DTYPE(nm)).rval);
 
     for (size_t p = 0; p < s->dim; ++p) {
       rb_ary_push(ary, INT2FIX(coords[p]));
@@ -213,16 +225,10 @@ VALUE nm_dense_each_with_indices(VALUE nmatrix) {
     // yield the array which now consists of the value and the indices
     rb_yield(ary);
 
-    // update the coordinates
-    for (size_t p = 1; p <= s->dim; ++p) {
-      coords[s->dim - p]++;
-
-      if (coords[s->dim - p] < s->shape[s->dim - p]) break;
-      else
-        coords[s->dim - p] = 0;
-        // and then continue down the loop, incrementing j instead of i
-    }
   }
+
+  nm_dense_storage_delete(sliced_dummy);
+
 }
 
 
@@ -239,21 +245,33 @@ VALUE nm_dense_each(VALUE nmatrix) {
 
   RETURN_ENUMERATOR(nm, 0, 0);
 
+  size_t* temp_coords = ALLOCA_N(size_t, s->dim);
+  size_t sliced_index;
+  size_t* shape_copy = ALLOC_N(size_t, s->dim);
+  memcpy(shape_copy, s->shape, sizeof(size_t) * s->dim);
+  DENSE_STORAGE* sliced_dummy = nm_dense_storage_create(s->dtype, shape_copy, s->dim, NULL, nm_storage_count_max_elements(s));
+
   if (NM_DTYPE(nm) == nm::RUBYOBJ) {
 
     // matrix of Ruby objects -- yield those objects directly
     for (size_t i = 0; i < nm_storage_count_max_elements(s); ++i)
-      rb_yield( reinterpret_cast<VALUE*>(s->elements)[i] );
+      nm_dense_storage_coords(sliced_dummy, i, temp_coords);
+      sliced_index = nm_dense_storage_pos(s, temp_coords);
+      rb_yield( reinterpret_cast<VALUE*>(s->elements)[sliced_index] );
 
   } else {
 
     // We're going to copy the matrix element into a Ruby VALUE and then operate on it. This way user can't accidentally
     // modify it and cause a seg fault.
     for (size_t i = 0; i < nm_storage_count_max_elements(s); ++i) {
-      VALUE v = rubyobj_from_cval((char*)(s->elements) + i*DTYPE_SIZES[NM_DTYPE(nm)], NM_DTYPE(nm)).rval;
+      nm_dense_storage_coords(sliced_dummy, i, temp_coords);
+      sliced_index = nm_dense_storage_pos(s, temp_coords);
+      VALUE v = rubyobj_from_cval((char*)(s->elements) + sliced_index*DTYPE_SIZES[NM_DTYPE(nm)], NM_DTYPE(nm)).rval;
       rb_yield( v ); // yield to the copy we made
     }
   }
+
+  nm_dense_storage_delete(sliced_dummy);
 }
 
 
@@ -417,6 +435,25 @@ size_t nm_dense_storage_pos(const DENSE_STORAGE* s, const size_t* coords) {
     pos += (coords[i] + s->offset[i]) * s->stride[i];
 
   return pos;
+
+}
+
+/*
+ * Determine the a set of slice coordinates from linear array position (in elements 
+ * of s) of some set of coordinates (given by slice).  (Inverse of
+ * nm_dense_storage_pos).  
+ *
+ * The parameter coords_out should be a pre-allocated array of size equal to s->dim.
+ */
+void nm_dense_storage_coords(const DENSE_STORAGE* s, const size_t slice_pos, size_t* coords_out) {
+
+  size_t temp_pos = slice_pos;
+
+  for (size_t i = 0; i < s->dim; ++i) {
+    coords_out[i] = (temp_pos - temp_pos % s->stride[i])/s->stride[i] - s->offset[i];
+    temp_pos = temp_pos % s->stride[i];
+  }
+
 }
 
 /*
@@ -523,7 +560,12 @@ STORAGE* nm_dense_storage_copy_transposed(const STORAGE* rhs_base) {
   lhs->offset[0] = rhs->offset[1];
   lhs->offset[1] = rhs->offset[0];
 
-  nm_math_transpose_generic(rhs->shape[0], rhs->shape[1], rhs->elements, rhs->shape[1], lhs->elements, lhs->shape[1], DTYPE_SIZES[rhs->dtype]);
+  if (rhs_base->src == rhs_base) {
+    nm_math_transpose_generic(rhs->shape[0], rhs->shape[1], rhs->elements, rhs->shape[1], lhs->elements, lhs->shape[1], DTYPE_SIZES[rhs->dtype]);
+  } else {
+    NAMED_LR_DTYPE_TEMPLATE_TABLE(ttable, nm::dense_storage::ref_slice_copy_transposed, void, const DENSE_STORAGE* rhs, DENSE_STORAGE* lhs);
+    ttable[lhs->dtype][rhs->dtype](rhs, lhs);
+  }
 
   return (STORAGE*)lhs;
 }
@@ -535,6 +577,25 @@ namespace nm { namespace dense_storage {
 /////////////////////////
 // Templated Functions //
 /////////////////////////
+
+template<typename LDType, typename RDType>
+void ref_slice_copy_transposed(const DENSE_STORAGE* rhs, DENSE_STORAGE* lhs) {
+
+  LDType* lhs_els = reinterpret_cast<LDType*>(lhs->elements);
+  RDType* rhs_els = reinterpret_cast<RDType*>(rhs->elements);
+
+  size_t count = nm_storage_count_max_elements(lhs);
+  size_t* temp_coords = ALLOCA_N(size_t, lhs->dim);
+  size_t coord_swap_temp;
+
+  while (count-- > 0) {
+    nm_dense_storage_coords(lhs, count, temp_coords);
+    NM_SWAP(temp_coords[0], temp_coords[1], coord_swap_temp);
+    size_t r_coord = nm_dense_storage_pos(rhs, temp_coords);
+    lhs_els[count] = rhs_els[r_coord];
+  }
+
+}
 
 template <typename LDType, typename RDType>
 DENSE_STORAGE* cast_copy(const DENSE_STORAGE* rhs, dtype_t new_dtype) {
@@ -653,8 +714,12 @@ bool is_symmetric(const DENSE_STORAGE* mat, int lda) {
 template <ewop_t op, typename LDType, typename RDType>
 static DENSE_STORAGE* ew_op(const DENSE_STORAGE* left, const DENSE_STORAGE* right, const void* rscalar) {
 	unsigned int count;
-	
-	size_t* new_shape = (size_t*)calloc(left->dim, sizeof(size_t));
+  size_t l_count;
+  size_t r_count;
+
+	size_t* temp_coords = ALLOCA_N(size_t, left->dim);
+
+	size_t* new_shape = ALLOC_N(size_t, left->dim);
 	memcpy(new_shape, left->shape, sizeof(size_t) * left->dim);
 
   // Determine the return dtype. This depends on the type of operation we're doing. Usually, it's going to be
@@ -671,36 +736,44 @@ static DENSE_STORAGE* ew_op(const DENSE_STORAGE* left, const DENSE_STORAGE* righ
     if (static_cast<uint8_t>(op) < NUM_NONCOMP_EWOPS) { // use left-dtype
 
       for (count = nm_storage_count_max_elements(result); count-- > 0;) {
-        reinterpret_cast<LDType*>(result->elements)[count] = ew_op_switch<op,LDType,RDType>(l_elems[count], r_elems[count]);
+        nm_dense_storage_coords(result, count, temp_coords);
+        l_count = nm_dense_storage_pos(left, temp_coords);
+        r_count = nm_dense_storage_pos(right, temp_coords);
+        
+        reinterpret_cast<LDType*>(result->elements)[count] = ew_op_switch<op,LDType,RDType>(l_elems[l_count], r_elems[r_count]);
       }
 
     } else { // new_dtype is BYTE: comparison operators
       uint8_t* res_elems = reinterpret_cast<uint8_t*>(result->elements);
 
       for (count = nm_storage_count_max_elements(result); count-- > 0;) {
+        nm_dense_storage_coords(result, count, temp_coords);
+        l_count = nm_dense_storage_pos(left, temp_coords);
+        r_count = nm_dense_storage_pos(right, temp_coords);
+
         switch (op) {
           case EW_EQEQ:
-            res_elems[count] = l_elems[count] == r_elems[count];
+            res_elems[count] = l_elems[l_count] == r_elems[r_count];
             break;
 
           case EW_NEQ:
-            res_elems[count] = l_elems[count] != r_elems[count];
+            res_elems[count] = l_elems[l_count] != r_elems[r_count];
             break;
 
           case EW_LT:
-            res_elems[count] = l_elems[count] < r_elems[count];
+            res_elems[count] = l_elems[l_count] < r_elems[r_count];
             break;
 
           case EW_GT:
-            res_elems[count] = l_elems[count] > r_elems[count];
+            res_elems[count] = l_elems[l_count] > r_elems[r_count];
             break;
 
           case EW_LEQ:
-            res_elems[count] = l_elems[count] <= r_elems[count];
+            res_elems[count] = l_elems[l_count] <= r_elems[r_count];
             break;
 
           case EW_GEQ:
-            res_elems[count] = l_elems[count] >= r_elems[count];
+            res_elems[count] = l_elems[l_count] >= r_elems[r_count];
             break;
 
           default:
@@ -715,36 +788,42 @@ static DENSE_STORAGE* ew_op(const DENSE_STORAGE* left, const DENSE_STORAGE* righ
     if (static_cast<uint8_t>(op) < NUM_NONCOMP_EWOPS) { // use left-dtype
 
       for (count = nm_storage_count_max_elements(result); count-- > 0;) {
-        reinterpret_cast<LDType*>(result->elements)[count] = ew_op_switch<op,LDType,RDType>(l_elems[count], *r_elem);
+        nm_dense_storage_coords(result, count, temp_coords);
+        l_count = nm_dense_storage_pos(left, temp_coords);
+
+        reinterpret_cast<LDType*>(result->elements)[count] = ew_op_switch<op,LDType,RDType>(l_elems[l_count], *r_elem);
       }
 
     } else {
       uint8_t* res_elems = reinterpret_cast<uint8_t*>(result->elements);
 
       for (count = nm_storage_count_max_elements(result); count-- > 0;) {
+        nm_dense_storage_coords(result, count, temp_coords);
+        l_count = nm_dense_storage_pos(left, temp_coords);
+        
         switch (op) {
           case EW_EQEQ:
-            res_elems[count] = l_elems[count] == *r_elem;
+            res_elems[count] = l_elems[l_count] == *r_elem;
             break;
 
           case EW_NEQ:
-            res_elems[count] = l_elems[count] != *r_elem;
+            res_elems[count] = l_elems[l_count] != *r_elem;
             break;
 
           case EW_LT:
-            res_elems[count] = l_elems[count] < *r_elem;
+            res_elems[count] = l_elems[l_count] < *r_elem;
             break;
 
           case EW_GT:
-            res_elems[count] = l_elems[count] > *r_elem;
+            res_elems[count] = l_elems[l_count] > *r_elem;
             break;
 
           case EW_LEQ:
-            res_elems[count] = l_elems[count] <= *r_elem;
+            res_elems[count] = l_elems[l_count] <= *r_elem;
             break;
 
           case EW_GEQ:
-            res_elems[count] = l_elems[count] >= *r_elem;
+            res_elems[count] = l_elems[l_count] >= *r_elem;
             break;
 
           default:
@@ -754,7 +833,6 @@ static DENSE_STORAGE* ew_op(const DENSE_STORAGE* left, const DENSE_STORAGE* righ
 
     }
   }
-	
 	return result;
 }
 
