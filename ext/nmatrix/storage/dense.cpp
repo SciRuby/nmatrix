@@ -253,6 +253,8 @@ VALUE nm_dense_each_with_indices(VALUE nmatrix) {
 
   nm_dense_storage_delete(sliced_dummy);
 
+  return Qnil;
+
 }
 
 
@@ -296,6 +298,9 @@ VALUE nm_dense_each(VALUE nmatrix) {
   }
 
   nm_dense_storage_delete(sliced_dummy);
+
+  return Qnil;
+  
 }
 
 
