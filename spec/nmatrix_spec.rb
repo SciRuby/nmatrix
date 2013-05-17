@@ -292,6 +292,37 @@ describe NMatrix do
     end
   end
 
+  context "dense" do
+    it "should return nil when each is called with a block" do
+      a = NMatrix.new(2, 1)
+      val = (a.each { })
+      val.should be_nil
+    end
+    
+    it "should return nil when each_stored_with_indices is called with a block" do
+      a = NMatrix.new(2,1)
+      val = (a.each_stored_with_indices { })
+      val.should be_nil
+    end
+  end
+
+  [:list, :yale].each do |storage_type|
+    context storage_type do
+      it "should return the matrix being iterated over when each_stored_with_indices is called with a block" do
+        n = NMatrix.new(storage_type, [2,3], storage_type == :yale ? :float64 : 1.1)
+        val = (n.each_stored_with_indices { })
+        val.should eq n
+      end
+
+      it "should return an enumerator when each_stored_with_indices is called without a block" do
+        n = NMatrix.new(storage_type, [2,3], storage_type == :yale ? :float64 : 1.1)
+        val = n.each_stored_with_indices
+        val.should be_a Enumerator
+      end
+
+    end
+  end
+      
   it "should iterate through element 256 without a segfault" do
     t = NVector.random(256)
     t.each { |x| x + 0 }
