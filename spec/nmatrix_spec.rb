@@ -293,16 +293,16 @@ describe NMatrix do
   end
 
   context "dense" do
-    it "should return nil when each is called with a block" do
+    it "should return the matrix being iterated over when each is called with a block" do
       a = NMatrix.new(2, 1)
       val = (a.each { })
-      val.should be_nil
+      val.should eq a
     end
     
-    it "should return nil when each_stored_with_indices is called with a block" do
+    it "should return the matrix being iterated over when each_stored_with_indices is called with a block" do
       a = NMatrix.new(2,1)
       val = (a.each_stored_with_indices { })
-      val.should be_nil
+      val.should eq a
     end
   end
 
