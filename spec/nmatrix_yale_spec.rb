@@ -134,6 +134,7 @@ describe NMatrix do
 
       associations = File.open('spec/nmatrix_yale_resize_test_associations.yaml') { |y| YAML::load(y) }
 
+      puts "size :: #{associations.size} HERE :: #{618*2801}"
       n = NMatrix.new(:yale, [618, 2801], associations.size, :byte)
 
       associations.each_pair do |j,i|

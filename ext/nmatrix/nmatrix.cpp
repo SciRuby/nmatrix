@@ -931,7 +931,7 @@ static VALUE nm_init(int argc, VALUE* argv, VALUE nm) {
   	// Initial value provided (could also be initial capacity, if yale).
   	
     if (stype == nm::YALE_STORE) {
-      init_cap = FIX2UINT(argv[1+offset]);
+      init_cap = FIX2UINT(argv[1+offset] + shape[0]*2);
       
     } else {
     	// 4: initial value / dtype
