@@ -268,6 +268,14 @@ describe NMatrix do
 
     end
 
+    it "dots two vectors" do
+      pending "causes segmentation fault"
+      n = NVector.new(:yale, [8,1], :int64)
+      m = NVector.new(:yale, [1,8], :int64)
+      n.dot(m)
+      m.dot(n)
+    end
+
     it "transposes" do
       a = NMatrix.new(:yale, 4, :float64)
       a[0,0] = 1.0

@@ -143,6 +143,14 @@ namespace nm {
 
 #define ITYPE_TEMPLATE_TABLE(fun, ret, ...) NAMED_ITYPE_TEMPLATE_TABLE(ttable, fun, ret, __VA_ARGS__)
 
+#define NAMED_LR_ITYPE_TEMPLATE_TABLE(name, fun, ret, ...) \
+  static ret (*(name)[nm::NUM_ITYPES][nm::NUM_ITYPES])(__VA_ARGS__) = { \
+    { fun<uint8_t,uint8_t>, fun<uint8_t, uint16_t>, fun<uint8_t, uint32_t>, fun<uint8_t, uint64_t> }, \
+    { fun<uint16_t,uint8_t>, fun<uint16_t, uint16_t>, fun<uint16_t, uint32_t>, fun<uint16_t, uint64_t> }, \
+    { fun<uint32_t,uint8_t>, fun<uint32_t, uint16_t>, fun<uint32_t, uint32_t>, fun<uint32_t, uint64_t> }, \
+    { fun<uint64_t,uint8_t>, fun<uint64_t, uint16_t>, fun<uint64_t, uint32_t>, fun<uint64_t, uint64_t> } \
+  };
+
 /*
  * Same as DTYPE_TEMPLATE_TABLE but for functions that have two template
  * parameters.
