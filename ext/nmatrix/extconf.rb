@@ -131,11 +131,11 @@ $srcs = [
 # (substituting in the path of your cblas.h and clapack.h for the path I used). -- JW 8/27/12
 
 
-unless have_library("lapack")
+unless have_library("lapack") and have_header("clapack.h")
   dir_config("lapack", ["/usr/include/atlas"], ["/usr/local/lib", "/usr/local/atlas/lib"])
 end
 
-unless have_library("cblas")
+unless have_library("cblas") and have_header("cblas.h")
   dir_config("cblas", ["/usr/local/atlas/include", "/usr/include/atlas"], ["/usr/local/lib", "/usr/local/atlas/lib"])
 end
 
