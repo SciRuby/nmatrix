@@ -53,7 +53,7 @@ describe NMatrix::LAPACK do
                 when :float32, :complex64
                   1e-6
                 when :float64, :complex128
-                  1e-16
+                  1e-15
                 else
                   1e-64 # FIXME: should be 0, but be_within(0) does not work.
               end
