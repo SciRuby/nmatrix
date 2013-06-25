@@ -136,7 +136,7 @@
 
   * NVector objects may now be created with dtypes other than dense
 
-* 7 minor enhancements
+* 9 minor enhancements
 
   * Added #yale_vector_insert to NMatrix::YaleFunctions, to speed up
     insertion of multiple items into a Yale matrix
@@ -152,6 +152,10 @@
     argument, which returns a single array value instead of copying and
     returning the entire array
 
+  * Improved sorting algorithm for Yale matrix multiplication; instead
+    of selection sort, now uses quicksort; and subs in insertion sort
+    for small partitions
+
   * Slicing a single row or column now returns an NVector instead
     of an NMatrix (does not yet work for n-dimensional matrices)
 
@@ -165,10 +169,16 @@
 
   * Added #each_row, #each_column to NMatrix
 
-* 2 bug fixes:
+* 5 bug fixes:
 
   * Dense iterators now return self (an NMatrix) in order to be
     consistent with Ruby Array behavior (by @cjfuller)
 
   * NMatrix#pretty_print now properly prints #inspect when matrix
     is too large to be cleanly printed
+
+  * Fixed Yale resize problem (by @v0dro)
+
+  * Fixed Yale nx1 times 1xn multiplication problem
+
+  * Fixed Yale sorting-following-multiplication problem

@@ -40,8 +40,10 @@ BASEDIR = Pathname( __FILE__ ).dirname.relative_path_from( Pathname.pwd )
 SPECDIR = BASEDIR + 'spec'
 
 VALGRIND_OPTIONS = [
-        "--num-callers=50",
-        "--error-limit=no",
+        "--tool=memcheck",
+        "--leak-check=yes",
+        "--num-callers=15",
+        #"--error-limit=no",
         "--partial-loads-ok=yes",
         "--undef-value-errors=no" #,
         #"--dsymutil=yes"
@@ -127,6 +129,15 @@ namespace :spec do
   end
 end
 
+
+LEAKCHECK_CMD = [ 'ruby', '-Ilib:ext', "#{SPECDIR}/leakcheck.rb" ]
+
+desc "Run leakcheck script."
+task :leakcheck => [ :compile ] do |task|
+  cmd = [ 'valgrind' ] + VALGRIND_OPTIONS
+  cmd += LEAKCHECK_CMD
+  run( *cmd )
+end
 
 namespace :clean do
   task :so do |task|

@@ -269,11 +269,36 @@ describe NMatrix do
     end
 
     it "dots two vectors" do
-      pending "causes segmentation fault"
-      n = NVector.new(:yale, [8,1], :int64)
-      m = NVector.new(:yale, [1,8], :int64)
-      n.dot(m)
-      m.dot(n)
+      n = NVector.new(:yale, [16,1], :int64)
+      m = NVector.new(:yale, [1,16], :int64)
+
+      n[0] = m[0] = 1
+      n[1] = m[1] = 2
+      n[2] = m[2] = 3
+      n[3] = m[3] = 4
+      n[4] = m[4] = 5
+      n[5] = m[5] = 6
+      n[6] = m[6] = 7
+      n[7] = m[7] = 8
+      n[8] = m[8] = 9
+      n[15] = m[15] = 16
+
+      nm = n.dot(m)
+
+      # Perform the same multiplication with dense
+      nmr = n.cast(:dense, :int64).dot(m.cast(:dense, :int64)).cast(:yale, :int64)
+
+      nm.extend(NMatrix::YaleFunctions)
+      nmr.extend(NMatrix::YaleFunctions)
+
+      # We want to do a structure comparison to ensure multiplication is occurring properly, but more importantly, to
+      # ensure that insertion sort is occurring as it should. If the row has more than four entries, it'll run quicksort
+      # instead. Quicksort calls insertion sort for small rows, so we test both with this particular multiplication.
+      nm.yale_ija[0...107].should == nmr.yale_ija[0...107]
+      nm.yale_a[0...107].should   == nmr.yale_a[0...107]
+
+      mn = m.dot(n)
+      mn[0,0].should == 541
     end
 
     it "transposes" do

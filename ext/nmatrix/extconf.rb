@@ -131,11 +131,11 @@ $srcs = [
 # (substituting in the path of your cblas.h and clapack.h for the path I used). -- JW 8/27/12
 
 
-unless have_library("lapack")
+unless have_library("lapack") # && have_header("clapack.h")
   dir_config("lapack", ["/usr/include/atlas"], ["/usr/local/lib", "/usr/local/atlas/lib"])
 end
 
-unless have_library("cblas")
+unless have_library("cblas") # && have_header("cblas.h")
   dir_config("cblas", ["/usr/local/atlas/include", "/usr/include/atlas"], ["/usr/local/lib", "/usr/local/atlas/lib"])
 end
 
@@ -198,8 +198,10 @@ else
 end
 
 # For release, these next two should both be changed to -O3.
-$CFLAGS += " -O0 -g "
-$CPPFLAGS += " -O0 -g -std=#{$CPP_STANDARD} " #-fmax-errors=10 -save-temps
+# $CFLAGS += " -O3 " #" -O0 -g "
+$CFLAGS += " -static -O0 -g "
+# $CPPFLAGS += " -O3 -std=#{$CPP_STANDARD} " #" -O0 -g -std=#{$CPP_STANDARD} " #-fmax-errors=10 -save-temps
+$CPPFLAGS += " -static -O0 -g -std=#{$CPP_STANDARD} "
 
 CONFIG['warnflags'].gsub!('-Wshorten-64-to-32', '') # doesn't work except in Mac-patched gcc (4.2)
 CONFIG['warnflags'].gsub!('-Wdeclaration-after-statement', '')
