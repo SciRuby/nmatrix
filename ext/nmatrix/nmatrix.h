@@ -245,25 +245,31 @@ NM_DEF_ENUM(symm_t,   NONSYMM   = 0,
 /* struct STORAGE */
 NM_DEF_STORAGE_STRUCT;
 
+typedef struct dataValue DVALUE;
+typedef struct dataValue DARRAY;
+
+typedef struct dataIndex IVALUE;
+typedef struct dataIndex IARRAY;
+
 /* Dense Storage */
 NM_DEF_STORAGE_CHILD_STRUCT_PRE(DENSE_STORAGE); // struct DENSE_STORAGE : STORAGE {
 	size_t*	stride;
-	void*		elements;
+	DARRAY*		elements;
 NM_DEF_STORAGE_STRUCT_POST(DENSE_STORAGE);     // };
 
 /* Yale Storage */
 NM_DEF_STORAGE_CHILD_STRUCT_PRE(YALE_STORAGE);
-	void* a;      // should go first
+	DARRAY* a;      // should go first
 	size_t ndnz; // Strictly non-diagonal non-zero count!
 	size_t	capacity;
 	NM_DECL_ENUM(itype_t, itype);
-	void*		ija;
+	IARRAY*		ija;
 NM_DEF_STORAGE_STRUCT_POST(YALE_STORAGE);
 
 // FIXME: NODE and LIST should be put in some kind of namespace or something, at least in C++.
 NM_DEF_STRUCT_PRE(NODE); // struct NODE {
   size_t key;
-  void*  val;
+  DARRAY*  val;
   NM_DECL_STRUCT(NODE*, next);  // NODE* next;
 NM_DEF_STRUCT_POST(NODE); // };
 
@@ -274,7 +280,7 @@ NM_DEF_STRUCT_POST(LIST); // };
 /* List-of-Lists Storage */
 NM_DEF_STORAGE_CHILD_STRUCT_PRE(LIST_STORAGE); // struct LIST_STORAGE : STORAGE {
 	// List storage specific elements.
-	void* default_val;
+	DARRAY* default_val;
 	NM_DECL_STRUCT(LIST*, rows); // LIST* rows;
 NM_DEF_STORAGE_STRUCT_POST(LIST_STORAGE);      // };
 
@@ -349,8 +355,8 @@ extern "C" {
 	void Init_nmatrix();
 
 	// External API
-	VALUE rb_nmatrix_dense_create(NM_DECL_ENUM(dtype_t, dtype), size_t* shape, size_t dim, void* elements, size_t length);
-	VALUE rb_nvector_dense_create(NM_DECL_ENUM(dtype_t, dtype), void* elements, size_t length);
+	VALUE rb_nmatrix_dense_create(NM_DECL_ENUM(dtype_t, dtype), size_t* shape, size_t dim, DARRAY* elements, size_t length);
+	VALUE rb_nvector_dense_create(NM_DECL_ENUM(dtype_t, dtype), DARRAY* elements, size_t length);
 
 	NM_DECL_ENUM(dtype_t, nm_dtype_guess(VALUE));   // (This is a function)
 
