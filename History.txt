@@ -174,11 +174,11 @@
   * Dense iterators now return self (an NMatrix) in order to be
     consistent with Ruby Array behavior (by @cjfuller)
 
-  * NMatrix#pretty_print now properly prints #inspect when matrix
-    is too large to be cleanly printed
-
   * Fixed Yale resize problem (by @v0dro)
 
   * Fixed Yale nx1 times 1xn multiplication problem
 
   * Fixed Yale sorting-following-multiplication problem
+
+  * NMatrix::read() now raises an exception when asked to read a file 
+    that does not exist

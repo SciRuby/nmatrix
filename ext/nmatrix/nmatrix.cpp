@@ -1182,6 +1182,16 @@ void write_padded_dense_elements(std::ofstream& f, DENSE_STORAGE* storage, nm::s
 }
 
 
+/*
+ * Helper function to get exceptions in the module Errno (e.g., ENOENT). Example:
+ *
+ *     rb_raise(rb_get_errno_exc("ENOENT"), RSTRING_PTR(filename));
+ */
+static VALUE rb_get_errno_exc(const char* which) {
+  return rb_const_get(rb_const_get(rb_cObject, rb_intern("Errno")), rb_intern(which));
+}
+
+
 
 /*
  * Binary file writer for NMatrix standard format. file should be a path, which we aren't going to
@@ -1281,12 +1291,16 @@ static VALUE nm_write(int argc, VALUE* argv, VALUE self) {
 static VALUE nm_read(int argc, VALUE* argv, VALUE self) {
   using std::ifstream;
 
+  VALUE file, force_;
+
   // Read the arguments
-  if (argc < 1 || argc > 2) {
-    rb_raise(rb_eArgError, "expected one or two arguments");
+  rb_scan_args(argc, argv, "11", &file, &force_);
+  bool force   = (force_ != Qnil && force_ != Qfalse);
+
+
+  if (!RB_FILE_EXISTS(file)) { // FIXME: Errno::ENOENT
+    rb_raise(rb_get_errno_exc("ENOENT"), RSTRING_PTR(file));
   }
-  VALUE file   = argv[0];
-  bool force   = argc == 1 ? false : argv[1];
 
   // Open a file stream
   ifstream f(RSTRING_PTR(file), std::ios::in | std::ios::binary);
