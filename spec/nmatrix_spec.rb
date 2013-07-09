@@ -345,13 +345,13 @@ describe NMatrix do
     end
 
     it "should calculate the minimum along the specified dimension" do 
-      @nm_1d.min.should eq N[0.0]
+      @nm_1d.min.should eq 0.0
       @nm_2d.min.should eq N[[0.0, 1.0]]
       @nm_2d.min(1).should eq N[[0.0], [2.0]]
     end
 
     it "should calculate the maximum along the specified dimension" do
-      @nm_1d.max.should eq N[5.0]
+      @nm_1d.max.should eq 5.0
       @nm_2d.max.should eq N[[2.0, 3.0]]
     end
 
@@ -434,6 +434,56 @@ describe NMatrix do
       en = @nm_2d.each_along_dim(1)
       en.each { |e| res += e }
       res.should eq N[[1.0], [5.0]]
+    end
+
+    it "should yield matrices of matching dtype for each_along_dim" do
+      m = NMatrix.new([2,3], [1,2,3,3,4,5], :complex128)
+      m.each_along_dim(1) do |sub_m|
+        sub_m.dtype.should eq :complex128
+      end
+    end
+
+    it "should reduce to a matrix of matching dtype for reduce_along_dim" do
+      m = NMatrix.new([2,3], [1,2,3,3,4,5], :complex128)
+      m.reduce_along_dim(1) do |acc, sub_m|
+        sub_m.dtype.should eq :complex128
+        acc
+      end
+
+      m = NMatrix.new([2,3], [1,2,3,3,4,5], :complex128)
+      m.reduce_along_dim(1, 0.0) do |acc, sub_m|
+        sub_m.dtype.should eq :complex128
+        acc
+      end
+    end
+
+    it "should allow overriding the dtype for reduce_along_dim" do
+      m = N[[1,2,3], [3,4,5], :complex128]
+      m.reduce_along_dim(1, 0.0, :float64) do |acc, sub_m|
+        acc.dtype.should eq :float64
+        acc
+      end
+
+      m = N[[1,2,3], [3,4,5], :complex128]
+      m.reduce_along_dim(1, nil, :float64) do |acc, sub_m|
+        acc.dtype.should eq :float64
+        acc
+      end
+    end
+
+    it "should convert integer dtypes to float when calculating mean" do
+      m = N[[1,2,3], [3,4,5], :int32]
+      m.mean(0).dtype.should eq :float64
+    end
+
+    it "should convert integer dtypes to float when calculating variance" do
+      m = N[[1,2,3], [3,4,5], :int32]
+      m.mean(0).dtype.should eq :float64
+    end
+
+    it "should convert integer dtypes to float when calculating standard deviation" do
+      m = N[[1,2,3], [3,4,5], :int32]
+      m.mean(0).dtype.should eq :float64
     end
 
     context "_like constructors" do
