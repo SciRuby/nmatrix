@@ -34,6 +34,7 @@ EWOPS = [
          :'nm::EW_SUB',
          :'nm::EW_MUL',
          :'nm::EW_DIV',
+         :'nm::EW_POW',
          :'nm::EW_MOD',
          :'nm::EW_EQEQ',
          :'nm::EW_NEQ',

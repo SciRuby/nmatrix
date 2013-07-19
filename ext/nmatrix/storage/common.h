@@ -32,6 +32,8 @@
  * Standard Includes
  */
 
+#include <cmath> // pow().
+
 /*
  * Project Includes
  */
@@ -41,7 +43,7 @@
 /*
  * Macros
  */
- 
+
 extern "C" {
 
 /*
@@ -91,6 +93,9 @@ namespace nm {
 
       case EW_DIV:
         return left / right;
+
+      case EW_POW:
+        return pow(left, right);
 
       case EW_MOD:
         rb_raise(rb_eNotImpError, "Element-wise modulo is currently not supported.");

@@ -132,6 +132,12 @@ describe NMatrix do
         r.should == NMatrix.new(:dense, [2,2], [-1, -2, 1, 0], :int64)
       end
 
+      it "exponentiates" do
+        r = @n ** 2
+        # TODO: We might have problems with the dtype.
+        r.should == NMatrix.new(:dense, [2,2], [1, 4, 9, 16], :int64)
+      end
+
       it "modulo" do
         pending "% operator not yet implemented"
         r = @n % @m

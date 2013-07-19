@@ -60,10 +60,10 @@ namespace nm { namespace dense_storage {
 
   template <typename LDType, typename RDType>
   DENSE_STORAGE* cast_copy(const DENSE_STORAGE* rhs, nm::dtype_t new_dtype);
-	
+
 	template <typename LDType, typename RDType>
 	bool eqeq(const DENSE_STORAGE* left, const DENSE_STORAGE* right);
-	
+
 	template <ewop_t op, typename LDType, typename RDType>
 	static DENSE_STORAGE* ew_op(const DENSE_STORAGE* left, const DENSE_STORAGE* right, const void* rscalar);
 
@@ -132,7 +132,7 @@ DENSE_STORAGE* nm_dense_storage_create(nm::dtype_t dtype, size_t* shape, size_t 
 
   if (elements_length == count) {
   	s->elements = elements;
-    
+
   } else {
     s->elements = ALLOC_N(char, DTYPE_SIZES[dtype]*count);
 
@@ -145,7 +145,7 @@ DENSE_STORAGE* nm_dense_storage_create(nm::dtype_t dtype, size_t* shape, size_t 
         if (i + elements_length > count) {
         	copy_length = count - i;
         }
-        
+
         memcpy((char*)(s->elements)+i*DTYPE_SIZES[dtype], (char*)(elements)+(i % elements_length)*DTYPE_SIZES[dtype], copy_length*DTYPE_SIZES[dtype]);
       }
 
@@ -300,7 +300,7 @@ VALUE nm_dense_each(VALUE nmatrix) {
   nm_dense_storage_delete(sliced_dummy);
 
   return nmatrix;
-  
+
 }
 
 
@@ -321,13 +321,13 @@ void* nm_dense_storage_get(STORAGE* storage, SLICE* slice) {
       shape[i]  = slice->lengths[i];
     }
 
-    ns = nm_dense_storage_create(s->dtype, shape, s->dim, NULL, 0); 
+    ns = nm_dense_storage_create(s->dtype, shape, s->dim, NULL, 0);
 
-    slice_copy(ns, 
-        reinterpret_cast<const DENSE_STORAGE*>(s->src), 
-        slice->lengths, 
-        0, 
-        nm_dense_storage_pos(s, slice->coords), 
+    slice_copy(ns,
+        reinterpret_cast<const DENSE_STORAGE*>(s->src),
+        slice->lengths,
+        0,
+        nm_dense_storage_pos(s, slice->coords),
         0);
     return ns;
   }
@@ -343,7 +343,7 @@ void* nm_dense_storage_ref(STORAGE* storage, SLICE* slice) {
 
   if (slice->single)
     return (char*)(s->elements) + nm_dense_storage_pos(s, slice->coords) * DTYPE_SIZES[s->dtype];
-    
+
   else {
     DENSE_STORAGE* ns = ALLOC( DENSE_STORAGE );
     ns->dim        = s->dim;
@@ -358,7 +358,7 @@ void* nm_dense_storage_ref(STORAGE* storage, SLICE* slice) {
 
     ns->stride     = s->stride;
     ns->elements   = s->elements;
-    
+
     s->src->count++;
     ns->src = s->src;
 
@@ -388,7 +388,7 @@ void nm_dense_storage_set(STORAGE* storage, SLICE* slice, void* val) {
  */
 bool nm_dense_storage_eqeq(const STORAGE* left, const STORAGE* right) {
 	LR_DTYPE_TEMPLATE_TABLE(nm::dense_storage::eqeq, bool, const DENSE_STORAGE*, const DENSE_STORAGE*);
-	
+
 	return ttable[left->dtype][right->dtype]((const DENSE_STORAGE*)left, (const DENSE_STORAGE*)right);
 }
 
@@ -399,10 +399,10 @@ bool nm_dense_storage_eqeq(const STORAGE* left, const STORAGE* right) {
 bool nm_dense_storage_is_hermitian(const DENSE_STORAGE* mat, int lda) {
 	if (mat->dtype == nm::COMPLEX64) {
 		return nm::dense_storage::is_hermitian<nm::Complex64>(mat, lda);
-		
+
 	} else if (mat->dtype == nm::COMPLEX128) {
 		return nm::dense_storage::is_hermitian<nm::Complex128>(mat, lda);
-		
+
 	} else {
 		return nm_dense_storage_is_symmetric(mat, lda);
 	}
@@ -413,7 +413,7 @@ bool nm_dense_storage_is_hermitian(const DENSE_STORAGE* mat, int lda) {
  */
 bool nm_dense_storage_is_symmetric(const DENSE_STORAGE* mat, int lda) {
 	DTYPE_TEMPLATE_TABLE(nm::dense_storage::is_symmetric, bool, const DENSE_STORAGE*, int);
-	
+
 	return ttable[mat->dtype](mat, lda);
 }
 
@@ -468,9 +468,9 @@ size_t nm_dense_storage_pos(const DENSE_STORAGE* s, const size_t* coords) {
 }
 
 /*
- * Determine the a set of slice coordinates from linear array position (in elements 
+ * Determine the a set of slice coordinates from linear array position (in elements
  * of s) of some set of coordinates (given by slice).  (Inverse of
- * nm_dense_storage_pos).  
+ * nm_dense_storage_pos).
  *
  * The parameter coords_out should be a pre-allocated array of size equal to s->dim.
  */
@@ -510,7 +510,7 @@ static void slice_copy(DENSE_STORAGE *dest, const DENSE_STORAGE *src, size_t* le
     for (size_t i = 0; i < lengths[n]; ++i) {
       slice_copy(dest, src, lengths,
                                     pdest + dest->stride[n]*i,
-                                    psrc + src->stride[n]*i, 
+                                    psrc + src->stride[n]*i,
                                     n + 1);
     }
   } else {
@@ -538,7 +538,7 @@ STORAGE* nm_dense_storage_cast_copy(const STORAGE* rhs, nm::dtype_t new_dtype) {
  * Copy dense storage without a change in dtype.
  */
 DENSE_STORAGE* nm_dense_storage_copy(const DENSE_STORAGE* rhs) {
-  size_t  count = 0;  
+  size_t  count = 0;
   size_t *shape  = ALLOC_N(size_t, rhs->dim);
 
   // copy shape and offset
@@ -656,7 +656,7 @@ DENSE_STORAGE* cast_copy(const DENSE_STORAGE* rhs, dtype_t new_dtype) {
     	while (count-- > 0)     		lhs_els[count] = rhs_els[count];
     }
   }
-	
+
   return lhs;
 }
 
@@ -682,7 +682,7 @@ bool eqeq(const DENSE_STORAGE* left, const DENSE_STORAGE* right) {
     tmp2 = nm_dense_storage_copy(right);
     right_elements = (RDType*)tmp2->elements;
   }
-  
+
 
 
 	for (index = nm_storage_count_max_elements(left); index-- > 0;) {
@@ -704,20 +704,20 @@ template <typename DType>
 bool is_hermitian(const DENSE_STORAGE* mat, int lda) {
 	unsigned int i, j;
 	register DType complex_conj;
-	
+
 	const DType* els = (DType*) mat->elements;
-	
+
 	for (i = mat->shape[0]; i-- > 0;) {
 		for (j = i + 1; j < mat->shape[1]; ++j) {
 			complex_conj		= els[j*lda + 1];
 			complex_conj.i	= -complex_conj.i;
-			
+
 			if (els[i*lda+j] != complex_conj) {
 	      return false;
 	    }
 		}
 	}
-	
+
 	return true;
 }
 
@@ -725,7 +725,7 @@ template <typename DType>
 bool is_symmetric(const DENSE_STORAGE* mat, int lda) {
 	unsigned int i, j;
 	const DType* els = (DType*) mat->elements;
-	
+
 	for (i = mat->shape[0]; i-- > 0;) {
 		for (j = i + 1; j < mat->shape[1]; ++j) {
 			if (els[i*lda+j] != els[j*lda+i]) {
@@ -733,7 +733,7 @@ bool is_symmetric(const DENSE_STORAGE* mat, int lda) {
 	    }
 		}
 	}
-	
+
 	return true;
 }
 
@@ -756,7 +756,7 @@ static DENSE_STORAGE* ew_op(const DENSE_STORAGE* left, const DENSE_STORAGE* righ
   dtype_t new_dtype = static_cast<uint8_t>(op) < NUM_NONCOMP_EWOPS ? left->dtype : BYTE;
 
 	DENSE_STORAGE* result = nm_dense_storage_create(new_dtype, new_shape, left->dim, NULL, 0);
-	
+
 	LDType* l_elems = reinterpret_cast<LDType*>(left->elements);
 
 	if (right) { // matrix-matrix operation
@@ -768,7 +768,7 @@ static DENSE_STORAGE* ew_op(const DENSE_STORAGE* left, const DENSE_STORAGE* righ
         nm_dense_storage_coords(result, count, temp_coords);
         l_count = nm_dense_storage_pos(left, temp_coords);
         r_count = nm_dense_storage_pos(right, temp_coords);
-        
+
         reinterpret_cast<LDType*>(result->elements)[count] = ew_op_switch<op,LDType,RDType>(l_elems[l_count], r_elems[r_count]);
       }
 
@@ -820,6 +820,8 @@ static DENSE_STORAGE* ew_op(const DENSE_STORAGE* left, const DENSE_STORAGE* righ
         nm_dense_storage_coords(result, count, temp_coords);
         l_count = nm_dense_storage_pos(left, temp_coords);
 
+        // TODO: When doing an exponentiation, we might have problems with the
+        // TODO: dtype. Should we use float64 always?
         reinterpret_cast<LDType*>(result->elements)[count] = ew_op_switch<op,LDType,RDType>(l_elems[l_count], *r_elem);
       }
 
@@ -829,7 +831,7 @@ static DENSE_STORAGE* ew_op(const DENSE_STORAGE* left, const DENSE_STORAGE* righ
       for (count = nm_storage_count_max_elements(result); count-- > 0;) {
         nm_dense_storage_coords(result, count, temp_coords);
         l_count = nm_dense_storage_pos(left, temp_coords);
-        
+
         switch (op) {
           case EW_EQEQ:
             res_elems[count] = l_elems[l_count] == *r_elem;
