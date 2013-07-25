@@ -527,33 +527,29 @@ class NVector < NMatrix
     # Returns a NVector with +n+ values of dtype +:float64+ equally spaced from
     # +a+ to +b+, inclusive.
     #
-    # Following the MATLAB implementation, if n isn't provided it's assumed to
-    # be 100.
+    # See: http://www.mathworks.com/help/matlab/ref/linspace.html
     #
     # * *Arguments* :
     #   - +a+ -> The first value in the sequence.
     #   - +b+ -> The last value in the sequence.
-    #   - +n+ -> The number of elements.
+    #   - +n+ -> The number of elements. Default is 100.
     # * *Returns* :
-    #   - n-by-1 NMatrix with +n+ +:float64+ values.
+    #   - NVector with +n+ +:float64+ values.
     #
     # Example:
     #   x = NVector.linspace(0, Math::PI, 1000)
-    #   => #<NMatrix:0x007f83921992f0shape:[1000,1] dtype:float64 stype:dense>
-    #
-    #   x.pp
-    #     [0.0]
-    #     [0.0031447373909807737]
-    #     [0.006289474781961547]
+    #   x.pretty_print
+    #     [0.0
+    #     0.0031447373909807737
+    #     0.006289474781961547
     #     ...
-    #     [3.135303178807831]
-    #     [3.138447916198812]
-    #     [3.141592653589793]
+    #     3.135303178807831
+    #     3.138447916198812
+    #     3.141592653589793]
     #   => nil
     #
     def linspace(a, b, n = 100)
-      # See: http://www.mathworks.com/help/matlab/ref/linspace.html
-      # Formula:  seq(n) * step + a
+      # Formula: seq(n) * step + a
 
       # step = ((b - a) / (n - 1))
       step = (b - a) * (1.0 / (n - 1))
@@ -561,6 +557,46 @@ class NVector < NMatrix
       # dtype = :float64 is used to prevent integer coercion.
       result = NVector.seq(n, :float64) * NVector.new(n, step, :float64)
       result += NVector.new(n, a, :float64)
+      result
+    end
+
+    #
+    # call-seq:
+    #     logspace(a, b) -> NVector
+    #     logspace(a, b, n) -> NVector
+    #
+    # Returns a NVector with +n+ values of dtype +:float64+ logarithmically
+    # spaced from +10^a+ to +10^b+, inclusive.
+    #
+    # See: http://www.mathworks.com/help/matlab/ref/logspace.html
+    #
+    # * *Arguments* :
+    #   - +a+ -> The first value in the sequence.
+    #   - +b+ -> The last value in the sequence.
+    #   - +n+ -> The number of elements. Default is 100.
+    # * *Returns* :
+    #   - NVector with +n+ +:float64+ values.
+    #
+    # Example:
+    #   x = NVector.logspace(0, Math::PI, 10)
+    #   x.pretty_print
+    #     [1.0
+    #     2.2339109164570266
+    #     4.990357982665873
+    #     11.148015174505757
+    #     24.903672795156997
+    #     55.632586516975095
+    #     124.27824233101062
+    #     277.6265222213364
+    #     620.1929186882427
+    #     1385.4557313670107]
+    #  => nil
+    #
+    def logspace(a, b, n = 100)
+      # Formula: 10^a, 10^(a + step), ..., 10^b, where step = ((b-a) / (n-1)).
+
+      result = NVector.linspace(a, b, n)
+      result.each_stored_with_index { |element, i| result[i] = 10 ** element }
       result
     end
   end

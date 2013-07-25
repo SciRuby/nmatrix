@@ -201,12 +201,7 @@ describe "NVector" do
 
   it "seq() creates a vector of integers, sequentially" do
     v = NVector.seq(7)
-    i = 0
-
-    v.each do |elem|
-      elem.should == i
-      i += 1
-    end
+    v.should == NVector.new(7, [0, 1, 2, 3, 4, 5, 6], :int64)
   end
 
   it "seq() only accepts integers as dimension" do
@@ -218,52 +213,32 @@ describe "NVector" do
 
   it "indgen() creates a vector of integers as well as seq()" do
     v = NVector.indgen(7)
-    i = 0
-
-    v.each do |elem|
-      elem.should == i
-      i += 1
-    end
+    v.should == NVector.new(7, [0, 1, 2, 3, 4, 5, 6], :int64)
   end
 
   it "findgen creates a vector of floats, sequentially" do
     v = NVector.findgen(2)
-
-    2.times do |i|
-      (v[i]/10).should be_within(Float::EPSILON).of(i.to_f/10)
-    end
+    v.should == NVector.new(2, [0.0, 1.0], :float32)
   end
 
   it "bindgen() creates a vector of bytes, sequentially" do
-    v = NVector.bindgen(7)
-    i = 0
-
-    v.each do |elem|
-      elem.should == i
-      i += 1
-    end
+    v = NVector.bindgen(4)
+    v.should == NVector.new(4, [0, 1, 2, 3], :byte)
   end
 
   it "cindgen() creates a vector of complexes, sequentially" do
     v = NVector.cindgen(2)
-    value = 0
-
-    2.times do |i|
-      v[i].real.should be_within(Float::EPSILON).of(value)
-      v[i].imag.should be_within(Float::EPSILON).of(0.0)
-      value += 1
-    end
+    v.should == NVector.new(2, [Complex(0.0, 0.0), Complex(1.0, 0.0)], :complex64)
   end
-
 
   it "linspace() creates a vector with n values equally spaced between a and b" do
     v = NVector.linspace(0, 2, 5)
-    i = 0
+    v.should == NVector.new(5, [0, 0.5, 1.0, 1.5, 2.0], :float64)
+  end
 
-    v.each do |elem|
-      elem.should == i * 0.5
-      i += 1
-    end
+  it "logspace() creates a vector with n values logarithmically spaced between decades 10^a and 10^b" do
+    v = NVector.logspace(0, 3, 4)
+    v.should == NVector.new(4, [1, 10, 100, 1000], :float64)
   end
 end
 
