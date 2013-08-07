@@ -72,6 +72,42 @@ class NMatrix
 
     #
     # call-seq:
+    #     diagonals(array) -> NMatrix
+    #     diagonals(array, dtype) -> NMatrix
+    #
+    # Creates a matrix filled with specified diagonals.
+    #
+    # * *Arguments* :
+    #   - +entries+ -> Array containing input values for diagonal matrix
+    #   - +dtype+ -> (optional) Default is +:float64+
+    # * *Returns* :
+    #   - NMatrix filled with specified diagonal values.
+    #
+    # Examples:
+    #
+    #   NMatrix.diagonals([1,2,3,4]) # => 1.0 0.0 0.0 0.0
+    #                                     0.0 2.0 0.0 0.0
+    #                                     0.0 0.0 3.0 0.0
+    #                                     0.0 0.0 0.0 4.0
+    #
+    #   NMatrix.diagonals([1,2,3,4], :int32) # => 1 0 0 0
+    #                                             0 2 0 0
+    #                                             0 0 3 0
+    #                                             0 0 0 4
+    #               
+    #
+
+    def diagonals(arr, dtype = :float64)
+      m = NMatrix.new(arr.length, 0,dtype)
+      arr.each_with_index do |n, i|
+        m[i,i] = n
+      end
+      m
+    end
+    alias :diagonal :diagonals
+
+    #
+    # call-seq:
     #     ones(size) -> NMatrix
     #     ones(size, dtype) -> NMatrix
     #

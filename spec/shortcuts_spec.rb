@@ -173,6 +173,20 @@ describe NMatrix do
 
     expect { m.row(1, :derp) }.to raise_error
   end
+  it "diagonals() creates an NMatrix" do
+    arr = [1,2,3,4]
+    m = NMatrix.diagonals(arr)
+    m.is_a?(NMatrix).should be_true
+  end
+  it "diagonals() contains the seeded values on the diagonal" do
+    arr = [1,2,3,4]
+    m = NMatrix.diagonals(arr)
+    m[0,0].should eq(arr[0])
+    m[1,1].should eq(arr[1])
+    m[2,2].should eq(arr[2])
+    m[3,3].should eq(arr[3])
+  end
+
 end
 
 describe "NVector" do
