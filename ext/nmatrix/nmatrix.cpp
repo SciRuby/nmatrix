@@ -1328,7 +1328,7 @@ static VALUE nm_read(int argc, VALUE* argv, VALUE self) {
 
 
   if (!RB_FILE_EXISTS(file)) { // FIXME: Errno::ENOENT
-    rb_raise(rb_get_errno_exc("ENOENT"), RSTRING_PTR(file));
+    rb_raise(rb_get_errno_exc("ENOENT"), "%s", RSTRING_PTR(file));
   }
 
   // Open a file stream
