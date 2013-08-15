@@ -228,25 +228,25 @@ describe "Slice operation" do
               end
             end
 
-            context "operations" do 
+            context "operations" do
 
               it "correctly transposes slices" do
-                @m[0...3,0].transpose.should eq N[[0, 3, 6]]
+                @m[0...3,0].transpose.should eq NMatrix[[0, 3, 6]]
               end
 
-              it "adds slices" do 
-                (N[[0,0,0]] + @m[1,0..2]).should eq N[[3, 4, 5]]
+              it "adds slices" do
+                (NMatrix[[0,0,0]] + @m[1,0..2]).should eq NMatrix[[3, 4, 5]]
               end
 
               it "scalar adds to slices" do
-                (@m[1,0..2]+1).should eq N[[4, 5, 6]]
+                (@m[1,0..2]+1).should eq NMatrix[[4, 5, 6]]
               end
 
               it "compares slices to scalars" do
                 (@m[1, 0..2] > 2).each { |e| (e != 0).should be_true }
               end
 
-              it "iterates only over elements in the slice" do 
+              it "iterates only over elements in the slice" do
                 els = []
                 @m[1, 0..2].each { |e| els << e }
                 els.size.should eq 3
@@ -255,7 +255,7 @@ describe "Slice operation" do
                 els[2].should eq 5
               end
 
-              it "iterates with index only over elements in the slice" do 
+              it "iterates with index only over elements in the slice" do
                 els = []
                 @m[1, 0..2].each_stored_with_indices { |a| els << a }
                 els.size.should eq 3

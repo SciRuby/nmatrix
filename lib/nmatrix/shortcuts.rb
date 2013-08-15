@@ -649,18 +649,18 @@ end
 # calculator, it is useful for learning how to use, for testing language
 # features and for developing algorithms.
 #
-# The N class provides a way to create a matrix in a way that is compact and
+# The NMatrix::[] method provides a way to create a matrix in a way that is compact and
 # natural. The components are specified using Ruby array syntax. Optionally,
 # one can specify a dtype as the last parameter (default is :float64).
 #
 # Examples:
 #
-#   a = N[ 1,2,3,4 ]          =>  1.0  2.0  3.0  4.0
+#   a = NMatrix[ 1,2,3,4 ]          =>  1.0  2.0  3.0  4.0
 #
-#   a = N[ 1,2,3,4, :int32 ]  =>  1  2  3  4
+#   a = NMatrix[ 1,2,3,4, :int32 ]  =>  1  2  3  4
 #
-#   a = N[ [1,2,3], [3,4,5] ] =>  1.0  2.0  3.0
-#                                 3.0  4.0  5.0
+#   a = NMatrix[ [1,2,3], [3,4,5] ] =>  1.0  2.0  3.0
+#                                       3.0  4.0  5.0
 #
 # SYNTAX COMPARISON:
 #
@@ -668,15 +668,18 @@ end
 #   IDL:			a = [ [1,2,3] , [4,5,6] ]
 #   NumPy:		a = array( [1,2,3], [4,5,6] )
 #
-#   SciRuby:      a = N[ [1,2,3], [4,5,6] ]
+#   SciRuby:      a = NMatrix[ [1,2,3], [4,5,6] ]
 #   Ruby array:   a =  [ [1,2,3], [4,5,6] ]
 #
-class N
+class NMatrix
   class << self
     #
     # call-seq:
-    #     N[array-of-arrays, dtype = nil]
+    #     NMatrix[array-of-arrays, dtype = nil]
     #
+    # You can use the old +N+ constant in this way:
+    #   N = NMatrix
+    #   N[1, 2, 3]
     def [](*params)
       dtype = params.last.is_a?(Symbol) ? params.pop : nil
 
@@ -695,3 +698,15 @@ class N
     end
   end
 end
+
+# Use this constant as you would use NMatrix[].
+# Examples:
+#
+#   a = N[ 1,2,3,4 ]          =>  1.0  2.0  3.0  4.0
+#
+#   a = N[ 1,2,3,4, :int32 ]  =>  1  2  3  4
+#
+#   a = N[ [1,2,3], [3,4,5] ] =>  1.0  2.0  3.0
+#                                 3.0  4.0  5.0
+#
+N = NMatrix

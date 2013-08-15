@@ -275,7 +275,7 @@ describe "Inline constructor" do
 
   it "creates a NMatrix with the given values" do
     m = NMatrix.new([2, 2], [1, 4, 6, 7])
-    n = N[[1, 4], [6, 7]]
+    n = NMatrix[[1, 4], [6, 7]]
 
     m.should.eql? n
   end
