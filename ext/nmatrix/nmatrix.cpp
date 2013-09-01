@@ -2320,4 +2320,105 @@ VALUE rb_nvector_dense_create(nm::dtype_t dtype, void* elements, size_t length) 
   return rb_nmatrix_dense_create(dtype, &shape, dim, elements, length);
 }
 
+/*
+ * Create a dense matrix from a Ruby Array
+ *
+ */
+void rb_nmatrix_dense_from_array_helper(VALUE vec, size_t d, size_t dim, size_t* shape, size_t dtype, int *idx, void* elements)
+{
+	for(int i = 0; i < shape[d]; i++)
+	{
+		VALUE v = rb_ary_entry(vec, i);
+		
+		if(d < dim-1)
+		{
+			if(shape[d+1] != RARRAY_LEN(v))
+				rb_raise(rb_eArgError, "Invalid Array, dimension length inequality (Jagged)");
+			
+			rb_nmatrix_dense_from_array_helper(v, d+1, dim, shape, dtype, idx, elements);
+		}
+		else
+		{
+			if(dtype == 3)
+				((int*)elements)[*idx] = NUM2INT(v);
+			else if(dtype == 6)
+				((double*)elements)[*idx] = NUM2DBL(v);
+				
+			*idx += 1;
+		}
+	}
+	return;
+} 
+ 
+VALUE rb_nmatrix_dense_from_array(VALUE obj)
+{	
+	if (!rb_obj_is_kind_of(obj,rb_cArray))
+		rb_raise(rb_eArgError, "Expected Array");
+
+	// dim
+	size_t dim = 1;
+	VALUE vec = rb_ary_entry(obj, 0);	
+	while(rb_obj_is_kind_of(vec,rb_cArray))
+	{
+		dim++;
+		vec = rb_ary_entry(vec, 0);	
+	}
+	
+	// shape
+	size_t* shape;
+	if(dim == 1)
+		shape = ALLOC_N(size_t, 2);
+	else
+		shape = ALLOC_N(size_t, dim);
+		 
+	size_t length = 1;
+	vec = obj;
+	for(int d = 0; d < dim; d++)
+	{
+		shape[d] = RARRAY_LEN(vec);
+		length *= shape[d];
+		vec = rb_ary_entry(vec, 0);
+	}
+	
+	// type
+	size_t dtype;
+	if(TYPE(vec) == T_FIXNUM)
+		dtype = 3; //INT32 
+	else if(TYPE(vec) == T_FLOAT)
+		dtype = 6; //FLOAT64
+	else
+		rb_raise(rb_eArgError, "Unexpected Values in Arrays (type)");
+	
+	// alloc
+	void* elements = ALLOC_N(char, DTYPE_SIZES[dtype]*length);
+	
+	// copy
+	int idx = 0;
+	rb_nmatrix_dense_from_array_helper(obj, 0, dim, shape, dtype, &idx, elements);	
+	
+	// allocate and create the matrix and its storage
+	NMATRIX* nm;
+	
+	// Do not allow a dim of 1. Treat it as a column or row matrix.
+	if (dim == 1) 
+	{
+		dim = 2;
+		shape[1] = 1;
+	}
+	
+	nm = nm_create(nm::DENSE_STORE, nm_dense_storage_create(nm::dtype_t(dtype), shape, dim, elements, length));
+
+	// tell Ruby about the matrix and its storage, particularly how to garbage collect it.
+	return Data_Wrap_Struct(cNMatrix, nm_dense_storage_mark, nm_dense_storage_delete, nm);
+}
+
+/*
+ * Create a Ruby Array from a dense matrix
+ */
+VALUE rb_nmatrix_dense_to_array(VALUE obj)
+{
+	// TODO
+	return obj;	
+}
+
 } // end of extern "C"
