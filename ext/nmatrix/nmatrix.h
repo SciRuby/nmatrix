@@ -357,7 +357,9 @@ extern "C" {
 	NM_DECL_ENUM(dtype_t, nm_dtype_guess(VALUE));   // (This is a function)
 	NM_DECL_ENUM(dtype_t, nm_dtype_min(VALUE));
 
-  // Non-API functions needed by other cpp files.
+	VALUE rb_nmatrix_dense_from_array(VALUE obj);
+
+	// Non-API functions needed by other cpp files.
 	NMATRIX* nm_create(nm::stype_t stype, STORAGE* storage);
 	void     nm_delete(NMATRIX* mat);
 	void     nm_delete_ref(NMATRIX* mat);
