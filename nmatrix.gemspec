@@ -27,9 +27,8 @@ which improve the portability of this project.
 
 Also required is ATLAS. Most Linux distributions and Mac
 versions include ATLAS, but you may wish to compile it
-yourself. Rumor has it that the Ubuntu/Debian apt package
-for ATLAS WILL NOT WORK with NMatrix. Please install it
-manually if you are using apt.
+yourself. The Ubuntu/Debian apt package for ATLAS WILL 
+NOT WORK with NMatrix if LAPACK is also installed.
 
 More explicit instructions for NMatrix and SciRuby should
 be available on the SciRuby website, sciruby.com, or
