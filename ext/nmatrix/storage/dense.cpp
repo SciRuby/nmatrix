@@ -217,6 +217,7 @@ void nm_dense_storage_delete_ref(STORAGE* s) {
  * Mark values in a dense matrix for garbage collection. This may not be necessary -- further testing required.
  */
 void nm_dense_storage_mark(STORAGE* storage_base) {
+
   DENSE_STORAGE* storage = (DENSE_STORAGE*)storage_base;
 
   if (storage && storage->dtype == nm::RUBYOBJ) {
@@ -256,6 +257,8 @@ VALUE nm_dense_map_pair(VALUE self, VALUE right) {
   DENSE_STORAGE* result = nm_dense_storage_create(nm::RUBYOBJ, shape_copy, s->dim, NULL, 0);
   VALUE* result_elem = reinterpret_cast<VALUE*>(result->elements);
 
+  nm_register_values(result_elem, count);
+
   for (size_t k = 0; k < count; ++k) {
     nm_dense_storage_coords(result, k, coords);
     size_t s_index = nm_dense_storage_pos(s, coords),
@@ -268,10 +271,13 @@ VALUE nm_dense_map_pair(VALUE self, VALUE right) {
   }
 
   NMATRIX* m = nm_create(nm::DENSE_STORE, reinterpret_cast<STORAGE*>(result));
+  VALUE rb_nm = Data_Wrap_Struct(CLASS_OF(self), nm_mark, nm_delete, m);
 
-  return Data_Wrap_Struct(CLASS_OF(self), nm_mark, nm_delete, m);
+  nm_unregister_values(result_elem, count);
+
+  return rb_nm;
+
 }
-
 
 /*
  * map enumerator for dense matrices.
@@ -292,6 +298,8 @@ VALUE nm_dense_map(VALUE self) {
   DENSE_STORAGE* result = nm_dense_storage_create(nm::RUBYOBJ, shape_copy, s->dim, NULL, 0);
   VALUE* result_elem = reinterpret_cast<VALUE*>(result->elements);
 
+  nm_register_values(result_elem, count);
+
   for (size_t k = 0; k < count; ++k) {
     nm_dense_storage_coords(result, k, coords);
     size_t s_index = nm_dense_storage_pos(s, coords);
@@ -300,8 +308,12 @@ VALUE nm_dense_map(VALUE self) {
   }
 
   NMATRIX* m = nm_create(nm::DENSE_STORE, reinterpret_cast<STORAGE*>(result));
+  VALUE rb_nm = Data_Wrap_Struct(CLASS_OF(self), nm_mark, nm_delete, m);
 
-  return Data_Wrap_Struct(CLASS_OF(self), nm_mark, nm_delete, m);
+  nm_unregister_values(result_elem, count);
+
+  return rb_nm;
+
 }
 
 

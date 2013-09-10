@@ -354,6 +354,9 @@ extern "C" {
 	void     nm_mark(NMATRIX* mat);
 	void     nm_delete(NMATRIX* mat);
 	void     nm_delete_ref(NMATRIX* mat);
+  void     nm_mark(NMATRIX* mat);
+  void     nm_register_values(VALUE* vals, size_t n);
+  void     nm_unregister_values(VALUE* vals, size_t n);
 
 #ifdef __cplusplus
 }

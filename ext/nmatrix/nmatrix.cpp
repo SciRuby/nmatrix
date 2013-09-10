@@ -679,6 +679,30 @@ void nm_delete_ref(NMATRIX* mat) {
 }
 
 /*
+ * Register the addresses of an array of VALUEs with the gc to avoid collection
+ * while using them internally.
+ */
+void nm_register_values(VALUE* values, size_t n) {
+  if (values) {
+    for (size_t i = n; i-- > 0;) {
+      rb_gc_register_address(values + i);
+    }
+  }
+}
+
+/*
+ * Unregister the addresses of an array of VALUEs with the gc to allow normal
+ * garbage collection to occur again.
+ */
+void nm_unregister_values(VALUE* values, size_t n) {
+  if (values) {
+    for (size_t i = n; i-- > 0;) {
+      rb_gc_unregister_address(values + i);
+    }
+  }
+}
+
+/*
  * call-seq:
  *     dtype -> Symbol
  *

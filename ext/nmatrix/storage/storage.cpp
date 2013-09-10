@@ -55,7 +55,6 @@ const char* const STYPE_NAMES[nm::NUM_STYPES] = {
 	"yale"
 };
 
-
 } // end extern "C" block
 
 /*
