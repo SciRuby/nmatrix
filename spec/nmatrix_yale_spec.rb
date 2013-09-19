@@ -106,8 +106,8 @@ describe NMatrix do
       n[0,0] = 0.1
       n[0,1] = 0.2
       n[1,0] = 0.3
-      n.yale_a == [0.1, 0.0, 0.0, 0.2, 0.3]
-      n.yale_ija == [3,4,5,1,0]
+      n.yale_a.should == [0.1, 0.0, 0.0, 0.2, 0.3]
+      n.yale_ija.should == [3,4,5,1,0]
     end
 
     it "sets when resizing" do
