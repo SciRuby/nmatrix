@@ -138,9 +138,9 @@ idefaults = {lapack: ["/usr/include/atlas"],
              cblas: ["/usr/local/atlas/include", "/usr/include/atlas"],
              atlas: ["/usr/local/atlas/include", "/usr/include/atlas"]}
 
-ldefaults = {lapack: ["/usr/local/lib", "/usr/local/atlas/lib"],
-             cblas: ["/usr/local/lib", "/usr/local/atlas/lib"],
-             atlas: ["/usr/local/atlas/lib", "/usr/local/lib", "/usr/lib"]}
+ldefaults = {lapack: ["/usr/local/lib", "/usr/local/atlas/lib", "/usr/lib64/atlas"],
+             cblas: ["/usr/local/lib", "/usr/local/atlas/lib", "/usr/lib64/atlas"],
+             atlas: ["/usr/local/atlas/lib", "/usr/local/lib", "/usr/lib", "/usr/lib64/atlas"]}
 
 unless have_library("lapack")
   dir_config("lapack", idefaults[:lapack], ldefaults[:lapack])
