@@ -158,7 +158,7 @@ namespace nm { namespace dense_storage {
     // Only free v if it was allocated in this function.
     if (nm_and_free.first && nm_and_free.second)
       nm_delete(nm_and_free.first);
-    else
+    else if (! nm_and_free.first)
       xfree(v);
   }
 
