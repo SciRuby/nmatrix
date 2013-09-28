@@ -321,10 +321,12 @@ VALUE nm_dense_map_pair(VALUE self, VALUE right) {
   size_t count = nm_storage_count_max_elements(s);
 
   DENSE_STORAGE* result = nm_dense_storage_create(nm::RUBYOBJ, shape_copy, s->dim, NULL, 0);
+  
+  /* Using volatile here ensures that the pointer remains on the stack no matter what
+   * so that the ruby GC can find out that the elements array is in use if GC runs 
+   * during the yield statement below.
+   */
   volatile VALUE* result_elem = reinterpret_cast<VALUE*>(result->elements);
-
-  // FIXME: Determine if still needed now that result_elem is marked as volatile.
-  //nm_register_values(reinterpret_cast<VALUE*>(result->elements), count);
 
   for (size_t k = 0; k < count; ++k) {
     nm_dense_storage_coords(result, k, coords);
@@ -338,12 +340,7 @@ VALUE nm_dense_map_pair(VALUE self, VALUE right) {
   }
 
   NMATRIX* m = nm_create(nm::DENSE_STORE, reinterpret_cast<STORAGE*>(result));
-  /*volatile VALUE rb_nm =*/ return Data_Wrap_Struct(CLASS_OF(self), nm_mark, nm_delete, m);
-
-  // FIXME: Determine if still needed now that result_elem is marked as volatile.
-  //nm_unregister_values(reinterpret_cast<VALUE*>(result->elements), count);
-
-  //return rb_nm;
+  return Data_Wrap_Struct(CLASS_OF(self), nm_mark, nm_delete, m);
 
 }
 
@@ -365,9 +362,12 @@ VALUE nm_dense_map(VALUE self) {
   size_t count = nm_storage_count_max_elements(s);
 
   DENSE_STORAGE* result = nm_dense_storage_create(nm::RUBYOBJ, shape_copy, s->dim, NULL, 0);
-  volatile VALUE* result_elem = reinterpret_cast<VALUE*>(result->elements);
 
-  //nm_register_values(reinterpret_cast<VALUE*>(result->elements), count);
+  /* Using volatile here ensures that the pointer remains on the stack no matter what
+   * so that the ruby GC can find out that the elements array is in use if GC runs 
+   * during the yield statement below.
+   */
+  volatile VALUE* result_elem = reinterpret_cast<VALUE*>(result->elements);
 
   for (size_t k = 0; k < count; ++k) {
     nm_dense_storage_coords(result, k, coords);
@@ -377,11 +377,7 @@ VALUE nm_dense_map(VALUE self) {
   }
 
   NMATRIX* m = nm_create(nm::DENSE_STORE, reinterpret_cast<STORAGE*>(result));
-  /*volatile VALUE rb_nm =*/ return Data_Wrap_Struct(CLASS_OF(vself), nm_mark, nm_delete, m);
-
-  //nm_unregister_values(reinterpret_cast<VALUE*>(result->elements), count);
-
-  //return rb_nm;
+  return Data_Wrap_Struct(CLASS_OF(vself), nm_mark, nm_delete, m);
 
 }
 
