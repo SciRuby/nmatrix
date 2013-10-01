@@ -184,6 +184,50 @@ static void map_empty_stored_r(RecurseData& result, RecurseData& s, LIST* x, con
 
 
 /*
+ * Recursive helper function for nm_list_map_stored
+ */
+static void map_stored_r(RecurseData& result, RecurseData& left, LIST* x, const LIST* l, size_t rec) {
+  NODE *lcurr = l->first,
+       *xcurr = x->first;
+
+  // For reference matrices, make sure we start in the correct place.
+  while (lcurr && lcurr->key < left.offset(rec))  {  lcurr = lcurr->next;  }
+
+  if (lcurr && lcurr->key - left.offset(rec) >= result.ref_shape(rec))  lcurr = NULL;
+
+  if (rec) {
+    while (lcurr) {
+      size_t key;
+      LIST*  val = nm::list::create();
+      map_stored_r(result, left, val, reinterpret_cast<const LIST*>(lcurr->val), rec-1);
+      key        = lcurr->key - left.offset(rec);
+      lcurr      = lcurr->next;
+
+      if (!val->first) nm::list::del(val, 0); // empty list -- don't insert
+      else xcurr = nm::list::insert_helper(x, xcurr, key, val);
+
+      if (lcurr && lcurr->key - left.offset(rec) >= result.ref_shape(rec)) lcurr = NULL;
+    }
+  } else {
+    while (lcurr) {
+      size_t key;
+      VALUE  val;
+
+      val   = rb_yield_values(1, rubyobj_from_cval(lcurr->val, left.dtype()).rval);
+      key   = lcurr->key - left.offset(rec);
+      lcurr = lcurr->next;
+
+      if (!rb_equal(val, result.init_obj()))
+        xcurr = nm::list::insert_helper(x, xcurr, key, val);
+
+      if (lcurr && lcurr->key - left.offset(rec) >= result.ref_shape(rec)) lcurr = NULL;
+    }
+  }
+}
+
+
+
+/*
  * Recursive helper function for nm_list_map_merged_stored
  */
 static void map_merged_stored_r(RecurseData& result, RecurseData& left, RecurseData& right, LIST* x, const LIST* l, const LIST* r, size_t rec) {
@@ -659,6 +703,43 @@ VALUE nm_list_each_with_indices(VALUE nmatrix, bool stored) {
   else        each_with_indices_r(sdata, sdata.top_level_list(), sdata.dim() - 1, stack);
 
   return nmatrix;
+}
+
+
+/*
+ * map merged stored iterator. Always returns a matrix containing RubyObjects which probably needs to be casted.
+ */
+VALUE nm_list_map_stored(VALUE left, VALUE init) {
+
+  bool scalar = false;
+
+  LIST_STORAGE *s   = NM_STORAGE_LIST(left);
+
+  // For each matrix, if it's a reference, we want to deal directly with the original (with appropriate offsetting)
+  nm::list_storage::RecurseData sdata(s);
+
+  void* scalar_init = NULL;
+
+  //if (!rb_block_given_p()) {
+  //  rb_raise(rb_eNotImpError, "RETURN_SIZED_ENUMERATOR probably won't work for a map_merged since no merged object is created");
+  //}
+  // If we don't have a block, return an enumerator.
+  RETURN_SIZED_ENUMERATOR(left, 0, 0, 0); // FIXME: Test this. Probably won't work. Enable above code instead.
+
+  // Figure out default value if none provided by the user
+  if (init == Qnil) init = rb_yield_values(1, sdata.init_obj());
+
+	// Allocate a new shape array for the resulting matrix.
+  void* init_val = ALLOC(VALUE);
+  memcpy(init_val, &init, sizeof(VALUE));
+
+  NMATRIX* result = nm_create(nm::LIST_STORE, nm_list_storage_create(nm::RUBYOBJ, sdata.copy_alloc_shape(), s->dim, init_val));
+  LIST_STORAGE* r = reinterpret_cast<LIST_STORAGE*>(result->storage);
+  nm::list_storage::RecurseData rdata(r, init);
+
+  map_stored_r(rdata, sdata, rdata.top_level_list(), sdata.top_level_list(), sdata.dim() - 1);
+
+  return Data_Wrap_Struct(CLASS_OF(left), nm_mark, nm_delete, result);
 }
 
 

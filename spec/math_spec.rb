@@ -26,13 +26,101 @@
 # versions of unfriendly BLAS and LAPACK functions.
 #
 
-# Can we use require_relative here instead?
-require File.join(File.dirname(__FILE__), "spec_helper.rb")
+require 'spec_helper'
 
 describe "math" do
   #after :each do
   #  GC.start
   #end
+
+  context "elementwise math functions" do
+
+    [:dense,:list,:yale].each do |stype|
+      context stype do
+
+        [:int64,:float64,:rational128].each do |dtype|
+          context dtype do
+            before :each do
+              @size = [2,2]
+              @m = NMatrix.seq(@size, dtype: dtype, stype: stype)+1
+              @a = @m.to_a.flatten
+            end
+
+            NMatrix::NMMath::METHODS_ARITY_1.each do |meth|
+              #skip inverse regular trig functions
+              next if meth.to_s.start_with?('a') and (not meth.to_s.end_with?('h')) \
+                and NMatrix::NMMath::METHODS_ARITY_1.include?(
+                  meth.to_s[1...meth.to_s.length].to_sym)
+              next if meth == :atanh
+
+              it "should correctly apply elementwise #{meth}" do
+
+                @m.send(meth).should eq N.new(@size, @a.map{ |e| Math.send(meth, e) },
+                                                 dtype: :float64, stype: stype)
+              end
+            end
+
+            NMatrix::NMMath::METHODS_ARITY_2.each do |meth|
+              next if meth == :atan2
+              it "should correctly apply elementwise #{meth}" do
+                @m.send(meth, @m).should eq N.new(@size, @a.map{ |e|
+                                                     Math.send(meth, e, e) },
+                                                     dtype: :float64, 
+                                                     stype: stype)
+              end
+
+              it "should correctly apply elementwise #{meth} with a scalar first arg" do
+                Math.send(meth, 1, @m).should eq N.new(@size, @a.map { |e| Math.send(meth, 1, e) }, dtype: :float64, stype: stype)
+              end
+
+              it "should correctly apply elementwise #{meth} with a scalar second arg" do
+                @m.send(meth, 1).should eq N.new(@size, @a.map { |e| Math.send(meth, e, 1) }, dtype: :float64, stype: stype)
+              end
+            end
+
+            it "should correctly apply elementwise natural log" do
+              @m.log.should eq N.new(@size, [0, Math.log(2), Math.log(3), Math.log(4)],
+                                        dtype: :float64, stype: stype)
+            end
+
+            it "should correctly apply elementwise log with arbitrary base" do
+              @m.log(3).should eq N.new(@size, [0, Math.log(2,3), 1, Math.log(4,3)],
+                                           dtype: :float64, stype: stype)
+            end
+
+            context "inverse trig functions" do
+              before :each do
+                @m = NMatrix.seq(@size, dtype: dtype, stype: stype)/4
+                @a = @m.to_a.flatten
+              end
+              [:asin, :acos, :atan, :atanh].each do |atf|
+
+                it "should correctly apply elementwise #{atf}" do
+                  @m.send(atf).should eq N.new(@size, 
+                                               @a.map{ |e| Math.send(atf, e) },
+                                               dtype: :float64, stype: stype)
+                end
+              end
+
+              it "should correctly apply elementtwise atan2" do
+                @m.atan2(@m*0+1).should eq N.new(@size, 
+                  @a.map { |e| Math.send(:atan2, e, 1) }, dtype: :float64, stype: stype)
+              end
+
+              it "should correctly apply elementwise atan2 with a scalar first arg" do
+                Math.atan2(1, @m).should eq N.new(@size, @a.map { |e| Math.send(:atan2, 1, e) }, dtype: :float64, stype: stype)
+              end
+
+              it "should correctly apply elementwise atan2 with a scalar second arg" do
+                  @m.atan2(1).should eq N.new(@size, @a.map { |e| Math.send(:atan2, e, 1) }, dtype: :float64, stype: stype)
+              end
+            end
+          end
+        end
+
+      end
+    end
+  end
 
   [:float32, :float64, :complex64, :complex128, :rational32, :rational64, :rational128].each do |dtype|
     context dtype do

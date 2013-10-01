@@ -51,6 +51,7 @@ static VALUE nm_capacity(VALUE self);
 static VALUE nm_each_with_indices(VALUE nmatrix);
 static VALUE nm_each_stored_with_indices(VALUE nmatrix);
 static VALUE nm_each_ordered_stored_with_indices(VALUE nmatrix);
+static VALUE nm_map_stored(VALUE nmatrix);
 
 static SLICE* get_slice(size_t dim, int argc, VALUE* arg, size_t* shape);
 static VALUE nm_xslice(int argc, VALUE* argv, void* (*slice_func)(const STORAGE*, SLICE*), void (*delete_func)(NMATRIX*), VALUE self);
@@ -74,10 +75,27 @@ static VALUE nm_ew_##name(VALUE left_val, VALUE right_val) {  \
   return elementwise_op(nm::EW_##oper, left_val, right_val);  \
 }
 
+#define DEF_UNARY_RUBY_ACCESSOR(oper, name)                 \
+static VALUE nm_unary_##name(VALUE self) {  \
+  return unary_op(nm::UNARY_##oper, self);  \
+}
+
+#define DEF_NONCOM_ELEMENTWISE_RUBY_ACCESSOR(oper, name) \
+static VALUE nm_noncom_ew_##name(int argc, VALUE* argv, VALUE self) { \
+  if (argc > 1) { \
+    return noncom_elementwise_op(nm::NONCOM_EW_##oper, self, argv[0], argv[1]); \
+  } else { \
+    return noncom_elementwise_op(nm::NONCOM_EW_##oper, self, argv[0], Qfalse); \
+  } \
+}
+
+
 /*
  * Macro declares a corresponding accessor function prototype for some element-wise operation.
  */
 #define DECL_ELEMENTWISE_RUBY_ACCESSOR(name)    static VALUE nm_ew_##name(VALUE left_val, VALUE right_val);
+#define DECL_UNARY_RUBY_ACCESSOR(name)          static VALUE nm_unary_##name(VALUE self);
+#define DECL_NONCOM_ELEMENTWISE_RUBY_ACCESSOR(name)    static VALUE nm_noncom_ew_##name(int argc, VALUE* argv, VALUE self);
 
 DECL_ELEMENTWISE_RUBY_ACCESSOR(add)
 DECL_ELEMENTWISE_RUBY_ACCESSOR(subtract)
@@ -91,8 +109,36 @@ DECL_ELEMENTWISE_RUBY_ACCESSOR(lt)
 DECL_ELEMENTWISE_RUBY_ACCESSOR(gt)
 DECL_ELEMENTWISE_RUBY_ACCESSOR(leq)
 DECL_ELEMENTWISE_RUBY_ACCESSOR(geq)
+DECL_UNARY_RUBY_ACCESSOR(sin)
+DECL_UNARY_RUBY_ACCESSOR(cos)
+DECL_UNARY_RUBY_ACCESSOR(tan)
+DECL_UNARY_RUBY_ACCESSOR(asin)
+DECL_UNARY_RUBY_ACCESSOR(acos)
+DECL_UNARY_RUBY_ACCESSOR(atan)
+DECL_UNARY_RUBY_ACCESSOR(sinh)
+DECL_UNARY_RUBY_ACCESSOR(cosh)
+DECL_UNARY_RUBY_ACCESSOR(tanh)
+DECL_UNARY_RUBY_ACCESSOR(asinh)
+DECL_UNARY_RUBY_ACCESSOR(acosh)
+DECL_UNARY_RUBY_ACCESSOR(atanh)
+DECL_UNARY_RUBY_ACCESSOR(exp)
+DECL_UNARY_RUBY_ACCESSOR(log2)
+DECL_UNARY_RUBY_ACCESSOR(log10)
+DECL_UNARY_RUBY_ACCESSOR(sqrt)
+DECL_UNARY_RUBY_ACCESSOR(erf)
+DECL_UNARY_RUBY_ACCESSOR(erfc)
+DECL_UNARY_RUBY_ACCESSOR(cbrt)
+DECL_UNARY_RUBY_ACCESSOR(gamma)
+DECL_NONCOM_ELEMENTWISE_RUBY_ACCESSOR(atan2)
+DECL_NONCOM_ELEMENTWISE_RUBY_ACCESSOR(ldexp)
+DECL_NONCOM_ELEMENTWISE_RUBY_ACCESSOR(hypot)
+
+//log can be unary, but also take a base argument, as with Math.log
+static VALUE nm_unary_log(int argc, VALUE* argv, VALUE self);
 
 static VALUE elementwise_op(nm::ewop_t op, VALUE left_val, VALUE right_val);
+static VALUE unary_op(nm::unaryop_t op, VALUE self);
+static VALUE noncom_elementwise_op(nm::noncom_ewop_t op, VALUE self, VALUE other, VALUE orderflip);
 
 static VALUE nm_symmetric(VALUE self);
 static VALUE nm_hermitian(VALUE self);
@@ -198,8 +244,10 @@ void Init_nmatrix() {
 	rb_define_protected_method(cNMatrix, "__dense_map_pair__", (METHOD)nm_dense_map_pair, 1);
 	rb_define_method(cNMatrix, "each_with_indices", (METHOD)nm_each_with_indices, 0);
 	rb_define_method(cNMatrix, "each_stored_with_indices", (METHOD)nm_each_stored_with_indices, 0);
+	rb_define_method(cNMatrix, "map_stored", (METHOD)nm_map_stored, 0);
 	rb_define_method(cNMatrix, "each_ordered_stored_with_indices", (METHOD)nm_each_ordered_stored_with_indices, 0);
 	rb_define_protected_method(cNMatrix, "__list_map_merged_stored__", (METHOD)nm_list_map_merged_stored, 2);
+	rb_define_protected_method(cNMatrix, "__list_map_stored__", (METHOD)nm_list_map_stored, 1);
 	rb_define_protected_method(cNMatrix, "__yale_map_merged_stored__", (METHOD)nm_yale_map_merged_stored, 2);
 	rb_define_protected_method(cNMatrix, "__yale_map_stored__", (METHOD)nm_yale_map_stored, 0);
 	rb_define_protected_method(cNMatrix, "__yale_stored_diagonal_each_with_indices__", (METHOD)nm_yale_stored_diagonal_each_with_indices, 0);
@@ -213,6 +261,32 @@ void Init_nmatrix() {
 	rb_define_method(cNMatrix, "/",			(METHOD)nm_ew_divide,		1);
   rb_define_method(cNMatrix, "**",    (METHOD)nm_ew_power,    1);
   rb_define_method(cNMatrix, "%",     (METHOD)nm_ew_mod,      1);
+
+  rb_define_method(cNMatrix, "atan2", (METHOD)nm_noncom_ew_atan2, -1);
+  rb_define_method(cNMatrix, "ldexp", (METHOD)nm_noncom_ew_ldexp, -1);
+  rb_define_method(cNMatrix, "hypot", (METHOD)nm_noncom_ew_hypot, -1);
+
+  rb_define_method(cNMatrix, "sin",   (METHOD)nm_unary_sin,   0);
+  rb_define_method(cNMatrix, "cos",   (METHOD)nm_unary_cos,   0);
+  rb_define_method(cNMatrix, "tan",   (METHOD)nm_unary_tan,   0);
+  rb_define_method(cNMatrix, "asin",  (METHOD)nm_unary_asin,  0);
+  rb_define_method(cNMatrix, "acos",  (METHOD)nm_unary_acos,  0);
+  rb_define_method(cNMatrix, "atan",  (METHOD)nm_unary_atan,  0);
+  rb_define_method(cNMatrix, "sinh",  (METHOD)nm_unary_sinh,  0);
+  rb_define_method(cNMatrix, "cosh",  (METHOD)nm_unary_cosh,  0);
+  rb_define_method(cNMatrix, "tanh",  (METHOD)nm_unary_tanh,  0);
+  rb_define_method(cNMatrix, "asinh", (METHOD)nm_unary_asinh, 0);
+  rb_define_method(cNMatrix, "acosh", (METHOD)nm_unary_acosh, 0);
+  rb_define_method(cNMatrix, "atanh", (METHOD)nm_unary_atanh, 0);
+  rb_define_method(cNMatrix, "exp",   (METHOD)nm_unary_exp,   0);
+  rb_define_method(cNMatrix, "log2",  (METHOD)nm_unary_log2,  0);
+  rb_define_method(cNMatrix, "log10", (METHOD)nm_unary_log10, 0);
+  rb_define_method(cNMatrix, "sqrt",  (METHOD)nm_unary_sqrt,  0);
+  rb_define_method(cNMatrix, "erf",   (METHOD)nm_unary_erf,   0);
+  rb_define_method(cNMatrix, "erfc",  (METHOD)nm_unary_erfc,  0);
+  rb_define_method(cNMatrix, "cbrt",  (METHOD)nm_unary_cbrt,  0);
+  rb_define_method(cNMatrix, "gamma", (METHOD)nm_unary_gamma, 0);
+  rb_define_method(cNMatrix, "log",   (METHOD)nm_unary_log,  -1);
 
 	rb_define_method(cNMatrix, "=~", (METHOD)nm_ew_eqeq, 1);
 	rb_define_method(cNMatrix, "!~", (METHOD)nm_ew_neq, 1);
@@ -502,6 +576,29 @@ static VALUE nm_each_stored_with_indices(VALUE nmatrix) {
 
 /*
  * call-seq:
+ *     map_stored -> Enumerator
+ *
+ * Iterate over the stored entries of any matrix. For dense and yale, this iterates over non-zero
+ * entries; for list, this iterates over non-default entries. Yields dim+1 values for each entry:
+ * i, j, ..., and the entry itself.
+ */
+static VALUE nm_map_stored(VALUE nmatrix) {
+  volatile VALUE nm = nmatrix;
+
+  switch(NM_STYPE(nm)) {
+  case nm::YALE_STORE:
+    return nm_yale_map_stored(nm);
+  case nm::DENSE_STORE:
+    return nm_dense_map(nm);
+  case nm::LIST_STORE:
+    return nm_list_map_stored(nm, Qnil);
+  default:
+    rb_raise(nm_eDataTypeError, "Not a proper storage type");
+  }
+}
+
+/*
+ * call-seq:
  *     each_ordered_stored_with_indices -> Enumerator
  *
  * Very similar to #each_stored_with_indices. The key difference is that it enforces matrix ordering rather
@@ -572,6 +669,58 @@ DEF_ELEMENTWISE_RUBY_ACCESSOR(LEQ, leq)
 DEF_ELEMENTWISE_RUBY_ACCESSOR(GEQ, geq)
 DEF_ELEMENTWISE_RUBY_ACCESSOR(LT, lt)
 DEF_ELEMENTWISE_RUBY_ACCESSOR(GT, gt)
+
+DEF_UNARY_RUBY_ACCESSOR(SIN, sin)
+DEF_UNARY_RUBY_ACCESSOR(COS, cos)
+DEF_UNARY_RUBY_ACCESSOR(TAN, tan)
+DEF_UNARY_RUBY_ACCESSOR(ASIN, asin)
+DEF_UNARY_RUBY_ACCESSOR(ACOS, acos)
+DEF_UNARY_RUBY_ACCESSOR(ATAN, atan)
+DEF_UNARY_RUBY_ACCESSOR(SINH, sinh)
+DEF_UNARY_RUBY_ACCESSOR(COSH, cosh)
+DEF_UNARY_RUBY_ACCESSOR(TANH, tanh)
+DEF_UNARY_RUBY_ACCESSOR(ASINH, asinh)
+DEF_UNARY_RUBY_ACCESSOR(ACOSH, acosh)
+DEF_UNARY_RUBY_ACCESSOR(ATANH, atanh)
+DEF_UNARY_RUBY_ACCESSOR(EXP, exp)
+DEF_UNARY_RUBY_ACCESSOR(LOG2, log2)
+DEF_UNARY_RUBY_ACCESSOR(LOG10, log10)
+DEF_UNARY_RUBY_ACCESSOR(SQRT, sqrt)
+DEF_UNARY_RUBY_ACCESSOR(ERF, erf)
+DEF_UNARY_RUBY_ACCESSOR(ERFC, erfc)
+DEF_UNARY_RUBY_ACCESSOR(CBRT, cbrt)
+DEF_UNARY_RUBY_ACCESSOR(GAMMA, gamma)
+
+DEF_NONCOM_ELEMENTWISE_RUBY_ACCESSOR(ATAN2, atan2)
+DEF_NONCOM_ELEMENTWISE_RUBY_ACCESSOR(LDEXP, ldexp)
+DEF_NONCOM_ELEMENTWISE_RUBY_ACCESSOR(HYPOT, hypot)
+
+static VALUE nm_unary_log(int argc, VALUE* argv, VALUE self) {
+  const double default_log_base = exp(1.0);
+  NMATRIX* left;
+  UnwrapNMatrix(self, left);
+  std::string sym;
+
+  switch(left->stype) {
+  case nm::DENSE_STORE:
+    sym = "__dense_unary_log__";
+    break;
+  case nm::YALE_STORE:
+    sym = "__yale_unary_log__";
+    break;
+  case nm::LIST_STORE:
+    sym = "__list_unary_log__";
+    break;
+  }
+  if (argc > 0) { //supplied a base
+    return rb_funcall(self, rb_intern(sym.c_str()), 1, argv[0]);
+  }
+  return rb_funcall(self, rb_intern(sym.c_str()), 1, nm::RubyObject(default_log_base).rval);
+}
+
+//DEF_ELEMENTWISE_RUBY_ACCESSOR(ATAN2, atan2)
+//DEF_ELEMENTWISE_RUBY_ACCESSOR(LDEXP, ldexp)
+//DEF_ELEMENTWISE_RUBY_ACCESSOR(HYPOT, hypot)
 
 /*
  * call-seq:
@@ -1618,6 +1767,37 @@ static VALUE nm_xslice(int argc, VALUE* argv, void* (*slice_func)(const STORAGE*
 // Helper Functions //
 //////////////////////
 
+static VALUE unary_op(nm::unaryop_t op, VALUE self) {
+  NMATRIX* left;
+  UnwrapNMatrix(self, left);
+  std::string sym;
+
+  switch(left->stype) {
+  case nm::DENSE_STORE:
+    sym = "__dense_unary_" + nm::UNARYOPS[op] + "__";
+    break;
+  case nm::YALE_STORE:
+    sym = "__yale_unary_" + nm::UNARYOPS[op]  + "__";
+    break;
+  case nm::LIST_STORE:
+    sym = "__list_unary_" + nm::UNARYOPS[op]  + "__";
+    break;
+  }
+
+  return rb_funcall(self, rb_intern(sym.c_str()), 0);
+}
+
+static void check_dims_and_shape(VALUE left_val, VALUE right_val) {
+    // Check that the left- and right-hand sides have the same dimensionality.
+    if (NM_DIM(left_val) != NM_DIM(right_val)) {
+      rb_raise(rb_eArgError, "The left- and right-hand sides of the operation must have the same dimensionality.");
+    }
+    // Check that the left- and right-hand sides have the same shape.
+    if (memcmp(&NM_SHAPE(left_val, 0), &NM_SHAPE(right_val, 0), sizeof(size_t) * NM_DIM(left_val)) != 0) {
+      rb_raise(rb_eArgError, "The left- and right-hand sides of the operation must have the same shape.");
+    }
+}
+
 static VALUE elementwise_op(nm::ewop_t op, VALUE left_val, VALUE right_val) {
 
 	NMATRIX* left;
@@ -1646,15 +1826,7 @@ static VALUE elementwise_op(nm::ewop_t op, VALUE left_val, VALUE right_val) {
 
   } else {
 
-    // Check that the left- and right-hand sides have the same dimensionality.
-    if (NM_DIM(left_val) != NM_DIM(right_val)) {
-      rb_raise(rb_eArgError, "The left- and right-hand sides of the operation must have the same dimensionality.");
-    }
-
-    // Check that the left- and right-hand sides have the same shape.
-    if (memcmp(&NM_SHAPE(left_val, 0), &NM_SHAPE(right_val, 0), sizeof(size_t) * NM_DIM(left_val)) != 0) {
-      rb_raise(rb_eArgError, "The left- and right-hand sides of the operation must have the same shape.");
-    }
+    check_dims_and_shape(left_val, right_val);
 
     NMATRIX* right;
     UnwrapNMatrix(right_val, right);
@@ -1683,6 +1855,65 @@ static VALUE elementwise_op(nm::ewop_t op, VALUE left_val, VALUE right_val) {
   }
 
 	return Data_Wrap_Struct(CLASS_OF(left_val), nm_mark, nm_delete, result);
+}
+
+static VALUE noncom_elementwise_op(nm::noncom_ewop_t op, VALUE self, VALUE other, VALUE flip) {
+
+  NMATRIX* self_nm;
+  NMATRIX* result;
+
+  CheckNMatrixType(self);
+  UnwrapNMatrix(self, self_nm);
+
+  if (TYPE(other) != T_DATA || (RDATA(other)->dfree != (RUBY_DATA_FUNC)nm_delete && RDATA(other)->dfree != (RUBY_DATA_FUNC)nm_delete_ref)) {
+    // This is a matrix-scalar element-wise operation.
+    std::string sym;
+    switch(self_nm->stype) {
+    case nm::DENSE_STORE:
+      sym = "__dense_scalar_" + nm::NONCOM_EWOP_NAMES[op] + "__";
+      break;
+    case nm::YALE_STORE:
+      sym = "__yale_scalar_" + nm::NONCOM_EWOP_NAMES[op] + "__";
+      break;
+    case nm::LIST_STORE:
+      sym = "__list_scalar_" + nm::NONCOM_EWOP_NAMES[op] + "__";
+      break;
+    default:
+      rb_raise(rb_eNotImpError, "unknown storage type requested scalar element-wise operation");
+    }
+    return rb_funcall(self, rb_intern(sym.c_str()), 2, other, flip);
+
+  } else {
+
+    check_dims_and_shape(self, other);
+
+    NMATRIX* other_nm;
+    UnwrapNMatrix(other, other_nm);
+
+    if (self_nm->stype == other_nm->stype) {
+      std::string sym;
+
+      switch(self_nm->stype) {
+      case nm::DENSE_STORE:
+        sym = "__dense_elementwise_" + nm::NONCOM_EWOP_NAMES[op] + "__";
+        break;
+      case nm::YALE_STORE:
+        sym = "__yale_elementwise_" + nm::NONCOM_EWOP_NAMES[op] + "__";
+        break;
+      case nm::LIST_STORE:
+        sym = "__list_elementwise_" + nm::NONCOM_EWOP_NAMES[op] + "__";
+        break;
+      default:
+        rb_raise(rb_eNotImpError, "unknown storage type requested element-wise operation");
+      }
+      return rb_funcall(self, rb_intern(sym.c_str()), 2, other, flip);
+
+    } else {
+      rb_raise(rb_eArgError, "Element-wise operations are not currently supported between matrices with differing stypes.");
+    }
+  }
+
+  return Data_Wrap_Struct(CLASS_OF(self), nm_mark, nm_delete, result);
 }
 
 /*

@@ -73,6 +73,22 @@ namespace nm {
     "geq"
   };
 
+  const std::string NONCOM_EWOP_NAMES[nm::NUM_NONCOM_EWOPS] = {
+    "atan2",
+    "ldexp",
+    "hypot"
+  };
+
+  const std::string UNARYOPS[nm::NUM_UNARYOPS] = {
+    "sin", "cos", "tan",
+    "asin", "acos", "atan",
+    "sinh", "cosh", "tanh",
+    "asinh", "acosh", "atanh",
+    "exp", "log2", 
+    "log10", "sqrt", "erf", 
+    "erfc", "cbrt", "gamma"
+  };
+
 
   template <typename Type>
   Complex<Type>::Complex(const RubyObject& other) {

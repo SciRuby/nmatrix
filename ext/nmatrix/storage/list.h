@@ -124,6 +124,7 @@ extern "C" {
   // Exposed functions
   VALUE nm_to_hash(VALUE self);
   VALUE nm_list_map_merged_stored(VALUE left, VALUE right, VALUE init);
+  VALUE nm_list_map_stored(VALUE left, VALUE init);
   VALUE nm_list_default_value(VALUE self);
 } // end of extern "C" block
 

@@ -66,9 +66,12 @@ class NMatrix
   #
   # Returns an NMatrix if a block is given. For an Array, use #flat_map
   #
+  # Note that #map will always return an :object matrix, because it has no way of knowing
+  # how to handle operations on the different dtypes.
+  #
   def map(&bl)
     return enum_for(:map) unless block_given?
-    cp = self.dup
+    cp = self.cast(dtype: :object)
     cp.map! &bl
     cp
   end

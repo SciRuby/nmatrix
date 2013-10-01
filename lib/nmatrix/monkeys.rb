@@ -26,6 +26,8 @@
 # Ruby core extensions for NMatrix.
 #++
 
+require 'nmatrix/math'
+
 #######################
 # Classes and Modules #
 #######################
@@ -60,3 +62,23 @@ class Object #:nodoc:
     value
   end
 end
+
+
+module Math
+  class << self
+    NMatrix::NMMath::METHODS_ARITY_2.each do |meth|
+      define_method "nm_#{meth}" do |arg0, arg1|
+        if arg0.is_a? NMatrix then
+          arg0.send(meth, arg1)
+        elsif arg1.is_a? NMatrix then
+          arg1.send(meth, arg0, true)
+        else
+          self.send("old_#{meth}".to_sym, arg0, arg1)
+        end
+      end
+      alias_method "old_#{meth}".to_sym, meth
+      alias_method meth, "nm_#{meth}".to_sym
+    end
+  end
+end
+
