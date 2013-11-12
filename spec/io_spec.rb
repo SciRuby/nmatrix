@@ -24,12 +24,20 @@
 #
 # Basic tests for NMatrix::IO.
 #
+require "tmpdir" # Used to avoid cluttering the repository.
+
 require "./lib/nmatrix"
 
 describe NMatrix::IO do
-  #after :each do
-  #  GC.start
-  #end
+  before :each do
+    @tmp_dir = Dir.mktmpdir
+    @test_out = File.join(@tmp_dir, "test-out")
+  end
+
+  after :each do
+    File.delete(@test_out) if File.file?(@test_out)
+    Dir.rmdir(@tmp_dir)
+  end
 
   it "repacks a string" do
     NMatrix::IO::Matlab.repack("hello", :miUINT8, :byte).should == "hello"
@@ -87,57 +95,55 @@ describe NMatrix::IO do
 
   it "reads and writes NMatrix dense" do
     n = NMatrix.new(:dense, [4,3], [0,1,2,3,4,5,6,7,8,9,10,11], :int32)
-    n.write("test-out")
+    n.write(@test_out)
 
-    m = NMatrix.read("test-out")
+    m = NMatrix.read(@test_out)
     n.should == m
   end
 
   it "reads and writes NMatrix dense as symmetric" do
     n = NMatrix.new(:dense, 3, [0,1,2,1,3,4,2,4,5], :int16)
-    n.write("test-out", :symmetric)
+    n.write(@test_out, :symmetric)
 
-    m = NMatrix.read("test-out")
+    m = NMatrix.read(@test_out)
     n.should == m
   end
 
   it "reads and writes NMatrix dense as skew" do
     n = NMatrix.new(:dense, 3, [0,1,2,-1,3,4,-2,-4,5], :float64)
-    n.write("test-out", :skew)
+    n.write(@test_out, :skew)
 
-    m = NMatrix.read("test-out")
+    m = NMatrix.read(@test_out)
     n.should == m
   end
 
   it "reads and writes NMatrix dense as hermitian" do
     n = NMatrix.new(:dense, 3, [0,1,2,1,3,4,2,4,5], :complex64)
-    n.write("test-out", :hermitian)
+    n.write(@test_out, :hermitian)
 
-    m = NMatrix.read("test-out")
+    m = NMatrix.read(@test_out)
     n.should == m
   end
 
   it "reads and writes NMatrix dense as upper" do
     n = NMatrix.new(:dense, 3, [-1,1,2,3,4,5,6,7,8], :int32)
-    n.write("test-out", :upper)
+    n.write(@test_out, :upper)
 
     m = NMatrix.new(:dense, 3, [-1,1,2,0,4,5,0,0,8], :int32) # lower version of the same
 
-    o = NMatrix.read("test-out")
+    o = NMatrix.read(@test_out)
     o.should == m
     o.should_not == n
   end
 
   it "reads and writes NMatrix dense as lower" do
     n = NMatrix.new(:dense, 3, [-1,1,2,3,4,5,6,7,8], :int32)
-    n.write("test-out", :lower)
+    n.write(@test_out, :lower)
 
     m = NMatrix.new(:dense, 3, [-1,0,0,3,4,0,6,7,8], :int32) # lower version of the same
 
-    o = NMatrix.read("test-out")
+    o = NMatrix.read(@test_out)
     o.should == m
     o.should_not == n
   end
-
-
 end
