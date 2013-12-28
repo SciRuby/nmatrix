@@ -98,7 +98,7 @@ ReturnDType nrm2(const int N, const DType* X, const int incX) {
 }
 
 
-#ifdef HAVE_CBLAS_H
+#if defined HAVE_CBLAS_H || defined HAVE_ATLAS_CBLAS_H
 template <>
 inline float nrm2(const int N, const float* X, const int incX) {
   return cblas_snrm2(N, X, incX);

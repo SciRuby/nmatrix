@@ -31,12 +31,19 @@
  * Standard Includes
  */
 
-#include <cblas.h>
-#ifdef HAVE_CLAPACK_H
 extern "C" {
-  #include <clapack.h>
-}
+#if defined HAVE_CBLAS_H
+  #include <cblas.h>
+#elif defined HAVE_ATLAS_CBLAS_H
+  #include <atlas/cblas.h>
 #endif
+
+#if defined HAVE_CLAPACK_H
+  #include <clapack.h>
+#elif defined HAVE_ATLAS_CLAPACK_H
+  #include <atlas/clapack.h>
+#endif
+}
 
 #include <ruby.h>
 #include <algorithm> // std::min

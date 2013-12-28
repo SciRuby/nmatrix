@@ -204,18 +204,15 @@ unless have_library("atlas")
   dir_config("atlas", idefaults[:atlas], ldefaults[:atlas])
 end
 
-# this needs to go before cblas.h checks -- on Ubuntu, the clapack in the
-# include path found for cblas.h doesn't seem to contain all the necessary 
-# functions
-have_header("clapack.h")
-
-# this ensures that we find the header on Ubuntu, where by default the library 
-# can be found but not the header
-unless have_header("cblas.h")
-  find_header("cblas.h", *idefaults[:cblas])
+# If BLAS and LAPACK headers are in an atlas directory, prefer those. Otherwise,
+# we try our luck with the default location.
+if have_header("atlas/cblas.h")
+  have_header("atlas/clapack.h")
+else
+  have_header("cblas.h")
+  have_header("clapack.h")
 end
 
-have_header("cblas.h")
 
 have_func("clapack_dgetrf", ["cblas.h", "clapack.h"])
 have_func("clapack_dgetri", ["cblas.h", "clapack.h"])
@@ -228,7 +225,6 @@ have_func("cblas_dgemm", "cblas.h")
 #find_library("lapack", "clapack_dgetrf")
 #find_library("cblas", "cblas_dgemm")
 #find_library("atlas", "ATL_dgemmNN")
-
 # Order matters here: ATLAS has to go after LAPACK: http://mail.scipy.org/pipermail/scipy-user/2007-January/010717.html
 $libs += " -llapack -lcblas -latlas "
 #$libs += " -lprofiler "

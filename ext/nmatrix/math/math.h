@@ -69,11 +69,17 @@
  */
 
 extern "C" { // These need to be in an extern "C" block or you'll get all kinds of undefined symbol errors.
+#if defined HAVE_CBLAS_H
   #include <cblas.h>
+#elif defined HAVE_ATLAS_CBLAS_H
+  #include <atlas/cblas.h>
+#endif
 
-  #ifdef HAVE_CLAPACK_H
-    #include <clapack.h>
-  #endif
+#if defined HAVE_CLAPACK_H
+  #include <clapack.h>
+#elif defined HAVE_ATLAS_CLAPACK_H
+  #include <atlas/clapack.h>
+#endif
 }
 
 #include <algorithm> // std::min, std::max
@@ -531,7 +537,7 @@ inline void smmp_sort_columns(const size_t n, const IType* ia, IType* ja, DType*
  */
 template <typename DType>
 inline int potrf(const enum CBLAS_ORDER order, const enum CBLAS_UPLO uplo, const int N, DType* A, const int lda) {
-#ifdef HAVE_CLAPACK_H
+#if defined HAVE_CLAPACK_H || defined HAVE_ATLAS_CLAPACK_H
   rb_raise(rb_eNotImpError, "not yet implemented for non-BLAS dtypes");
 #else
   rb_raise(rb_eNotImpError, "only CLAPACK version implemented thus far");
@@ -539,7 +545,7 @@ inline int potrf(const enum CBLAS_ORDER order, const enum CBLAS_UPLO uplo, const
   return 0;
 }
 
-#ifdef HAVE_CLAPACK_H
+#if defined HAVE_CLAPACK_H || defined HAVE_ATLAS_CLAPACK_H
 template <>
 inline int potrf(const enum CBLAS_ORDER order, const enum CBLAS_UPLO uplo, const int N, float* A, const int lda) {
   return clapack_spotrf(order, uplo, N, A, lda);
@@ -928,7 +934,7 @@ inline void lauum(const enum CBLAS_ORDER order, const enum CBLAS_UPLO uplo, cons
 }
 
 
-#ifdef HAVE_CLAPACK_H
+#if defined HAVE_CLAPACK_H || defined HAVE_ATLAS_CLAPACK_H
 template <bool is_complex>
 inline void lauum(const enum CBLAS_ORDER order, const enum CBLAS_UPLO uplo, const int N, float* A, const int lda) {
   clapack_slauum(order, uplo, N, A, lda);
@@ -1019,7 +1025,7 @@ inline int potri(const enum CBLAS_ORDER order, const enum CBLAS_UPLO uplo, const
 }
 
 
-#ifdef HAVE_CLAPACK_H
+#if defined HAVE_CLAPACK_H || defined HAVE_ATLAS_CLAPACK_H
 template <>
 inline int potri(const enum CBLAS_ORDER order, const enum CBLAS_UPLO uplo, const int n, float* a, const int lda) {
   return clapack_spotri(order, uplo, n, a, lda);

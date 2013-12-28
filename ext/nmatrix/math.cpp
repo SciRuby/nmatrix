@@ -150,8 +150,10 @@
  */
 
 extern "C" {
-#ifdef HAVE_CLAPACK_H
+#if defined HAVE_CLAPACK_H
   #include <clapack.h>
+#elif defined HAVE_ATLAS_CLAPACK_H
+  #include <atlas/clapack.h>
 #endif
 
   static VALUE nm_cblas_nrm2(VALUE self, VALUE n, VALUE x, VALUE incx);
