@@ -179,7 +179,6 @@ describe NMatrix do
       end
 
       it "enforces shape boundaries" do
-        expect { NMatrix.new([1,10], 0, dtype: :int8, stype: storage_type, default: 0)[-1,0] }.to raise_error
         expect { NMatrix.new([1,10], 0, dtype: :int8, stype: storage_type, default: 0)[1,0]  }.to raise_error(RangeError)
         expect { NMatrix.new([1,10], 0, dtype: :int8, stype: storage_type, default: 0)[0,10] }.to raise_error(RangeError)
       end
@@ -476,3 +475,19 @@ describe "NMatrix#concat" do
     n.dconcat(n).should == NMatrix.new([1,3,2], [1,1,2,2,3,3])
   end
 end
+
+describe "NMatrix#indexing" do
+  it "should return values based on indices" do
+    n = NMatrix.new([2,5], [1,2,3,4,5,6,7,8,9,0])
+    n[1,0].should == 6
+    n[1,0..3].should == NMatrix.new([1,4],[6,7,8,9])
+  end
+
+  it "should work for negative indices" do
+    n = NMatrix.new([1,5], [1,2,3,4,5])
+    m = NMatrix.new([3,3], [1,2,3,4,5,6,7,8,9])
+    n[-1].should == 5
+    n[0,0..-2].should == NMatrix.new([1,4],[1,2,3,4])
+  end
+end
+
