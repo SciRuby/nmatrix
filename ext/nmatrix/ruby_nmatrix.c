@@ -1009,10 +1009,8 @@ static VALUE nm_reshape_bang(VALUE self, VALUE arg){
 	if(m->stype == nm::DENSE_STORE){
 		VALUE shape_ary;
 		shape_ary = arg;
-		size_t dim;
-		size_t size;
+		size_t dim, size;
 	       	size_t reshape_size = 1;
-		void* elem;
 		size_t* shape = interpret_shape(shape_ary, &dim);
 		VALUE asterisk = ID2SYM( rb_intern("*") );
 		
@@ -1023,7 +1021,6 @@ static VALUE nm_reshape_bang(VALUE self, VALUE arg){
 		left_params[ dim ] = nm_mget( dim, right_params, self );
 		
 		size = nm_storage_count_max_elements(NM_STORAGE(self));
-		elem = NM_STORAGE_DENSE(self)->elements;
 		for (size_t index = 0; index < dim; ++index){
 			reshape_size *= shape[index];}
 			
@@ -1039,7 +1036,7 @@ static VALUE nm_reshape_bang(VALUE self, VALUE arg){
 		
 	}
 	else {
-		rb_raise(rb_eNotImpError, "reshape in place only for dense stype");
+		rb_raise(rb_eNotImpError, "reshape (in place) only for dense stype");
 	}
 }
 
