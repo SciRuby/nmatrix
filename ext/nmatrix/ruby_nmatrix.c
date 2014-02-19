@@ -150,6 +150,7 @@ static VALUE matrix_multiply(NMATRIX* left, NMATRIX* right);
 static VALUE nm_multiply(VALUE left_v, VALUE right_v);
 static VALUE nm_det_exact(VALUE self);
 static VALUE nm_complex_conjugate_bang(VALUE self);
+static VALUE nm_reshape_bang(VALUE self, VALUE arg);
 
 static nm::dtype_t	interpret_dtype(int argc, VALUE* argv, nm::stype_t stype);
 static void*		interpret_initial_value(VALUE arg, nm::dtype_t dtype);
@@ -244,6 +245,7 @@ void Init_nmatrix() {
 	rb_define_method(cNMatrix, "offset", (METHOD)nm_offset, 0);
 	rb_define_method(cNMatrix, "det_exact", (METHOD)nm_det_exact, 0);
 	rb_define_method(cNMatrix, "complex_conjugate!", (METHOD)nm_complex_conjugate_bang, 0);
+	rb_define_method(cNMatrix, "reshape!", (METHOD)nm_reshape_bang, 1);
 
 	rb_define_protected_method(cNMatrix, "__dense_each__", (METHOD)nm_dense_each, 0);
 	rb_define_protected_method(cNMatrix, "__dense_map__", (METHOD)nm_dense_map, 0);
@@ -999,6 +1001,48 @@ static VALUE nm_complex_conjugate_bang(VALUE self) {
 
   return self;
 }
+
+
+static VALUE nm_reshape_bang(VALUE self, VALUE arg){
+	NMATRIX* m;
+	UnwrapNMatrix(self, m);	
+	if(m->stype == nm::DENSE_STORE){
+		VALUE shape_ary;
+		shape_ary = arg;
+		size_t dim;
+		size_t size;
+	       	size_t reshape_size = 1;
+		void* elem;
+		size_t* shape = interpret_shape(shape_ary, &dim);
+		VALUE asterisk = ID2SYM( rb_intern("*") );
+		
+		VALUE *left_params = ALLOC_N( VALUE, dim + 1 );
+		for(size_t i=0;i<dim;i++) { left_params[i] = asterisk; }
+		VALUE *right_params = ALLOC_N( VALUE, dim );
+		for(size_t i=0;i<dim;i++) { right_params[i] = asterisk; }
+		left_params[ dim ] = nm_mget( dim, right_params, self );
+		
+		size = nm_storage_count_max_elements(NM_STORAGE(self));
+		elem = NM_STORAGE_DENSE(self)->elements;
+		for (size_t index = 0; index < dim; ++index){
+			reshape_size *= shape[index];}
+			
+		if (reshape_size == size){
+			NM_STORAGE(self)->shape = shape;
+			nm_mset( dim + 1, left_params, self );
+			return self;
+		}
+		else
+			rb_raise(rb_eArgError, "reshape cannot resize; size of new and old matrices must match");
+		xfree( left_params );
+		xfree( right_params );
+		
+	}
+	else {
+		rb_raise(rb_eNotImpError, "reshape in place only for dense stype");
+	}
+}
+
 
 /*
  * Helper function for creating a matrix. You have to create the storage and pass it in, but you don't
