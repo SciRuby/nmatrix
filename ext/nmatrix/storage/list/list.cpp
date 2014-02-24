@@ -183,7 +183,7 @@ static void map_empty_stored_r(RecurseData& result, RecurseData& s, LIST* x, con
         nm_list_storage_register_list(val, rec-1);
 	temp_vals.push_front(val);
         nm::list::insert_helper(x, xcurr, curr->key - offset, val);
-      } 
+      }
       curr = curr->next;
       if (curr && curr->key - offset >= x_shape) curr = NULL;
     }
@@ -538,7 +538,7 @@ void set(VALUE left, SLICE* slice, VALUE right) {
   NM_CONSERVATIVE(nm_register_value(left));
   NM_CONSERVATIVE(nm_register_value(right));
   LIST_STORAGE* s = NM_STORAGE_LIST(left);
-  
+
   std::pair<NMATRIX*,bool> nm_and_free =
     interpret_arg_as_dense_nmatrix(right, NM_DTYPE(left));
 
@@ -704,11 +704,11 @@ static void __nm_list_storage_unregister_temp_list_list(std::list<LIST*>& temp_v
 }
 
 void nm_list_storage_register_node(const NODE* curr) {
-  nm_register_value(*reinterpret_cast<VALUE*>(curr->val));      
+  nm_register_value(*reinterpret_cast<VALUE*>(curr->val));
 }
 
 void nm_list_storage_unregister_node(const NODE* curr) {
-  nm_unregister_value(*reinterpret_cast<VALUE*>(curr->val));      
+  nm_unregister_value(*reinterpret_cast<VALUE*>(curr->val));
 }
 
 /**
@@ -778,14 +778,17 @@ void nm_list_storage_unregister(const STORAGE* s) {
  * Documentation goes here.
  */
 static NODE* list_storage_get_single_node(LIST_STORAGE* s, SLICE* slice) {
-  size_t r;
-  LIST*  l = s->rows;
-  NODE*  n;
+  LIST* l = s->rows;
+  NODE* n;
 
-  for (r = 0; r < s->dim; r++) {
+  for (size_t r = 0; r < s->dim; r++) {
     n = nm::list::find(l, s->offset[r] + slice->coords[r]);
-    if (n)  l = reinterpret_cast<LIST*>(n->val);
-    else return NULL;
+
+    if (n) {
+      l = reinterpret_cast<LIST*>(n->val);
+    } else {
+      return NULL;
+    }
   }
 
   return n;
@@ -801,7 +804,7 @@ static void each_empty_with_indices_r(nm::list_storage::RecurseData& s, size_t r
   NM_CONSERVATIVE(nm_register_value(stack));
 
   if (rec) {
-    for (long index = 0; index < s.ref_shape(rec); ++index) {
+    for (unsigned long index = 0; index < s.ref_shape(rec); ++index) {
       // Don't do an unshift/shift here -- we'll let that be handled in the lowest-level iteration (recursions == 0)
       rb_ary_push(stack, LONG2NUM(index));
       each_empty_with_indices_r(s, rec-1, stack);
@@ -809,7 +812,7 @@ static void each_empty_with_indices_r(nm::list_storage::RecurseData& s, size_t r
     }
   } else {
     rb_ary_unshift(stack, empty);
-    for (long index = 0; index < s.ref_shape(rec); ++index) {
+    for (unsigned long index = 0; index < s.ref_shape(rec); ++index) {
       rb_ary_push(stack, LONG2NUM(index));
       rb_yield_splat(stack);
       rb_ary_pop(stack);
@@ -836,7 +839,7 @@ static void each_with_indices_r(nm::list_storage::RecurseData& s, const LIST* l,
 
 
   if (rec) {
-    for (long index = 0; index < shape; ++index) { // index in reference
+    for (unsigned long index = 0; index < shape; ++index) { // index in reference
       rb_ary_push(stack, LONG2NUM(index));
       if (!curr || index < curr->key - offset) {
         each_empty_with_indices_r(s, rec-1, stack);
@@ -847,7 +850,7 @@ static void each_with_indices_r(nm::list_storage::RecurseData& s, const LIST* l,
       rb_ary_pop(stack);
     }
   } else {
-    for (long index = 0; index < shape; ++index) {
+    for (unsigned long index = 0; index < shape; ++index) {
 
       rb_ary_push(stack, LONG2NUM(index));
 
@@ -878,7 +881,7 @@ static void each_stored_with_indices_r(nm::list_storage::RecurseData& s, const L
   if (s.dtype() == nm::RUBYOBJ)
     nm_list_storage_register_list(l, rec);
   NM_CONSERVATIVE(nm_register_value(stack));
-  
+
   NODE* curr = l->first;
 
   size_t offset = s.offset(rec);
@@ -922,7 +925,6 @@ static void each_stored_with_indices_r(nm::list_storage::RecurseData& s, const L
 }
 
 
-
 /*
  * Each/each-stored iterator, brings along the indices.
  */
@@ -948,20 +950,18 @@ VALUE nm_list_each_with_indices(VALUE nmatrix, bool stored) {
 
 
 /*
- * map merged stored iterator. Always returns a matrix containing RubyObjects which probably needs to be casted.
+ * map merged stored iterator. Always returns a matrix containing RubyObjects
+ * which probably needs to be casted.
  */
 VALUE nm_list_map_stored(VALUE left, VALUE init) {
   NM_CONSERVATIVE(nm_register_value(left));
   NM_CONSERVATIVE(nm_register_value(init));
 
-  bool scalar = false;
+  LIST_STORAGE *s = NM_STORAGE_LIST(left);
 
-  LIST_STORAGE *s   = NM_STORAGE_LIST(left);
-
-  // For each matrix, if it's a reference, we want to deal directly with the original (with appropriate offsetting)
+  // For each matrix, if it's a reference, we want to deal directly with the
+  // original (with appropriate offsetting)
   nm::list_storage::RecurseData sdata(s);
-
-  void* scalar_init = NULL;
 
   //if (!rb_block_given_p()) {
   //  rb_raise(rb_eNotImpError, "RETURN_SIZED_ENUMERATOR probably won't work for a map_merged since no merged object is created");
@@ -1080,14 +1080,14 @@ static LIST* slice_copy(const LIST_STORAGE* src, LIST* src_rows, size_t* coords,
   nm_list_storage_register(src);
   void *val = NULL;
   int key;
-  
+
   LIST* dst_rows = nm::list::create();
   NODE* src_node = src_rows->first;
   std::list<VALUE*> temp_vals;
   std::list<LIST*> temp_lists;
   while (src_node) {
     key = src_node->key - (src->offset[n] + coords[n]);
-    
+
     if (key >= 0 && (size_t)key < lengths[n]) {
       if (src->dim - n > 1) {
         val = slice_copy( src,
@@ -1133,7 +1133,6 @@ void* nm_list_storage_get(const STORAGE* storage, SLICE* slice) {
     NODE* n = list_storage_get_single_node(s, slice);
     nm_list_storage_unregister(s);
     return (n ? n->val : s->default_val);
-
   } else {
     void *init_val = NM_ALLOC_N(char, DTYPE_SIZES[s->dtype]);
     memcpy(init_val, s->default_val, DTYPE_SIZES[s->dtype]);
@@ -1144,11 +1143,13 @@ void* nm_list_storage_get(const STORAGE* storage, SLICE* slice) {
     memcpy(shape, slice->lengths, sizeof(size_t) * s->dim);
 
     ns = nm_list_storage_create(s->dtype, shape, s->dim, init_val);
-  
+
     ns->rows = slice_copy(s, s->rows, slice->coords, slice->lengths, 0);
 
-    if (s->dtype == nm::RUBYOBJ)
+    if (s->dtype == nm::RUBYOBJ) {
       nm_unregister_value(*reinterpret_cast<VALUE*>(init_val));
+    }
+
     nm_list_storage_unregister(s);
 
     return ns;
@@ -1169,14 +1170,13 @@ void* nm_list_storage_ref(const STORAGE* storage, SLICE* slice) {
     NODE* n = list_storage_get_single_node(s, slice);
     nm_list_storage_unregister(s);
     return (n ? n->val : s->default_val);
-  } 
-  else {
-    ns              = NM_ALLOC( LIST_STORAGE );
-    
-    ns->dim         = s->dim;
-    ns->dtype       = s->dtype;
-    ns->offset      = NM_ALLOC_N(size_t, ns->dim);
-    ns->shape       = NM_ALLOC_N(size_t, ns->dim);
+  } else {
+    ns = NM_ALLOC( LIST_STORAGE );
+
+    ns->dim = s->dim;
+    ns->dtype = s->dtype;
+    ns->offset = NM_ALLOC_N(size_t, ns->dim);
+    ns->shape = NM_ALLOC_N(size_t, ns->dim);
 
     for (size_t i = 0; i < ns->dim; ++i) {
       ns->offset[i] = slice->coords[i] + s->offset[i];
@@ -1185,7 +1185,7 @@ void* nm_list_storage_ref(const STORAGE* storage, SLICE* slice) {
 
     ns->rows        = s->rows;
     ns->default_val = s->default_val;
-    
+
     s->src->count++;
     ns->src         = s->src;
     nm_list_storage_unregister(s);
@@ -1207,13 +1207,14 @@ static void slice_set_single(LIST_STORAGE* dest, LIST* l, void* val, size_t* coo
   // drill down into the structure
   NODE* node = NULL;
   if (dest->dim - n > 1) {
-    std::list<LIST*> temp_nodes; 
+    std::list<LIST*> temp_nodes;
     for (size_t i = 0; i < lengths[n]; ++i) {
 
       size_t key = i + dest->offset[n] + coords[n];
 
       if (!node) {
-        node = nm::list::insert(l, false, key, nm::list::create()); // try to insert list
+        // try to insert list
+        node = nm::list::insert(l, false, key, nm::list::create());
       } else if (!node->next || (node->next && node->next->key > key)) {
         node = nm::list::insert_after(node, key, nm::list::create());
       } else {
@@ -1367,20 +1368,20 @@ VALUE nm_list_storage_to_hash(const LIST_STORAGE* s, const nm::dtype_t dtype) {
 size_t nm_list_storage_count_elements_r(const LIST* l, size_t recursions) {
   size_t count = 0;
   NODE* curr = l->first;
-  
+
   if (recursions) {
     while (curr) {
       count += nm_list_storage_count_elements_r(reinterpret_cast<const LIST*>(curr->val), recursions - 1);
       curr   = curr->next;
     }
-    
+
   } else {
     while (curr) {
       ++count;
       curr = curr->next;
     }
   }
-  
+
   return count;
 }
 
@@ -1390,7 +1391,7 @@ size_t nm_list_storage_count_elements_r(const LIST* l, size_t recursions) {
 size_t nm_list_storage_count_nd_elements(const LIST_STORAGE* s) {
   NODE *i_curr, *j_curr;
   size_t count = 0;
-  
+
   if (s->dim != 2) {
   	rb_raise(rb_eNotImpError, "non-diagonal element counting only defined for dim = 2");
   }
@@ -1406,7 +1407,7 @@ size_t nm_list_storage_count_nd_elements(const LIST_STORAGE* s) {
       if (i != j)  	++count;
     }
   }
-  
+
   return count;
 }
 
@@ -1422,7 +1423,7 @@ LIST_STORAGE* nm_list_storage_copy(const LIST_STORAGE* rhs) {
   nm_list_storage_register(rhs);
   size_t *shape = NM_ALLOC_N(size_t, rhs->dim);
   memcpy(shape, rhs->shape, sizeof(size_t) * rhs->dim);
-  
+
   void *init_val = NM_ALLOC_N(char, DTYPE_SIZES[rhs->dtype]);
   memcpy(init_val, rhs->default_val, DTYPE_SIZES[rhs->dtype]);
 
@@ -1486,7 +1487,7 @@ static LIST_STORAGE* cast_copy(const LIST_STORAGE* rhs, dtype_t new_dtype) {
 
   nm_list_storage_register(lhs);
   // TODO: Needs optimization. When matrix is reference it is copped twice.
-  if (rhs->src == rhs) 
+  if (rhs->src == rhs)
     nm::list::cast_copy_contents<LDType, RDType>(lhs->rows, rhs->rows, rhs->dim - 1);
   else {
     LIST_STORAGE *tmp = nm_list_storage_copy(rhs);
