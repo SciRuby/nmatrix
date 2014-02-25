@@ -40,49 +40,49 @@ describe NMatrix::IO do
   end
 
   it "repacks a string" do
-    NMatrix::IO::Matlab.repack("hello", :miUINT8, :byte).should == "hello"
+    expect(NMatrix::IO::Matlab.repack("hello", :miUINT8, :byte)).to eq("hello")
   end
 
   it "creates yale from internal byte-string function" do
     ia = NMatrix::IO::Matlab.repack("\0\1\3\3\4", :miUINT8, :itype)
     ja = NMatrix::IO::Matlab.repack("\0\1\3\0\0\0\0\0\0\0\0", :miUINT8, :itype)
     n = NMatrix.new(:yale, [4,4], :byte, ia, ja, "\2\3\5\4", :byte)
-    n[0,0].should == 2
-    n[1,1].should == 3
-    n[1,3].should == 5
-    n[3,0].should == 4
-    n[2,2].should == 0
-    n[3,3].should == 0
+    expect(n[0,0]).to eq(2)
+    expect(n[1,1]).to eq(3)
+    expect(n[1,3]).to eq(5)
+    expect(n[3,0]).to eq(4)
+    expect(n[2,2]).to eq(0)
+    expect(n[3,3]).to eq(0)
   end
 
   it "reads MATLAB .mat file containing a single square sparse matrix" do
     # Note: same matrix as above
     n = NMatrix::IO::Matlab.load_mat("spec/4x4_sparse.mat")
-    n[0,0].should == 2
-    n[1,1].should == 3
-    n[1,3].should == 5
-    n[3,0].should == 4
-    n[2,2].should == 0
-    n[3,3].should == 0
+    expect(n[0,0]).to eq(2)
+    expect(n[1,1]).to eq(3)
+    expect(n[1,3]).to eq(5)
+    expect(n[3,0]).to eq(4)
+    expect(n[2,2]).to eq(0)
+    expect(n[3,3]).to eq(0)
   end
 
   it "reads MATLAB .mat file containing a single dense integer matrix" do
     n = NMatrix::IO::Matlab.load_mat("spec/4x5_dense.mat")
     m = NMatrix.new([4,5], [16,17,18,19,20,15,14,13,12,11,6,7,8,9,10,5,4,3,2,1])
-    n.should == m
+    expect(n).to eq(m)
   end
 
   it "reads MATLAB .mat file containing a single dense double matrix" do
     n = NMatrix::IO::Matlab.load_mat("spec/2x2_dense_double.mat")
     m = NMatrix.new(2, [1.1, 2.0, 3.0, 4.0], dtype: :float64)
-    n.should == m
+    expect(n).to eq(m)
   end
 
   it "loads and saves MatrixMarket .mtx file containing a single large sparse double matrix" do
     pending "spec disabled because it's so slow"
     n = NMatrix::IO::Market.load("spec/utm5940.mtx")
     NMatrix::IO::Market.save(n, "spec/utm5940.saved.mtx")
-    `wc -l spec/utm5940.mtx`.split[0].should == `wc -l spec/utm5940.saved.mtx`.split[0]
+    expect(`wc -l spec/utm5940.mtx`.split[0]).to eq(`wc -l spec/utm5940.saved.mtx`.split[0])
   end
 
   it "raises an error when reading a non-existent file" do
@@ -98,7 +98,7 @@ describe NMatrix::IO do
     n.write(@test_out)
 
     m = NMatrix.read(@test_out)
-    n.should == m
+    expect(n).to eq(m)
   end
 
   it "reads and writes NMatrix dense as symmetric" do
@@ -106,7 +106,7 @@ describe NMatrix::IO do
     n.write(@test_out, :symmetric)
 
     m = NMatrix.read(@test_out)
-    n.should == m
+    expect(n).to eq(m)
   end
 
   it "reads and writes NMatrix dense as skew" do
@@ -114,7 +114,7 @@ describe NMatrix::IO do
     n.write(@test_out, :skew)
 
     m = NMatrix.read(@test_out)
-    n.should == m
+    expect(n).to eq(m)
   end
 
   it "reads and writes NMatrix dense as hermitian" do
@@ -122,7 +122,7 @@ describe NMatrix::IO do
     n.write(@test_out, :hermitian)
 
     m = NMatrix.read(@test_out)
-    n.should == m
+    expect(n).to eq(m)
   end
 
   it "reads and writes NMatrix dense as upper" do
@@ -132,8 +132,8 @@ describe NMatrix::IO do
     m = NMatrix.new(:dense, 3, [-1,1,2,0,4,5,0,0,8], :int32) # lower version of the same
 
     o = NMatrix.read(@test_out)
-    o.should == m
-    o.should_not == n
+    expect(o).to eq(m)
+    expect(o).not_to eq(n)
   end
 
   it "reads and writes NMatrix dense as lower" do
@@ -143,7 +143,7 @@ describe NMatrix::IO do
     m = NMatrix.new(:dense, 3, [-1,0,0,3,4,0,6,7,8], :int32) # lower version of the same
 
     o = NMatrix.read(@test_out)
-    o.should == m
-    o.should_not == n
+    expect(o).to eq(m)
+    expect(o).not_to eq(n)
   end
 end

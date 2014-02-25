@@ -55,7 +55,7 @@ describe "math" do
 
               it "should correctly apply elementwise #{meth}" do
 
-                @m.send(meth).should eq N.new(@size, @a.map{ |e| Math.send(meth, e) },
+                expect(@m.send(meth)).to eq N.new(@size, @a.map{ |e| Math.send(meth, e) },
                                                  dtype: :float64, stype: stype)
               end
             end
@@ -63,28 +63,28 @@ describe "math" do
             NMatrix::NMMath::METHODS_ARITY_2.each do |meth|
               next if meth == :atan2
               it "should correctly apply elementwise #{meth}" do
-                @m.send(meth, @m).should eq N.new(@size, @a.map{ |e|
+                expect(@m.send(meth, @m)).to eq N.new(@size, @a.map{ |e|
                                                      Math.send(meth, e, e) },
                                                      dtype: :float64, 
                                                      stype: stype)
               end
 
               it "should correctly apply elementwise #{meth} with a scalar first arg" do
-                Math.send(meth, 1, @m).should eq N.new(@size, @a.map { |e| Math.send(meth, 1, e) }, dtype: :float64, stype: stype)
+                expect(Math.send(meth, 1, @m)).to eq N.new(@size, @a.map { |e| Math.send(meth, 1, e) }, dtype: :float64, stype: stype)
               end
 
               it "should correctly apply elementwise #{meth} with a scalar second arg" do
-                @m.send(meth, 1).should eq N.new(@size, @a.map { |e| Math.send(meth, e, 1) }, dtype: :float64, stype: stype)
+                expect(@m.send(meth, 1)).to eq N.new(@size, @a.map { |e| Math.send(meth, e, 1) }, dtype: :float64, stype: stype)
               end
             end
 
             it "should correctly apply elementwise natural log" do
-              @m.log.should eq N.new(@size, [0, Math.log(2), Math.log(3), Math.log(4)],
+              expect(@m.log).to eq N.new(@size, [0, Math.log(2), Math.log(3), Math.log(4)],
                                         dtype: :float64, stype: stype)
             end
 
             it "should correctly apply elementwise log with arbitrary base" do
-              @m.log(3).should eq N.new(@size, [0, Math.log(2,3), 1, Math.log(4,3)],
+              expect(@m.log(3)).to eq N.new(@size, [0, Math.log(2,3), 1, Math.log(4,3)],
                                            dtype: :float64, stype: stype)
             end
 
@@ -96,23 +96,23 @@ describe "math" do
               [:asin, :acos, :atan, :atanh].each do |atf|
 
                 it "should correctly apply elementwise #{atf}" do
-                  @m.send(atf).should eq N.new(@size, 
+                  expect(@m.send(atf)).to eq N.new(@size, 
                                                @a.map{ |e| Math.send(atf, e) },
                                                dtype: :float64, stype: stype)
                 end
               end
 
               it "should correctly apply elementtwise atan2" do
-                @m.atan2(@m*0+1).should eq N.new(@size, 
+                expect(@m.atan2(@m*0+1)).to eq N.new(@size, 
                   @a.map { |e| Math.send(:atan2, e, 1) }, dtype: :float64, stype: stype)
               end
 
               it "should correctly apply elementwise atan2 with a scalar first arg" do
-                Math.atan2(1, @m).should eq N.new(@size, @a.map { |e| Math.send(:atan2, 1, e) }, dtype: :float64, stype: stype)
+                expect(Math.atan2(1, @m)).to eq N.new(@size, @a.map { |e| Math.send(:atan2, 1, e) }, dtype: :float64, stype: stype)
               end
 
               it "should correctly apply elementwise atan2 with a scalar second arg" do
-                  @m.atan2(1).should eq N.new(@size, @a.map { |e| Math.send(:atan2, e, 1) }, dtype: :float64, stype: stype)
+                  expect(@m.atan2(1)).to eq N.new(@size, @a.map { |e| Math.send(:atan2, e, 1) }, dtype: :float64, stype: stype)
               end
             end
           end
@@ -127,13 +127,13 @@ describe "math" do
       it "should correctly factorize a matrix" do
         m = NMatrix.new(:dense, 3, [4,9,2,3,5,7,8,1,6], dtype)
         a = m.factorize_lu
-        a[0,0].should == 8
-        a[0,1].should == 1
-        a[0,2].should == 6
-        a[1,0].should == 0.5
-        a[1,1].should == 8.5
-        a[1,2].should == -1
-        a[2,0].should == 0.375
+        expect(a[0,0]).to eq(8)
+        expect(a[0,1]).to eq(1)
+        expect(a[0,2]).to eq(6)
+        expect(a[1,0]).to eq(0.5)
+        expect(a[1,1]).to eq(8.5)
+        expect(a[1,2]).to eq(-1)
+        expect(a[2,0]).to eq(0.375)
       end
     end
 
@@ -150,7 +150,7 @@ describe "math" do
             pending e.to_s
           end
         end
-        a.should == b
+        expect(a).to eq(b)
       end
 
       unless NMatrix.has_clapack?
@@ -195,26 +195,26 @@ describe "math" do
         n = NMatrix.new([4,3], nary, dtype: left_dtype, stype: :dense)
         m = NMatrix.new([3,2], mary, dtype: right_dtype, stype: :dense)
 
-        m.shape[0].should == 3
-        m.shape[1].should == 2
-        m.dim.should == 2
+        expect(m.shape[0]).to eq(3)
+        expect(m.shape[1]).to eq(2)
+        expect(m.dim).to eq(2)
 
-        n.shape[0].should == 4
-        n.shape[1].should == 3
-        n.dim.should == 2
+        expect(n.shape[0]).to eq(4)
+        expect(n.shape[1]).to eq(3)
+        expect(n.dim).to eq(2)
 
-        n.shape[1].should == m.shape[0]
+        expect(n.shape[1]).to eq(m.shape[0])
 
         r = n.dot m
 
-        r[0,0].should == 273.0
-        r[0,1].should == 455.0
-        r[1,0].should == 243.0
-        r[1,1].should == 235.0
-        r[2,0].should == 244.0
-        r[2,1].should == 205.0
-        r[3,0].should == 102.0
-        r[3,1].should == 160.0
+        expect(r[0,0]).to eq(273.0)
+        expect(r[0,1]).to eq(455.0)
+        expect(r[1,0]).to eq(243.0)
+        expect(r[1,1]).to eq(235.0)
+        expect(r[2,0]).to eq(244.0)
+        expect(r[2,1]).to eq(205.0)
+        expect(r[3,0]).to eq(102.0)
+        expect(r[3,1]).to eq(160.0)
 
         #r.dtype.should == :float64 unless left_dtype == :float32 && right_dtype == :float32
       end
@@ -234,22 +234,22 @@ describe "math" do
 
         m = NMatrix.new([3,1], [2.0, 1.0, 0.0], dtype: right_dtype)
 
-        m.shape[0].should == 3
-        m.shape[1].should == 1
+        expect(m.shape[0]).to eq(3)
+        expect(m.shape[1]).to eq(1)
 
-        n.shape[0].should == 4
-        n.shape[1].should == 3
-        n.dim.should == 2
+        expect(n.shape[0]).to eq(4)
+        expect(n.shape[1]).to eq(3)
+        expect(n.dim).to eq(2)
 
-        n.shape[1].should == m.shape[0]
+        expect(n.shape[1]).to eq(m.shape[0])
 
         r = n.dot m
         # r.class.should == NVector
 
-        r[0,0].should == 4
-        r[1,0].should == 13
-        r[2,0].should == 22
-        r[3,0].should == 31
+        expect(r[0,0]).to eq(4)
+        expect(r[1,0]).to eq(13)
+        expect(r[2,0]).to eq(22)
+        expect(r[3,0]).to eq(31)
 
         #r.dtype.should == :float64 unless left_dtype == :float32 && right_dtype == :float32
       end

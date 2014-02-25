@@ -226,7 +226,7 @@ class NMatrix
 
 
   ##
-  # call-seq: 
+  # call-seq:
   #   integer_dtype?() -> Boolean
   #
   # Checks if dtype is an integer type

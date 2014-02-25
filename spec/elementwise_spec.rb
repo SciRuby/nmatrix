@@ -50,15 +50,15 @@ describe NMatrix do
 
     it "should perform scalar math" do
       x = @n * 3
-      x[0,0].should == 52 * 3
-      x[0,1].should == 30 * 3
-      x[0,2].should == 5 * 3
-      x[1,1].should == 40 * 3
-      x[2,0].should == 6 * 3
+      expect(x[0,0]).to eq(52 * 3)
+      expect(x[0,1]).to eq(30 * 3)
+      expect(x[0,2]).to eq(5 * 3)
+      expect(x[1,1]).to eq(40 * 3)
+      expect(x[2,0]).to eq(6 * 3)
 
       r = NMatrix.new(3, stype: :yale, dtype: :int64)
       y = r + 3
-      y[0,0].should == 3
+      expect(y[0,0]).to eq(3)
     end
 
     it "should refuse to perform a dot operation on a yale with non-zero default" do
@@ -69,52 +69,52 @@ describe NMatrix do
     end
 
     it "should perform element-wise addition" do
-      (@n+@m).should == NMatrix.new(:dense, 3, [52,30,0,0,-8,0,6,0,0], :int64).cast(:yale, :int64)
+      expect(@n+@m).to eq(NMatrix.new(:dense, 3, [52,30,0,0,-8,0,6,0,0], :int64).cast(:yale, :int64))
     end
 
     it "should perform element-wise subtraction" do
-      (@n-@m).should == NMatrix.new(:dense, 3, [52,30,10,0,88,0,6,0,0], :int64).cast(:yale, :int64)
+      expect(@n-@m).to eq(NMatrix.new(:dense, 3, [52,30,10,0,88,0,6,0,0], :int64).cast(:yale, :int64))
     end
 
     it "should perform element-wise multiplication" do
       r = NMatrix.new(:dense, 3, [0,0,-25,0,-1920,0,0,0,0], :int64).cast(:yale, :int64)
       m = NMatrix.new(2, stype: :yale, dtype: :int64)
-      (@n*@m).should == r
+      expect(@n*@m).to eq(r)
     end
 
     it "should perform element-wise division" do
       r = NMatrix.new(:dense, 3, [52, 30, -2, 0, -1, 0, 6, 0, 0], :int64).cast(:yale, :int64)
-      (@n/(@m+1)).should == r
+      expect(@n/(@m+1)).to eq(r)
     end
 
     it "should perform element-wise modulo" do
       m = NMatrix.new(3, stype: :yale, dtype: :int64, default: 0) + 5
-      (@n % m).should == NMatrix.new(:dense, 3, [2,0,0,0,0,0,1,0,0], :int64).cast(:yale, :int64)
+      expect(@n % m).to eq(NMatrix.new(:dense, 3, [2,0,0,0,0,0,1,0,0], :int64).cast(:yale, :int64))
     end
 
     it "should handle element-wise equality (=~)" do
-      (@n =~ @m).should == NMatrix.new(:dense, 3, [false,false,false,true,false,true,false,true,true], :object).cast(:yale, :object, false)
+      expect(@n =~ @m).to eq(NMatrix.new(:dense, 3, [false,false,false,true,false,true,false,true,true], :object).cast(:yale, :object, false))
     end
 
     it "should handle element-wise inequality (!~)" do
-      (@n !~ @m).should == NMatrix.new(:dense, 3, [true,true,true,false,true,false,true,false,false], :object).cast(:yale, :object, true)
+      expect(@n !~ @m).to eq(NMatrix.new(:dense, 3, [true,true,true,false,true,false,true,false,false], :object).cast(:yale, :object, true))
     end
 
     it "should handle element-wise less-than (<)" do
-      (@m < @n).should == NMatrix.new(:dense, 3, [true,true,true,false,true,false,true,false,false], :object).cast(:yale, :object, true)
+      expect(@m < @n).to eq(NMatrix.new(:dense, 3, [true,true,true,false,true,false,true,false,false], :object).cast(:yale, :object, true))
     end
 
     it "should handle element-wise greater-than (>)" do
-      (@n > @m).should == NMatrix.new(:dense, 3, [true,true,true,false,true,false,true,false,false], :object).cast(:yale, :object, false)
+      expect(@n > @m).to eq(NMatrix.new(:dense, 3, [true,true,true,false,true,false,true,false,false], :object).cast(:yale, :object, false))
     end
 
     it "should handle element-wise greater-than-or-equals (>=)" do
-      (@n >= @m).should == NMatrix.new(:dense, 3, true, :object).cast(:yale,:object, true)
+      expect(@n >= @m).to eq(NMatrix.new(:dense, 3, true, :object).cast(:yale,:object, true))
     end
 
     it "should handle element-wise less-than-or-equals (<=)" do
       r = NMatrix.new(:dense, 3, [false,false,false,true,false,true,false,true,true], :object).cast(:yale, :object, false)
-      (@n <= @m).should == r
+      expect(@n <= @m).to eq(r)
     end
   end
 
@@ -130,13 +130,13 @@ describe NMatrix do
 
     it "should perform scalar math" do
       x = @n * 3
-      x[0,0].should == 52 * 3
-      x[1,1].should == 40 * 3
-      x[0,1].should == 0
+      expect(x[0,0]).to eq(52 * 3)
+      expect(x[1,1]).to eq(40 * 3)
+      expect(x[0,1]).to eq(0)
 
       r = NMatrix.new(3, stype: :list, default: 1)
       y = r + 3
-      y[0,0].should == 4
+      expect(y[0,0]).to eq(4)
     end
 
     it "should perform element-wise addition" do
@@ -144,26 +144,26 @@ describe NMatrix do
       r[0,0] = 52
       r[1,1] = -8
       q = @n + @m
-      q.should == r
+      expect(q).to eq(r)
     end
 
     it "should perform element-wise subtraction" do
       r = NMatrix.new(:dense, 2, [52, 0, 0, 88], :int64).cast(:list, :int64)
-      (@n-@m).should == r
+      expect(@n-@m).to eq(r)
     end
 
     it "should perform element-wise multiplication" do
       r = NMatrix.new(:dense, 2, [52, 0, 0, -1920], :int64).cast(:list, :int64)
       m = NMatrix.new(:list, 2, 1, :int64)
       m[1,1] = -48
-      (@n*m).should == r
+      expect(@n*m).to eq(r)
     end
 
     it "should perform element-wise division" do
       m = NMatrix.new(:list, 2, 1, :int64)
       m[1,1] = 2
       r = NMatrix.new(:dense, 2, [52, 0, 0, 20], :int64).cast(:list, :int64)
-      (@n/m).should == r
+      expect(@n/m).to eq(r)
     end
 
     it "should perform element-wise modulo" do
@@ -178,7 +178,7 @@ describe NMatrix do
       r[0,1] = true
       r[1,0] = true
 
-      (@n =~ @m).should == r
+      expect(@n =~ @m).to eq(r)
     end
 
     it "should handle element-wise inequality (!~)" do
@@ -186,29 +186,29 @@ describe NMatrix do
       r[0,0] = true
       r[1,1] = true
 
-      (@n !~ @m).should == r
+      expect(@n !~ @m).to eq(r)
     end
 
     it "should handle element-wise less-than (<)" do
-      (@n < @m).should == NMatrix.new(:list, 2, false, :object)
+      expect(@n < @m).to eq(NMatrix.new(:list, 2, false, :object))
     end
 
     it "should handle element-wise greater-than (>)" do
       r = NMatrix.new(:list, 2, false, :object)
       r[0,0] = true
       r[1,1] = true
-      (@n > @m).should == r
+      expect(@n > @m).to eq(r)
     end
 
     it "should handle element-wise greater-than-or-equals (>=)" do
-      (@n >= @m).should == NMatrix.new(:list, 2, true, :object)
+      expect(@n >= @m).to eq(NMatrix.new(:list, 2, true, :object))
     end
 
     it "should handle element-wise less-than-or-equals (<=)" do
       r = NMatrix.new(:list, 2, false, :object)
       r[0,1] = true
       r[1,0] = true
-      (@n <= @m).should == r
+      expect(@n <= @m).to eq(r)
     end
   end
 
@@ -219,7 +219,7 @@ describe NMatrix do
       end
 
       it "works for integers" do
-        (@n+1).should == NMatrix.new(:dense, 2, [2,3,4,5], :int64)
+        expect(@n+1).to eq(NMatrix.new(:dense, 2, [2,3,4,5], :int64))
       end
 
       #it "works for complex64" do
@@ -236,34 +236,34 @@ describe NMatrix do
 
       it "adds" do
         r = @n+@m
-        r.should == NMatrix.new(:dense, [2,2], [-3, 1, 3, 70], :int64)
+        expect(r).to eq(NMatrix.new(:dense, [2,2], [-3, 1, 3, 70], :int64))
       end
 
       it "subtracts" do
         r = @n-@m
-        r.should == NMatrix.new(:dense, [2,2], [5, 3, 3, -62], :int64)
+        expect(r).to eq(NMatrix.new(:dense, [2,2], [5, 3, 3, -62], :int64))
       end
 
       it "multiplies" do
         r = @n*@m
-        r.should == NMatrix.new(:dense, [2,2], [-4, -2, 0, 264], :int64)
+        expect(r).to eq(NMatrix.new(:dense, [2,2], [-4, -2, 0, 264], :int64))
       end
 
       it "divides in the Ruby way" do
         m = @m.clone
         m[1,0] = 3
         r = @n/m
-        r.should == NMatrix.new(:dense, [2,2], [-1, -2, 1, 0], :int64)
+        expect(r).to eq(NMatrix.new(:dense, [2,2], [-1, -2, 1, 0], :int64))
       end
 
       it "exponentiates" do
         r = @n ** 2
         # TODO: We might have problems with the dtype.
-        r.should == NMatrix.new(:dense, [2,2], [1, 4, 9, 16], :int64)
+        expect(r).to eq(NMatrix.new(:dense, [2,2], [1, 4, 9, 16], :int64))
       end
 
       it "modulo" do
-        (@n % (@m + 2)).should == NMatrix.new(:dense, [2,2], [-1, 0, 1, 4], :int64)
+        expect(@n % (@m + 2)).to eq(NMatrix.new(:dense, [2,2], [-1, 0, 1, 4], :int64))
       end
     end
 
@@ -275,33 +275,33 @@ describe NMatrix do
 
       it "equals" do
         r = @n =~ @m
-        r.should == NMatrix.new(:dense, [2,2], [false, false, true, false], :object)
+        expect(r).to eq(NMatrix.new(:dense, [2,2], [false, false, true, false], :object))
       end
 
       it "is not equal" do
         r = @n !~ @m
-        r.should == NMatrix.new(:dense, [2,2], [true, true, false, true], :object)
+        expect(r).to eq(NMatrix.new(:dense, [2,2], [true, true, false, true], :object))
       end
 
       it "is less than" do
         r = @n < @m
-        r.should == NMatrix.new(:dense, [2,2], false, :object)
+        expect(r).to eq(NMatrix.new(:dense, [2,2], false, :object))
       end
 
       it "is greater than" do
         r = @n > @m
-        r.should == NMatrix.new(:dense, [2,2], [true, true, false, true], :object)
+        expect(r).to eq(NMatrix.new(:dense, [2,2], [true, true, false, true], :object))
       end
 
       it "is less than or equal to" do
         r = @n <= @m
-        r.should == NMatrix.new(:dense, [2,2], [false, false, true, false], :object)
+        expect(r).to eq(NMatrix.new(:dense, [2,2], [false, false, true, false], :object))
       end
 
       it "is greater than or equal to" do
         n = NMatrix.new(:dense, [2,2], [1, 2, 2, 4], :int64)
         r = n >= @m
-        r.should == NMatrix.new(:dense, [2,2], [true, true, false, true], :object)
+        expect(r).to eq(NMatrix.new(:dense, [2,2], [true, true, false, true], :object))
       end
     end
   end

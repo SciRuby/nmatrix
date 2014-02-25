@@ -38,50 +38,50 @@ describe NMatrix do
     m = NMatrix.zeros(3)
     n = NMatrix.new([3, 3], 0)
 
-    m.should.eql? n
+    expect(m).to eq n
   end
 
   it "ones() creates a matrix of ones" do
     m = NMatrix.ones(3)
     n = NMatrix.new([3, 3], 1)
 
-    m.should.eql? n
+    expect(m).to eq n
   end
 
   it "eye() creates an identity matrix" do
     m = NMatrix.eye(3)
     identity3 = NMatrix.new([3, 3], [1, 0, 0, 0, 1, 0, 0, 0, 1])
 
-    m.should.eql? identity3
+    expect(m).to eq identity3
   end
 
   it "diag() creates a matrix with pre-supplied diagonal" do
     arr = [1,2,3,4]
     m = NMatrix.diag(arr)
-    m.is_a?(NMatrix).should be_true
+    expect(m.is_a?(NMatrix)).to be_true
   end
 
   it "diagonals() contains the seeded values on the diagonal" do
     arr = [1,2,3,4]
     m = NMatrix.diagonals(arr)
-    m[0,0].should eq(arr[0])
-    m[1,1].should eq(arr[1])
-    m[2,2].should eq(arr[2])
-    m[3,3].should eq(arr[3])
+    expect(m[0,0]).to eq(arr[0])
+    expect(m[1,1]).to eq(arr[1])
+    expect(m[2,2]).to eq(arr[2])
+    expect(m[3,3]).to eq(arr[3])
   end
 
   it "random() creates a matrix of random numbers" do
     m = NMatrix.random(2)
 
-    m.stype.should == :dense
-    m.dtype.should == :float64
+    expect(m.stype).to eq(:dense)
+    expect(m.dtype).to eq(:float64)
   end
 
   it "random() only accepts an integer or an array as dimension" do
     m = NMatrix.random([2, 2])
 
-    m.stype.should == :dense
-    m.dtype.should == :float64
+    expect(m.stype).to eq(:dense)
+    expect(m.dtype).to eq(:float64)
 
     expect { NMatrix.random(2.0) }.to raise_error
     expect { NMatrix.random("not an array or integer") }.to raise_error
@@ -93,7 +93,7 @@ describe NMatrix do
 
     2.times do |i|
       2.times do |j|
-        m[i,j].should == value
+        expect(m[i,j]).to eq(value)
         value += 1
       end
     end
@@ -106,7 +106,7 @@ describe NMatrix do
 
     2.times do |i|
       2.times do |j|
-        m[i, j].should == value
+        expect(m[i, j]).to eq(value)
         value += 1
       end
     end
@@ -118,7 +118,7 @@ describe NMatrix do
 
     2.times do |i|
       2.times do |j|
-        (m[i, j]/10).should be_within(Float::EPSILON).of(value.to_f/10)
+        expect(m[i, j]/10).to be_within(Float::EPSILON).of(value.to_f/10)
         value += 1
       end
     end
@@ -130,7 +130,7 @@ describe NMatrix do
 
     2.times do |i|
       2.times do |j|
-        m[i, j].should == value
+        expect(m[i, j]).to eq(value)
         value += 1
       end
     end
@@ -142,8 +142,8 @@ describe NMatrix do
 
     2.times do |i|
       2.times do |j|
-        m[i, j].real.should be_within(Float::EPSILON).of(value)
-        m[i, j].imag.should be_within(Float::EPSILON).of(0.0)
+        expect(m[i, j].real).to be_within(Float::EPSILON).of(value)
+        expect(m[i, j].imag).to be_within(Float::EPSILON).of(0.0)
         value += 1
       end
     end
@@ -152,28 +152,28 @@ describe NMatrix do
   it "column() returns a NMatrix" do
     m = NMatrix.random(3)
 
-    m.column(2).is_a?(NMatrix).should be_true
+    expect(m.column(2).is_a?(NMatrix)).to be_true
   end
 
   it "row() returns a NMatrix" do
     m = NMatrix.random(3)
 
-    m.row(2).is_a?(NMatrix).should be_true
+    expect(m.row(2).is_a?(NMatrix)).to be_true
   end
 
   it "diagonals() creates an NMatrix" do
     arr = [1,2,3,4]
     m = NMatrix.diagonals(arr)
-    m.is_a?(NMatrix).should be_true
+    expect(m.is_a?(NMatrix)).to be_true
   end
 
   it "diagonals() contains the seeded values on the diagonal" do
     arr = [1,2,3,4]
     m = NMatrix.diagonals(arr)
-    m[0,0].should eq(arr[0])
-    m[1,1].should eq(arr[1])
-    m[2,2].should eq(arr[2])
-    m[3,3].should eq(arr[3])
+    expect(m[0,0]).to eq(arr[0])
+    expect(m[1,1]).to eq(arr[1])
+    expect(m[2,2]).to eq(arr[2])
+    expect(m[3,3]).to eq(arr[3])
   end
 
   context "_like constructors" do
@@ -183,13 +183,13 @@ describe NMatrix do
     end
 
     it "should create an nmatrix of ones with dimensions and type the same as its argument" do
-      NMatrix.ones_like(@nm_1d).should eq NMatrix[1.0, 1.0, 1.0, 1.0, 1.0]
-      NMatrix.ones_like(@nm_2d).should eq NMatrix[[1.0, 1.0], [1.0, 1.0]]
+      expect(NMatrix.ones_like(@nm_1d)).to eq NMatrix[1.0, 1.0, 1.0, 1.0, 1.0]
+      expect(NMatrix.ones_like(@nm_2d)).to eq NMatrix[[1.0, 1.0], [1.0, 1.0]]
     end
 
     it "should create an nmatrix of zeros with dimensions and type the same as its argument" do
-      NMatrix.zeros_like(@nm_1d).should eq NMatrix[0.0, 0.0, 0.0, 0.0, 0.0]
-      NMatrix.zeros_like(@nm_2d).should eq NMatrix[[0.0, 0.0], [0.0, 0.0]]
+      expect(NMatrix.zeros_like(@nm_1d)).to eq NMatrix[0.0, 0.0, 0.0, 0.0, 0.0]
+      expect(NMatrix.zeros_like(@nm_2d)).to eq NMatrix[[0.0, 0.0], [0.0, 0.0]]
     end
   end
 
@@ -201,7 +201,7 @@ describe "NVector" do
     v = NVector.zeros(4)
 
     4.times do |i|
-      v[i].should == 0
+      expect(v[i]).to eq(0)
     end
   end
 
@@ -209,19 +209,19 @@ describe "NVector" do
     v = NVector.ones(3)
 
     3.times do |i|
-      v[i].should == 1
+      expect(v[i]).to eq(1)
     end
   end
 
   it "random() creates a vector of random numbers" do
     v = NVector.random(4)
-    v.dtype.should == :float64
-    v.stype.should == :dense
+    expect(v.dtype).to eq(:float64)
+    expect(v.stype).to eq(:dense)
   end
 
   it "seq() creates a vector of integers, sequentially" do
     v = NVector.seq(7)
-    v.should == NMatrix.new([7,1], [0, 1, 2, 3, 4, 5, 6])
+    expect(v).to eq(NMatrix.new([7,1], [0, 1, 2, 3, 4, 5, 6]))
   end
 
   it "seq() only accepts integers as dimension" do
@@ -233,32 +233,32 @@ describe "NVector" do
 
   it "indgen() creates a vector of integers as well as seq()" do
     v = NVector.indgen(7)
-    v.should == NMatrix.new([7,1], [0, 1, 2, 3, 4, 5, 6])
+    expect(v).to eq(NMatrix.new([7,1], [0, 1, 2, 3, 4, 5, 6]))
   end
 
   it "findgen creates a vector of floats, sequentially" do
     v = NVector.findgen(2)
-    v.should == NMatrix.new([2,1], [0.0, 1.0])
+    expect(v).to eq(NMatrix.new([2,1], [0.0, 1.0]))
   end
 
   it "bindgen() creates a vector of bytes, sequentially" do
     v = NVector.bindgen(4)
-    v.should == NMatrix.new([4,1], [0, 1, 2, 3], dtype: :byte)
+    expect(v).to eq(NMatrix.new([4,1], [0, 1, 2, 3], dtype: :byte))
   end
 
   it "cindgen() creates a vector of complexes, sequentially" do
     v = NVector.cindgen(2)
-    v.should == NMatrix.new([2,1], [Complex(0.0, 0.0), Complex(1.0, 0.0)], dtype: :complex64)
+    expect(v).to eq(NMatrix.new([2,1], [Complex(0.0, 0.0), Complex(1.0, 0.0)], dtype: :complex64))
   end
 
   it "linspace() creates a vector with n values equally spaced between a and b" do
     v = NVector.linspace(0, 2, 5)
-    v.should == NMatrix.new([5,1], [0.0, 0.5, 1.0, 1.5, 2.0])
+    expect(v).to eq(NMatrix.new([5,1], [0.0, 0.5, 1.0, 1.5, 2.0]))
   end
 
   it "logspace() creates a vector with n values logarithmically spaced between decades 10^a and 10^b" do
     v = NVector.logspace(0, 3, 4)
-    v.should == NMatrix.new([4,1], [1.0, 10.0, 100.0, 1000.0])
+    expect(v).to eq(NMatrix.new([4,1], [1.0, 10.0, 100.0, 1000.0]))
   end
 end
 
@@ -268,6 +268,6 @@ describe "Inline constructor" do
     m = NMatrix.new([2, 2], [1, 4, 6, 7])
     n = NMatrix[[1, 4], [6, 7]]
 
-    m.should.eql? n
+    expect(m).to eq n
   end
 end

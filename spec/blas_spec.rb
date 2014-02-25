@@ -46,15 +46,15 @@ describe NMatrix::BLAS do
         # These test results all come from actually running a matrix through BLAS. We use them to ensure that NMatrix's
         # version of these functions (for rationals) give similar results.
 
-        b[0].should == -1.quo(4)
-        b[1].should == 33.quo(4)
-        b[2].should == -13
+        expect(b[0]).to eq(-1.quo(4))
+        expect(b[1]).to eq(33.quo(4))
+        expect(b[2]).to eq(-13)
 
         NMatrix::BLAS::cblas_trsm(:row, :right, :upper, :transpose, :unit, 1, 3, 1.0, a, 3, b, 3)
 
-        b[0].should == -15.quo(2)
-        b[1].should == 5
-        b[2].should == -13
+        expect(b[0]).to eq(-15.quo(2))
+        expect(b[1]).to eq(5)
+        expect(b[2]).to eq(-13)
       end
     end
   end
@@ -77,11 +77,11 @@ describe NMatrix::BLAS do
         y = NMatrix.new([5,1], [-5,-4,-3,-2,-1], dtype: dtype)
         x, y = NMatrix::BLAS::rot(x, y, 1.quo(2), Math.sqrt(3).quo(2), -1)
 
-        x.should be_within(1e-4).of(
+        expect(x).to be_within(1e-4).of(
                    NMatrix.new([5,1], [-0.3660254037844386, -0.7320508075688772, -1.098076211353316, -1.4641016151377544, -1.8301270189221928], dtype: dtype)
                  )
 
-        y.should be_within(1e-4).of(
+        expect(y).to be_within(1e-4).of(
                    NMatrix.new([5,1], [-6.830127018922193, -5.464101615137754, -4.098076211353316, -2.732050807568877, -1.3660254037844386], dtype: dtype)
                  )
       end
@@ -99,16 +99,16 @@ describe NMatrix::BLAS do
         c,s = NMatrix::BLAS::rotg(ab)
 
         if [:float32, :float64].include?(dtype)
-          ab[0].should be_within(1e-6).of(-10)
-          ab[1].should be_within(1e-6).of(-5.quo(3))
-          c.should be_within(1e-6).of(-3.quo(5))
+          expect(ab[0]).to be_within(1e-6).of(-10)
+          expect(ab[1]).to be_within(1e-6).of(-5.quo(3))
+          expect(c).to be_within(1e-6).of(-3.quo(5))
         else
           pending "need correct test cases"
-          ab[0].should be_within(1e-6).of(10)
-          ab[1].should be_within(1e-6).of(5.quo(3))
-          c.should be_within(1e-6).of(3.quo(5))
+          expect(ab[0]).to be_within(1e-6).of(10)
+          expect(ab[1]).to be_within(1e-6).of(5.quo(3))
+          expect(c).to be_within(1e-6).of(3.quo(5))
         end
-        s.should be_within(1e-6).of(4.quo(5))
+        expect(s).to be_within(1e-6).of(4.quo(5))
       end
 
       # Note: this exposes gemm, not cblas_gemm (which is the unfriendly CBLAS no-error-checking version)
@@ -120,7 +120,7 @@ describe NMatrix::BLAS do
         r = NMatrix::BLAS.gemm(n, m) #, c)
         #c.should equal(r) # check that both are same memory address
 
-        r.should == NMatrix.new([4,2], [273,455,243,235,244,205,102,160], dtype: dtype)
+        expect(r).to eq(NMatrix.new([4,2], [273,455,243,235,244,205,102,160], dtype: dtype))
       end
 
 
@@ -133,13 +133,13 @@ describe NMatrix::BLAS do
 
       it "exposes asum" do
         x = NMatrix.new([4,1], [1,2,3,4], dtype: :float64)
-        NMatrix::BLAS.asum(x).should == 10.0
+        expect(NMatrix::BLAS.asum(x)).to eq(10.0)
       end
 
 
       it "exposes nrm2" do
         x = NMatrix.new([4,1], [2,-4,3,5], dtype: :float64)
-        NMatrix::BLAS.nrm2(x, 1, 3).should be_within(1e-10).of(5.385164807134504)
+        expect(NMatrix::BLAS.nrm2(x, 1, 3)).to be_within(1e-10).of(5.385164807134504)
       end
 
     end

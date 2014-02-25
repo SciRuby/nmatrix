@@ -36,7 +36,7 @@ describe NMatrix do
     it "compares two empty matrices" do
       n = NMatrix.new(4, stype: :yale, dtype: :float64)
       m = NMatrix.new(4, stype: :yale, dtype: :float64)
-      n.should == m
+      expect(n).to eq(m)
     end
 
     it "compares two matrices following basic assignments" do
@@ -45,11 +45,11 @@ describe NMatrix do
 
       m[0,0] = 1
       m[0,1] = 1
-      n.should_not == m
+      expect(n).not_to eq(m)
       n[0,0] = 1
-      n.should_not == m
+      expect(n).not_to eq(m)
       n[0,1] = 1
-      n.should == m
+      expect(n).to eq(m)
     end
 
     it "compares two matrices following elementwise operations" do
@@ -58,7 +58,7 @@ describe NMatrix do
       n[0,1] = 1
       m[0,1] = -1
       x = n+m
-      (n+m).should == NMatrix.new(2, 0.0, stype: :yale)
+      expect(n+m).to eq(NMatrix.new(2, 0.0, stype: :yale))
     end
 
     it "sets diagonal values" do
@@ -66,7 +66,7 @@ describe NMatrix do
       n.extend(NMatrix::YaleFunctions)
       n[1,1] = 0.1
       n[0,0] = 0.2
-      n.yale_d.should == [0.2, 0.1]
+      expect(n.yale_d).to eq([0.2, 0.1])
     end
 
     it "gets non-diagonal rows as hashes" do
@@ -77,7 +77,7 @@ describe NMatrix do
       n[0,3] = 0.3
       n[1,5] = 0.4
       h = n.yale_nd_row(0, :hash)
-      h.should == {2 => 0.2, 3 => 0.3}
+      expect(h).to eq({2 => 0.2, 3 => 0.3})
     end
 
     it "gets non-diagonal occupied column indices for a given row" do
@@ -88,19 +88,19 @@ describe NMatrix do
       n[0,3] = 0.3
       n[1,5] = 0.4
       a = n.yale_nd_row(0, :array)
-      a.should == [2,3]
+      expect(a).to eq([2,3])
     end
 
     it "does not resize until necessary" do
       n = NMatrix.new([2,3], stype: :yale, dtype: :float64)
       n.extend(NMatrix::YaleFunctions)
-      n.yale_size.should == 3
-      n.capacity.should == 5
+      expect(n.yale_size).to eq(3)
+      expect(n.capacity).to eq(5)
       n[0,0] = 0.1
       n[0,1] = 0.2
       n[1,0] = 0.3
-      n.yale_size.should == 5
-      n.capacity.should == 5
+      expect(n.yale_size).to eq(5)
+      expect(n.capacity).to eq(5)
     end
 
 
@@ -110,8 +110,8 @@ describe NMatrix do
       n[0,0] = 0.1
       n[0,1] = 0.2
       n[1,0] = 0.3
-      n.yale_a.should == [0.1, 0.0, 0.0, 0.2, 0.3]
-      n.yale_ija.should == [3,4,5,1,0]
+      expect(n.yale_a).to eq([0.1, 0.0, 0.0, 0.2, 0.3])
+      expect(n.yale_ija).to eq([3,4,5,1,0])
     end
 
     it "sets when resizing" do
@@ -122,10 +122,10 @@ describe NMatrix do
       n[0,1] = 0.2
       n[1,0] = 0.3
       n[1,2] = 0.4
-      n.yale_d.should == [0.01, 0.1]
-      n.yale_ia.should == [3,4,6]
-      n.yale_ja.should == [1,0,2,nil]
-      n.yale_lu.should == [0.2, 0.3, 0.4, nil]
+      expect(n.yale_d).to eq([0.01, 0.1])
+      expect(n.yale_ia).to eq([3,4,6])
+      expect(n.yale_ja).to eq([1,0,2,nil])
+      expect(n.yale_lu).to eq([0.2, 0.3, 0.4, nil])
     end
 
     it "resizes without erasing values" do
@@ -138,11 +138,11 @@ describe NMatrix do
 
       associations.each_pair do |j,i|
         n[i,j] = 1
-        n[i,j].should be(1), "Value at #{i},#{j} not inserted correctly!"
+        expect(n[i,j]).to be(1), "Value at #{i},#{j} not inserted correctly!"
       end
 
       associations.each_pair do |j,i|
-        n[i,j].should be(1), "Value at #{i},#{j} erased during resize!"
+        expect(n[i,j]).to be(1), "Value at #{i},#{j} erased during resize!"
       end
     end
 
@@ -152,8 +152,8 @@ describe NMatrix do
       n[2,1]   = 1.0
       n[2,0]   = 1.5
       n[2,15]  = 2.0
-      n.yale_lu.should == [1.5, 1.0, 2.0]
-      n.yale_ja.should == [0, 1, 15]
+      expect(n.yale_lu).to eq([1.5, 1.0, 2.0])
+      expect(n.yale_ja).to eq([0, 1, 15])
     end
 
     it "gets values within rows" do
@@ -161,9 +161,9 @@ describe NMatrix do
       n[2,1]   = 1.0
       n[2,0]   = 1.5
       n[2,15]  = 2.0
-      n[2,1].should == 1.0
-      n[2,0].should == 1.5
-      n[2,15].should == 2.0
+      expect(n[2,1]).to eq(1.0)
+      expect(n[2,0]).to eq(1.5)
+      expect(n[2,15]).to eq(2.0)
     end
 
     it "sets values within large rows" do
@@ -179,8 +179,8 @@ describe NMatrix do
       n[5,293] = 2.0
       n[5,299] = 7.0
       n[5,100] = 8.0
-      n.yale_lu.should == [1.5, 1.0, 2.0, 8.0, 5.0, 6.0, 3.0, 4.0, 2.0, 7.0]
-      n.yale_ja.should == [0,   1,   15,  100, 289, 290, 291, 292, 293, 299]
+      expect(n.yale_lu).to eq([1.5, 1.0, 2.0, 8.0, 5.0, 6.0, 3.0, 4.0, 2.0, 7.0])
+      expect(n.yale_ja).to eq([0,   1,   15,  100, 289, 290, 291, 292, 293, 299])
     end
 
     it "gets values within large rows" do
@@ -199,7 +199,7 @@ describe NMatrix do
 
       n.yale_ja.each_index do |idx|
         j = n.yale_ja[idx]
-        n[5,j].should == n.yale_lu[idx]
+        expect(n[5,j]).to eq(n.yale_lu[idx])
       end
     end
 
@@ -215,7 +215,7 @@ describe NMatrix do
 
       d = NMatrix.new(4, [0,0,4,4, 0,2,0,0, 0,0,0,0, 0,0,2,2], dtype: :float64, stype: :yale)
 
-      c.should == d
+      expect(c).to eq(d)
     end
 
     it "dots two identical matrices where a positive and negative partial sum cancel on the diagonal" do
@@ -233,8 +233,8 @@ describe NMatrix do
 
       c.extend(NMatrix::YaleFunctions)
 
-      c.yale_ija.reject { |i| i.nil? }.should == [5,8,9,9,11,1,2,3,3,1,2]
-      c.yale_a.reject { |i| i.nil? }.should == [1.0, -16.0, 0.0, 0.0, 0.0, 4.0, 8.0, -16.0, -16.0, 16.0, 8.0]
+      expect(c.yale_ija.reject { |i| i.nil? }).to eq([5,8,9,9,11,1,2,3,3,1,2])
+      expect(c.yale_a.reject { |i| i.nil? }).to eq([1.0, -16.0, 0.0, 0.0, 0.0, 4.0, 8.0, -16.0, -16.0, 16.0, 8.0])
 
     end
 
@@ -264,11 +264,11 @@ describe NMatrix do
       # We want to do a structure comparison to ensure multiplication is occurring properly, but more importantly, to
       # ensure that insertion sort is occurring as it should. If the row has more than four entries, it'll run quicksort
       # instead. Quicksort calls insertion sort for small rows, so we test both with this particular multiplication.
-      nm.yale_ija[0...107].should == nmr.yale_ija[0...107]
-      nm.yale_a[0...107].should   == nmr.yale_a[0...107]
+      expect(nm.yale_ija[0...107]).to eq(nmr.yale_ija[0...107])
+      expect(nm.yale_a[0...107]).to   eq(nmr.yale_a[0...107])
 
       mn = m.dot(n)
-      mn[0,0].should == 541
+      expect(mn[0,0]).to eq(541)
     end
 
     it "calculates the row key intersections of two matrices" do
@@ -280,7 +280,7 @@ describe NMatrix do
       (0...3).each do |ai|
         (0...3).each do |bi|
           STDERR.puts (a.yale_ja_d_keys_at(ai) & b.yale_ja_d_keys_at(bi)).inspect
-          (a.yale_ja_d_keys_at(ai) & b.yale_ja_d_keys_at(bi)).should == a.yale_row_keys_intersection(ai, b, bi)
+          expect(a.yale_ja_d_keys_at(ai) & b.yale_ja_d_keys_at(bi)).to eq(a.yale_row_keys_intersection(ai, b, bi))
         end
       end
 

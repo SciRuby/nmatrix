@@ -28,7 +28,7 @@ require File.join(File.dirname(__FILE__), "spec_helper.rb")
 
 describe "RSpec" do
   it "should permit #be_within to be used on a dense NMatrix" do
-    (NMatrix.new(:dense, [4,1], 1.0, :complex128) / 10000.0).should be_within(0.00000001).of(NMatrix.new(:dense, [4,1], 0.0001, :float64))
-    (NMatrix.new(:dense, [4,1], 1.0, :complex128) / 10000.0).should_not be_within(0.00000001).of(NMatrix.new(:dense, [4,1], 1.0, :float64))
+    expect(NMatrix.new(:dense, [4,1], 1.0, :complex128) / 10000.0).to be_within(0.00000001).of(NMatrix.new(:dense, [4,1], 0.0001, :float64))
+    expect(NMatrix.new(:dense, [4,1], 1.0, :complex128) / 10000.0).not_to be_within(0.00000001).of(NMatrix.new(:dense, [4,1], 1.0, :float64))
   end
 end

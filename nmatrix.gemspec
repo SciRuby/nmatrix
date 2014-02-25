@@ -6,8 +6,8 @@ require 'nmatrix/version'
 Gem::Specification.new do |gem|
   gem.name = "nmatrix"
   gem.version = NMatrix::VERSION::STRING
-  gem.summary = "NMatrix is an experimental linear algebra library for Ruby, written mostly in C." 
-  gem.description = "NMatrix is an experimental linear algebra library for Ruby, written mostly in C." 
+  gem.summary = "NMatrix is an experimental linear algebra library for Ruby, written mostly in C."
+  gem.description = "NMatrix is an experimental linear algebra library for Ruby, written mostly in C."
   gem.homepage = 'http://sciruby.com'
   gem.authors = ['John Woods', 'Chris Wailes', 'Aleksey Timin']
   gem.email =  ['john.o.woods@gmail.com']

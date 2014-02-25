@@ -45,8 +45,8 @@ describe "Set slice operation" do
         if stype == :yale
           step "verify correct arrangement of Yale IJA and A arrays" do
             @m.extend NMatrix::YaleFunctions
-            @m.yale_ija.should == [4,6,8,10,1,2,0,2,0,1]
-            @m.yale_a.should   == [0,4,8,0, 1,2,3,5,6,7]
+            expect(@m.yale_ija).to eq([4,6,8,10,1,2,0,2,0,1])
+            expect(@m.yale_a).to   eq([0,4,8,0, 1,2,3,5,6,7])
           end
         end
 
@@ -54,30 +54,30 @@ describe "Set slice operation" do
           n = @m.clone
           old_val = @m[0,0]
           @m[0,0] = 100
-          @m[0,0].should == 100
+          expect(@m[0,0]).to eq(100)
           @m[0,0] = old_val
-          @m.should == n
+          expect(@m).to eq(n)
         end
 
         if stype == :yale
           n = @m.clone
           step "set a row of entries" do
             n[0,0..2] = 0
-            n[0,0..2].to_flat_array.should == [0,0,0]
-            n[1,0..2].to_flat_array.should == [3,4,5]
-            n[2,0..2].to_flat_array.should == [6,7,8]
+            expect(n[0,0..2].to_flat_array).to eq([0,0,0])
+            expect(n[1,0..2].to_flat_array).to eq([3,4,5])
+            expect(n[2,0..2].to_flat_array).to eq([6,7,8])
           end
 
           step "set a second row of entries" do
             n[2,0..2] = 0
-            n[2,0..2].to_flat_array.should == [0,0,0]
-            n[1,0..2].to_flat_array.should == [3,4,5]
+            expect(n[2,0..2].to_flat_array).to eq([0,0,0])
+            expect(n[1,0..2].to_flat_array).to eq([3,4,5])
           end
 
           step "reset both rows of entries" do
             n[0,0..2] = [0,1,2]
             n[2,0..2] = [6,7,8]
-            n.should == @m
+            expect(n).to eq(@m)
           end
         end
 
@@ -89,62 +89,62 @@ describe "Set slice operation" do
           m[0..1,0..1] = 100
 
           if stype == :yale
-            m.yale_ija.should == [4,   6,   8,   10,   1,   2,   0,   2,  0,  1]
-            m.yale_a.should   == [100, 100, 8,   0,   100,  2, 100,   5,  6,  7]
+            expect(m.yale_ija).to eq([4,   6,   8,   10,   1,   2,   0,   2,  0,  1])
+            expect(m.yale_a).to   eq([100, 100, 8,   0,   100,  2, 100,   5,  6,  7])
           end
 
-          m[0..1,0..1].should == slice_result_a
-          m[2,0..1].should == @m[2,0..1]
-          m[0..1,2].should == @m[0..1,2]
+          expect(m[0..1,0..1]).to eq(slice_result_a)
+          expect(m[2,0..1]).to eq(@m[2,0..1])
+          expect(m[0..1,2]).to eq(@m[0..1,2])
         end
 
         step "set upper left-hand 2x2 corner to 0" do
           m[0..1,0..1] = 0
           if stype == :yale
-            [4,5,6,8,2,2,0,1].should == m.yale_ija
-            [0,0,8,0,2,5,6,7].should == m.yale_a
+            expect([4,5,6,8,2,2,0,1]).to eq(m.yale_ija)
+            expect([0,0,8,0,2,5,6,7]).to eq(m.yale_a)
           end
 
-          m[0..1,0..1].should == slice_result_b
+          expect(m[0..1,0..1]).to eq(slice_result_b)
         end
 
         m = @m.clone
         step "set lower left-hand 2x2 corner to 100" do
           m[1..2,0..1] = 100
-          m[1..2,0..1].should == slice_result_a
-          m[0,0..1].should == @m[0,0..1]
-          m[1..2,2].should == @m[1..2,2]
+          expect(m[1..2,0..1]).to eq(slice_result_a)
+          expect(m[0,0..1]).to eq(@m[0,0..1])
+          expect(m[1..2,2]).to eq(@m[1..2,2])
         end
 
         step "set lower left-hand 2x2 corner to 0" do
           m[1..2,0..1] = 0
-          m[1..2,0..1].should == slice_result_b
+          expect(m[1..2,0..1]).to eq(slice_result_b)
         end
 
         m = @m.clone
         step "set lower right-hand 2x2 corner to 100" do
           m[1..2,1..2] = 100
-          m[1..2,1..2].should == slice_result_a
-          m[0,1..2].should == @m[0,1..2]
-          m[1..2,0].should == @m[1..2,0]
+          expect(m[1..2,1..2]).to eq(slice_result_a)
+          expect(m[0,1..2]).to eq(@m[0,1..2])
+          expect(m[1..2,0]).to eq(@m[1..2,0])
         end
 
         step "set lower right-hand 2x2 corner to 0" do
           m[1..2,1..2] = 0
-          m[1..2,1..2].should == slice_result_b
+          expect(m[1..2,1..2]).to eq(slice_result_b)
         end
 
         m = @m.clone
         step "set upper right-hand 2x2 corner to 100" do
           m[0..1,1..2] = 100
-          m[0..1,1..2].should == slice_result_a
-          m[2,1..2].should == @m[2,1..2]
-          m[0..1,0].should == @m[0..1,0]
+          expect(m[0..1,1..2]).to eq(slice_result_a)
+          expect(m[2,1..2]).to eq(@m[2,1..2])
+          expect(m[0..1,0]).to eq(@m[0..1,0])
         end
 
         step "set upper right-hand 2x2 corner to 0" do
           m[0..1,1..2] = 0
-          m[0..1,1..2].should == slice_result_b
+          expect(m[0..1,1..2]).to eq(slice_result_b)
         end
       end
 
@@ -152,7 +152,7 @@ describe "Set slice operation" do
         x = NMatrix.new(4, stype: :yale, dtype: :int16)
         x.extend NMatrix::YaleFunctions if stype == :yale
         x[1..3,1..3] = @m
-        x.to_flat_array.should == [0,0,0,0, 0,0,1,2, 0,3,4,5, 0,6,7,8]
+        expect(x.to_flat_array).to eq([0,0,0,0, 0,0,1,2, 0,3,4,5, 0,6,7,8])
       end
 
     end

@@ -39,43 +39,43 @@ describe "Statistical functions" do
         end
 
         it "behaves like Enumerable#reduce with no argument to reduce" do
-          @nm_1d.reduce_along_dim(0) { |acc, el| acc + el }.to_f.should eq 11 unless stype == :yale
-          @nm_2d.reduce_along_dim(1) { |acc, el| acc + el }.should eq NMatrix.new([2,1], [1.0, 5.0], stype: stype)
+          expect(@nm_1d.reduce_along_dim(0) { |acc, el| acc + el }.to_f).to eq 11 unless stype == :yale
+          expect(@nm_2d.reduce_along_dim(1) { |acc, el| acc + el }).to eq NMatrix.new([2,1], [1.0, 5.0], stype: stype)
         end
 
         it "should calculate the mean along the specified dimension" do
           unless stype == :yale then
             puts @nm_1d.mean
-            @nm_1d.mean.should eq NMatrix.new([1], [2.2], stype: stype, dtype: :float64)
+            expect(@nm_1d.mean).to eq NMatrix.new([1], [2.2], stype: stype, dtype: :float64)
           end
-          @nm_2d.mean.should eq NMatrix[[1.0,2.0], stype: stype]
-          @nm_2d.mean(1).should eq NMatrix[[0.5], [2.5], stype: stype]
+          expect(@nm_2d.mean).to eq NMatrix[[1.0,2.0], stype: stype]
+          expect(@nm_2d.mean(1)).to eq NMatrix[[0.5], [2.5], stype: stype]
         end
 
         it "should calculate the minimum along the specified dimension" do
-          @nm_1d.min.should eq 0.0 unless stype == :yale
-          @nm_2d.min.should eq NMatrix[[0.0, 1.0], stype: stype]
-          @nm_2d.min(1).should eq NMatrix[[0.0], [2.0], stype: stype]
+          expect(@nm_1d.min).to eq 0.0 unless stype == :yale
+          expect(@nm_2d.min).to eq NMatrix[[0.0, 1.0], stype: stype]
+          expect(@nm_2d.min(1)).to eq NMatrix[[0.0], [2.0], stype: stype]
         end
 
         it "should calculate the maximum along the specified dimension" do
-          @nm_1d.max.should eq 5.0  unless stype == :yale
-          @nm_2d.max.should eq NMatrix[[2.0, 3.0], stype: stype]
+          expect(@nm_1d.max).to eq 5.0  unless stype == :yale
+          expect(@nm_2d.max).to eq NMatrix[[2.0, 3.0], stype: stype]
         end
 
         it "should calculate the variance along the specified dimension" do
-          @nm_1d.variance.should eq NMatrix[3.7, stype: stype] unless stype == :yale
-          @nm_2d.variance(1).should eq NMatrix[[0.5], [0.5], stype: stype]
+          expect(@nm_1d.variance).to eq NMatrix[3.7, stype: stype] unless stype == :yale
+          expect(@nm_2d.variance(1)).to eq NMatrix[[0.5], [0.5], stype: stype]
         end
 
         it "should calculate the sum along the specified dimension" do
-          @nm_1d.sum.should eq NMatrix[11.0, stype: stype] unless stype == :yale
-          @nm_2d.sum.should eq NMatrix[[2.0, 4.0], stype: stype]
+          expect(@nm_1d.sum).to eq NMatrix[11.0, stype: stype] unless stype == :yale
+          expect(@nm_2d.sum).to eq NMatrix[[2.0, 4.0], stype: stype]
         end
 
         it "should calculate the standard deviation along the specified dimension" do
-          @nm_1d.std.should eq NMatrix[Math.sqrt(3.7), stype: stype] unless stype == :yale
-          @nm_2d.std(1).should eq NMatrix[[Math.sqrt(0.5)], [Math.sqrt(0.5)], stype: stype]
+          expect(@nm_1d.std).to eq NMatrix[Math.sqrt(3.7), stype: stype] unless stype == :yale
+          expect(@nm_2d.std(1)).to eq NMatrix[[Math.sqrt(0.5)], [Math.sqrt(0.5)], stype: stype]
         end
 
         it "should raise an ArgumentError when any invalid dimension is provided" do
@@ -84,9 +84,9 @@ describe "Statistical functions" do
         end
 
         it "should convert to float if it contains only a single element" do
-          NMatrix[4.0, stype: stype].to_f.should eq 4.0  unless stype == :yale
-          NMatrix[[[[4.0]]], stype: stype].to_f.should eq 4.0  unless stype == :yale
-          NMatrix[[4.0], stype: stype].to_f.should eq 4.0
+          expect(NMatrix[4.0, stype: stype].to_f).to eq 4.0  unless stype == :yale
+          expect(NMatrix[[[[4.0]]], stype: stype].to_f).to eq 4.0  unless stype == :yale
+          expect(NMatrix[[4.0], stype: stype].to_f).to eq 4.0
         end
 
         it "should raise an index error if it contains more than a single element" do
@@ -96,8 +96,8 @@ describe "Statistical functions" do
 
         it "should map a block to all elements" do
           #binding.pry if stype == :list
-          @nm_1d.map { |e| e ** 2 }.should eq NMatrix[25.0,0.0,1.0,4.0,9.0, stype: stype] unless stype == :yale
-          @nm_2d.map { |e| e ** 2 }.should eq NMatrix[[0.0,1.0],[4.0,9.0], stype: stype]
+          expect(@nm_1d.map { |e| e ** 2 }).to eq NMatrix[25.0,0.0,1.0,4.0,9.0, stype: stype] unless stype == :yale
+          expect(@nm_2d.map { |e| e ** 2 }).to eq NMatrix[[0.0,1.0],[4.0,9.0], stype: stype]
         end
 
         it "should map! a block to all elements in place" do
@@ -105,39 +105,39 @@ describe "Statistical functions" do
           unless stype == :yale then
             expected1 = @nm_1d.map &fct
             @nm_1d.map! &fct
-            @nm_1d.should eq expected1
+            expect(@nm_1d).to eq expected1
           end
           expected2 = @nm_2d.map &fct
           @nm_2d.map! &fct
-          @nm_2d.should eq expected2
+          expect(@nm_2d).to eq expected2
         end
 
         it "should return an enumerator for map without a block" do
-          @nm_2d.map.should be_a Enumerator
+          expect(@nm_2d.map).to be_a Enumerator
         end
 
         it "should return an enumerator for reduce without a block" do
-          @nm_2d.reduce_along_dim(0).should be_a Enumerator
+          expect(@nm_2d.reduce_along_dim(0)).to be_a Enumerator
         end
 
         it "should return an enumerator for each_along_dim without a block" do
-          @nm_2d.each_along_dim(0).should be_a Enumerator
+          expect(@nm_2d.each_along_dim(0)).to be_a Enumerator
         end
 
         it "should iterate correctly for map without a block" do
           en = @nm_1d.map unless stype == :yale
-          en.each { |e| e**2 }.should eq @nm_1d.map { |e| e**2 } unless stype == :yale
+          expect(en.each { |e| e**2 }).to eq @nm_1d.map { |e| e**2 } unless stype == :yale
           en = @nm_2d.map
-          en.each { |e| e**2 }.should eq @nm_2d.map { |e| e**2 }
+          expect(en.each { |e| e**2 }).to eq @nm_2d.map { |e| e**2 }
         end
 
         it "should iterate correctly for reduce without a block" do
           unless stype == :yale then
             en = @nm_1d.reduce_along_dim(0, 1.0)
-            en.each { |a, e| a+e }.to_f.should eq 12
+            expect(en.each { |a, e| a+e }.to_f).to eq 12
           end
           en = @nm_2d.reduce_along_dim(1, 1.0)
-          en.each { |a, e| a+e }.should eq NMatrix[[2.0],[6.0], stype: stype]
+          expect(en.each { |a, e| a+e }).to eq NMatrix[[2.0],[6.0], stype: stype]
         end
 
         it "should iterate correctly for each_along_dim without a block" do
@@ -145,31 +145,31 @@ describe "Statistical functions" do
             res = NMatrix.zeros_like(@nm_1d[0...1])
             en = @nm_1d.each_along_dim(0)
             en.each { |e| res += e }
-            res.to_f.should eq 11
+            expect(res.to_f).to eq 11
           end
           res = NMatrix.zeros_like (@nm_2d[0...2, 0])
           en = @nm_2d.each_along_dim(1)
           en.each { |e| res += e }
-          res.should eq NMatrix[[1.0], [5.0], stype: stype]
+          expect(res).to eq NMatrix[[1.0], [5.0], stype: stype]
         end
 
         it "should yield matrices of matching dtype for each_along_dim" do
           m = NMatrix.new([2,3], [1,2,3,3,4,5], dtype: :complex128, stype: stype)
           m.each_along_dim(1) do |sub_m|
-            sub_m.dtype.should eq :complex128
+            expect(sub_m.dtype).to eq :complex128
           end
         end
 
         it "should reduce to a matrix of matching dtype for reduce_along_dim" do
           m = NMatrix.new([2,3], [1,2,3,3,4,5], dtype: :complex128, stype: stype)
           m.reduce_along_dim(1) do |acc, sub_m|
-            sub_m.dtype.should eq :complex128
+            expect(sub_m.dtype).to eq :complex128
             acc
           end
 
           m = NMatrix.new([2,3], [1,2,3,3,4,5], dtype: :complex128, stype: stype)
           m.reduce_along_dim(1, 0.0) do |acc, sub_m|
-            sub_m.dtype.should eq :complex128
+            expect(sub_m.dtype).to eq :complex128
             acc
           end
         end
@@ -177,30 +177,30 @@ describe "Statistical functions" do
         it "should allow overriding the dtype for reduce_along_dim" do
           m = NMatrix[[1,2,3], [3,4,5], dtype: :complex128]
           m.reduce_along_dim(1, 0.0, :float64) do |acc, sub_m|
-            acc.dtype.should eq :float64
+            expect(acc.dtype).to eq :float64
             acc
           end
 
           m = NMatrix[[1,2,3], [3,4,5], dtype: :complex128, stype: stype]
           m.reduce_along_dim(1, nil, :float64) do |acc, sub_m|
-            acc.dtype.should eq :float64
+            expect(acc.dtype).to eq :float64
             acc
           end
         end
 
         it "should convert integer dtypes to float when calculating mean" do
           m = NMatrix[[1,2,3], [3,4,5], dtype: :int32, stype: stype]
-          m.mean(0).dtype.should eq :float64
+          expect(m.mean(0).dtype).to eq :float64
         end
 
         it "should convert integer dtypes to float when calculating variance" do
           m = NMatrix[[1,2,3], [3,4,5], dtype: :int32, stype: stype]
-          m.variance(0).dtype.should eq :float64
+          expect(m.variance(0).dtype).to eq :float64
         end
 
         it "should convert integer dtypes to float when calculating standard deviation" do
           m = NMatrix[[1,2,3], [3,4,5], dtype: :int32, stype: stype]
-          m.std(0).dtype.should eq :float64
+          expect(m.std(0).dtype).to eq :float64
         end
       end
     end
