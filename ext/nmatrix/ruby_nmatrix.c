@@ -2887,10 +2887,9 @@ static VALUE matrix_multiply(NMATRIX* left, NMATRIX* right) {
  * Does not test for invertibility!
  */
 static VALUE nm_inverse_exact(VALUE self, VALUE inverse) {
-
-  if (NM_STYPE(self) != nm::DENSE_STORE) {
-    rb_raise(rb_eNotImpError, "needs exact determinant implementation for this matrix stype");
-    return Qnil;
+  nm::stype_t stype = NM_STYPE(self);
+  if (stype != nm::DENSE_STORE) {
+    self = nm_cast(self, ID2SYM(rb_intern("dense")), nm_dtype(self), nm_default_value(self));
   }
 
   if (NM_DIM(self) != 2 || NM_SHAPE0(self) != NM_SHAPE1(self)) {
@@ -2900,6 +2899,9 @@ static VALUE nm_inverse_exact(VALUE self, VALUE inverse) {
 
   // Calculate the exact inverse.
   nm_math_inverse_exact(NM_SHAPE0(self), NM_STORAGE_DENSE(self)->elements, NM_SHAPE0(self), NM_STORAGE_DENSE(inverse)->elements, NM_SHAPE0(inverse), NM_DTYPE(self));
+  if (stype != nm::DENSE_STORE) {
+    self = nm_cast(self, ID2SYM(rb_intern(STYPE_NAMES[stype])), nm_dtype(self), nm_default_value(self));
+  }
 
   return inverse;
 }
@@ -2914,8 +2916,7 @@ static VALUE nm_inverse_exact(VALUE self, VALUE inverse) {
 static VALUE nm_det_exact(VALUE self) {
 
   if (NM_STYPE(self) != nm::DENSE_STORE) {
-    rb_raise(rb_eNotImpError, "can only calculate exact determinant for dense matrices");
-    return Qnil;
+    self = nm_cast(self, ID2SYM(rb_intern("dense")), nm_dtype(self), nm_default_value(self));
   }
   if (NM_DIM(self) != 2 || NM_SHAPE0(self) != NM_SHAPE1(self)) {
     rb_raise(nm_eShapeError, "matrices must be square to have a determinant defined");
