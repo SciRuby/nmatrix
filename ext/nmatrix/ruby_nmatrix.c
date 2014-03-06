@@ -255,7 +255,7 @@ void Init_nmatrix() {
 	rb_define_method(cNMatrix, "shape", (METHOD)nm_shape, 0);
 	rb_define_method(cNMatrix, "supershape", (METHOD)nm_supershape, 0);
 	rb_define_method(cNMatrix, "offset", (METHOD)nm_offset, 0);
-	rb_define_method(cNMatrix, "det_exact", (METHOD)nm_det_exact, 0);
+	rb_define_protected_method(cNMatrix, "__det_exact__", (METHOD)nm_det_exact, 0);
 	rb_define_protected_method(cNMatrix, "__inverse_exact__", (METHOD)nm_inverse_exact, 1);
 	rb_define_method(cNMatrix, "complex_conjugate!", (METHOD)nm_complex_conjugate_bang, 0);
 
@@ -2888,9 +2888,6 @@ static VALUE matrix_multiply(NMATRIX* left, NMATRIX* right) {
  */
 static VALUE nm_inverse_exact(VALUE self, VALUE inverse) {
   nm::stype_t stype = NM_STYPE(self);
-  if (stype != nm::DENSE_STORE) {
-    self = nm_cast(self, ID2SYM(rb_intern("dense")), nm_dtype(self), nm_default_value(self));
-  }
 
   if (NM_DIM(self) != 2 || NM_SHAPE0(self) != NM_SHAPE1(self)) {
     rb_raise(nm_eShapeError, "matrices must be square to have an inverse defined");
@@ -2899,9 +2896,6 @@ static VALUE nm_inverse_exact(VALUE self, VALUE inverse) {
 
   // Calculate the exact inverse.
   nm_math_inverse_exact(NM_SHAPE0(self), NM_STORAGE_DENSE(self)->elements, NM_SHAPE0(self), NM_STORAGE_DENSE(inverse)->elements, NM_SHAPE0(inverse), NM_DTYPE(self));
-  if (stype != nm::DENSE_STORE) {
-    self = nm_cast(self, ID2SYM(rb_intern(STYPE_NAMES[stype])), nm_dtype(self), nm_default_value(self));
-  }
 
   return inverse;
 }
@@ -2914,10 +2908,6 @@ static VALUE nm_inverse_exact(VALUE self, VALUE inverse) {
  * Note: Currently only implemented for 2x2 and 3x3 matrices.
  */
 static VALUE nm_det_exact(VALUE self) {
-
-  if (NM_STYPE(self) != nm::DENSE_STORE) {
-    self = nm_cast(self, ID2SYM(rb_intern("dense")), nm_dtype(self), nm_default_value(self));
-  }
   if (NM_DIM(self) != 2 || NM_SHAPE0(self) != NM_SHAPE1(self)) {
     rb_raise(nm_eShapeError, "matrices must be square to have a determinant defined");
     return Qnil;

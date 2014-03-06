@@ -72,16 +72,24 @@ class NMatrix
       begin
         self.cast(:dense, self.dtype).invert! # call CLAPACK version
       rescue NotImplementedError # probably a rational matrix
-        inverse = self.clone_structure
-        __inverse_exact__(inverse)
+        self_stype = self.stype
+        self_copy = self.cast(stype: :dense)
+        inverse = self_copy.clone_structure
+        ret = self_copy.__inverse_exact__(inverse)
+        ret.cast(stype: self_stype)
       end
     elsif self.integer_dtype? # FIXME: This check is probably too slow.
-      rational_self = self.cast(dtype: :rational128)
+      self_stype = self.stype
+      rational_self = self.cast(:dense, :rational128)
       inverse       = rational_self.clone_structure
-      rational_self.__inverse_exact__(inverse)
+      ret = rational_self.__inverse_exact__(inverse)
+      ret.cast(stype: self_stype)
     else
-      inverse       = self.clone_structure
-      __inverse_exact__(inverse)
+      self_stype = self.stype
+      self_copy = self.cast(stype: :dense)
+      inverse       = self_copy.clone_structure
+      ret = self_copy.__inverse_exact__(inverse)
+      ret.cast(self_stype, self.dtype)
     end
   end
   alias :inverse :invert
@@ -302,6 +310,11 @@ class NMatrix
 
     # Convert back to an integer if necessary
     new_dtype != self.dtype ? prod.to_i : prod
+  end
+
+  def det_exact
+    copy = self.cast(:dense, self.dtype)
+    copy.__det_exact__
   end
 
   #
