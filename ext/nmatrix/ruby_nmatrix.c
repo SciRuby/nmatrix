@@ -2887,7 +2887,6 @@ static VALUE matrix_multiply(NMATRIX* left, NMATRIX* right) {
  * Does not test for invertibility!
  */
 static VALUE nm_inverse_exact(VALUE self, VALUE inverse) {
-  nm::stype_t stype = NM_STYPE(self);
 
   if (NM_DIM(self) != 2 || NM_SHAPE0(self) != NM_SHAPE1(self)) {
     rb_raise(nm_eShapeError, "matrices must be square to have an inverse defined");
@@ -2908,6 +2907,7 @@ static VALUE nm_inverse_exact(VALUE self, VALUE inverse) {
  * Note: Currently only implemented for 2x2 and 3x3 matrices.
  */
 static VALUE nm_det_exact(VALUE self) {
+
   if (NM_DIM(self) != 2 || NM_SHAPE0(self) != NM_SHAPE1(self)) {
     rb_raise(nm_eShapeError, "matrices must be square to have a determinant defined");
     return Qnil;
