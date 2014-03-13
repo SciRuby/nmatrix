@@ -546,18 +546,18 @@ class NMatrix
     else    
       raise ArgumentError.new("argument must be integer or symbol, found: #{type.class}") unless type.is_a?(Symbol)
 
-      type_sym = sym_simplify[type]
+      type_symbol = sym_simplify[type]
 
-      if type_sym == :frobenius
+      if type_symbol == :frobenius
         self.fro_norm
-      elsif type_sym == :infinity
-        self.inorm
+      elsif type_symbol == :infinity
+        self.inf_norm
       else
-        raise(ArgumentError, "unrecognized norm #{type_sym}")
+        raise(ArgumentError, "unrecognized norm #{type_symbol}")
       end
       
-      return self.fro_norm if type_sym == :frobenius
-      return self.inorm if type_sym == :infinity
+      return self.fro_norm if type_symbol == :frobenius
+      return self.inf_norm if type_symbol == :infinity
       
     end
 
@@ -731,9 +731,9 @@ protected
   # Frobenius norm: the Euclidean norm of the matrix, treated as if it were a vector
   def fro_norm     
     sum = 0
-    r = self.rows
+    number_of_rows = self.rows
 
-    r.times do |i|
+    number_of_rows.times do |i|
       sum += self.row(i).inject(0) {|vsum, n| vsum + (n**2)}                      
     end       
        
@@ -752,10 +752,10 @@ protected
   # 1-norm: the absolute column sum of the matrix   
   def one_norm
     #TODO: change traversing method for sparse matrices
-    c = self.cols      
+    number_of_columns = self.cols      
     col_sums = []
 
-    c.times do |i|
+    number_of_columns.times do |i|
       col_sums << self.col(i).inject(0) {|vsum, n| vsum + n}
     end 
        
@@ -763,11 +763,11 @@ protected
   end
   
   # Infinity norm: the absolute row sum of the matrix  
-  def inorm  
-    r = self.rows   
+  def inf_norm  
+    number_of_rows = self.rows   
     row_sums = []
 
-    r.times do |i|
+    number_of_rows.times do |i|
       row_sums << self.row(i).inject(0) {|vsum, n| vsum + n}
     end 
        
