@@ -282,7 +282,7 @@ class NMatrix
   # * *Returns* :
   #   - The determinant of the matrix. It's the same type as the matrix's dtype.
   # * *Raises* :
-  #   - +NotImplementedError+ -> Must be used in 2D matrices.
+  #   - +NotImplementedError+ -> determinant can be calculated only for 2D matrices
   #
   def det
     raise(NotImplementedError, "determinant can be calculated only for 2D matrices") unless self.dim == 2
@@ -528,28 +528,36 @@ class NMatrix
   # * *Returns* :
   # - The selected norm of the matrix.
   # * *Raises* :
-  # - +NotImplementedError+ -> Must be used in 2D matrices.
-  # - +ArgumentError+ -> Argument must be positive integer or one of the valid strings.
+  # - +NotImplementedError+ -> norm can be calculated only for 2D matrices
+  # - +ArgumentError+ -> unrecognized norm
   #
   def norm type = 2
     raise(NotImplementedError, "norm can be calculated only for 2D matrices") unless self.dim == 2
     
-    str_args = {'fro' => :frobenius,  'frobenius' => :frobenius, 'inf' => :infinity, 'infinity' => :infinity}
-    sym_args = {:fro => :frobenius, :inf => :infinity}
+    sym_simplify = {'fro' => :frobenius, :frobenius => :frobenius, :fro => :frobenius, 'frobenius' => :frobenius, :inf => :infinity, :infinity => :infinity, 'inf' => :infinity, 'infinity' => :infinity}
 
-    if type.is_a?(Fixnum)
+    if type.nil?
+      return self.two_norm
+    elsif type.is_a?(Fixnum)
       raise ArgumentError.new("given number has to be 1 or 2") unless type.integer? && type > 0 && type < 3
-      
+
+      require 'pry'
+      binding.pry
+
       return self.one_norm unless type == 2
       return self.two_norm
-    elsif type.nil?
-      return self.two_norm
     else    
-      raise ArgumentError.new("argument must be integer, string or symbol, found: #{type.class}") unless type.is_a?(String) || type.is_a?(Symbol)
+      raise ArgumentError.new("argument must be integer or symbol, found: #{type.class}") unless type.is_a?(Symbol)
 
-      type.is_a?(Symbol) ? type_sym = sym_args[type] : type_sym = str_args[type]
+      type_sym = sym_simplify[type]
 
-      raise ArgumentError.new("no available norm for #{type_sym}") unless str_args.values.include? type_sym
+      if type_sym == :frobenius
+        self.fro_norm
+      elsif type_sym == :infinity
+        self.inorm
+      else
+        raise(ArgumentError, "unrecognized norm #{type_sym}")
+      end
       
       return self.fro_norm if type_sym == :frobenius
       return self.inorm if type_sym == :infinity
@@ -740,27 +748,28 @@ protected
     self.dtype == :int32 ? self_cast = self.cast(:dtype => :float32) : self_cast = self.cast(:dtype => :float64)
    
     #TODO: confirm if this is the desired svd calculation
-	svd = self_cast.gesvd
-	return s = svd[1][0, 0]
+    svd = self_cast.gesvd
+    return svd[1][0, 0]
 	
-	sum = 0
-	sr = s.rows
-	sr.times do |i|
+    sum = 0
+    number_of_rows = s.rows
+    number_of_rows.times do |i|
+      require 'pry'
+      binding.pry
       sum += s.row(i).inject(0) {|vsum, n| vsum + (n**2)}      
     end 
 	       
-    return sum**(1.quo(2))
+    sum**(1.quo(2))
   end
   
   # 1-norm: the absolute column sum of the matrix   
   def one_norm
     #TODO: change traversing method for sparse matrices
     c = self.cols      
-	col_sums = []
+    col_sums = []
 
     c.times do |i|
       col_sums << self.col(i).inject(0) {|vsum, n| vsum + n}
-      
     end 
        
     return col_sums.sort!.last.abs
@@ -769,7 +778,7 @@ protected
   # Infinity norm: the absolute row sum of the matrix  
   def inorm  
     r = self.rows   
-	row_sums = []
+    row_sums = []
 
     r.times do |i|
       row_sums << self.row(i).inject(0) {|vsum, n| vsum + n}
