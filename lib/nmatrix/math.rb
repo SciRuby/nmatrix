@@ -534,7 +534,7 @@ class NMatrix
   def norm type = 2
     raise(NotImplementedError, "norm can be calculated only for 2D matrices") unless self.dim == 2
     
-    sym_simplify = {'fro' => :frobenius, :frobenius => :frobenius, :fro => :frobenius, 'frobenius' => :frobenius, :inf => :infinity, :infinity => :infinity, 'inf' => :infinity, 'infinity' => :infinity}
+    sym_simplify = {:frobenius => :frobenius, :fro => :frobenius, :inf => :infinity, :infinity => :infinity}
 
     if type.nil?
       return self.two_norm
