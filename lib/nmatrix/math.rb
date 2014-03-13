@@ -732,12 +732,14 @@ protected
   def fro_norm     
     sum = 0
     number_of_rows = self.rows
+    column_vector = []
+    self.dtype == :int32 ? self_cast = self.cast(:dtype => :float32) : self_cast = self.cast(:dtype => :float64)
 
     number_of_rows.times do |i|
-      sum += self.row(i).inject(0) {|vector_sum, n| vector_sum + (n**2)}                      
-    end       
-       
-    return sum**(1.quo(2))
+      column_vector.concat(self_cast.row(i).to_a)                       
+    end  
+ 
+    return NMatrix.new([self.size, 1], column_vector).nrm2
   end
   
   # 2-norm: the largest singular value of the matrix  
@@ -757,8 +759,6 @@ protected
     col_sums = []
 
     number_of_columns.times do |i|
-      require 'pry'
-      binding.pry
       col_sums << self.col(i).inject(:+)
     end 
        
