@@ -734,14 +734,15 @@ protected
     number_of_rows = self.rows
 
     number_of_rows.times do |i|
-      sum += self.row(i).inject(0) {|vsum, n| vsum + (n**2)}                      
+      sum += self.row(i).inject(0) {|vector_sum, n| vector_sum + (n**2)}                      
     end       
        
     return sum**(1.quo(2))
   end
   
   # 2-norm: the largest singular value of the matrix  
-  def two_norm  
+  def two_norm 
+    raise(NotImplementedError, "2-norm only implemented for dense storage") unless self.stype == :dense 
     self.dtype == :int32 ? self_cast = self.cast(:dtype => :float32) : self_cast = self.cast(:dtype => :float64)
    
     #TODO: confirm if this is the desired svd calculation
@@ -756,7 +757,9 @@ protected
     col_sums = []
 
     number_of_columns.times do |i|
-      col_sums << self.col(i).inject(0) {|vsum, n| vsum + n}
+      require 'pry'
+      binding.pry
+      col_sums << self.col(i).inject(:+)
     end 
        
     return col_sums.sort!.last.abs
@@ -768,7 +771,7 @@ protected
     row_sums = []
 
     number_of_rows.times do |i|
-      row_sums << self.row(i).inject(0) {|vsum, n| vsum + n}
+      row_sums << self.row(i).inject(:+)
     end 
        
     return row_sums.sort!.last.abs
