@@ -541,9 +541,6 @@ class NMatrix
     elsif type.is_a?(Fixnum)
       raise ArgumentError.new("given number has to be 1 or 2") unless type.integer? && type > 0 && type < 3
 
-      require 'pry'
-      binding.pry
-
       return self.one_norm unless type == 2
       return self.two_norm
     else    
@@ -733,14 +730,14 @@ protected
   # Norm calculation methods
   # Frobenius norm: the Euclidean norm of the matrix, treated as if it were a vector
   def fro_norm     
-	  sum = 0
-	  r = self.rows
+    sum = 0
+    r = self.rows
 
-      r.times do |i|
-        sum += self.row(i).inject(0) {|vsum, n| vsum + (n**2)}                      
-      end       
+    r.times do |i|
+      sum += self.row(i).inject(0) {|vsum, n| vsum + (n**2)}                      
+    end       
        
-      return sum**(1.quo(2))
+    return sum**(1.quo(2))
   end
   
   # 2-norm: the largest singular value of the matrix  
@@ -749,17 +746,7 @@ protected
    
     #TODO: confirm if this is the desired svd calculation
     svd = self_cast.gesvd
-    return svd[1][0, 0]
-	
-    sum = 0
-    number_of_rows = s.rows
-    number_of_rows.times do |i|
-      require 'pry'
-      binding.pry
-      sum += s.row(i).inject(0) {|vsum, n| vsum + (n**2)}      
-    end 
-	       
-    sum**(1.quo(2))
+    return svd[1][0, 0]    
   end
   
   # 1-norm: the absolute column sum of the matrix   
