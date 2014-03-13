@@ -124,7 +124,46 @@ describe "math" do
             end
           end
         end
+          
+        context "Floor and ceil for #{stype}" do  
 
+          [:floor, :ceil].each do |meth|
+            [:byte,:int8,:int16,:int32,:int64,:float32,:float64,:rational64,:rational128, :complex64, :complex128].each do |dtype|
+              context dtype do
+                before :each do
+                  @size = [2,2]
+                  @m    = NMatrix.seq(@size, dtype: dtype, stype: stype)
+                  @a    = @m.to_a.flatten
+                end
+
+                if dtype.to_s.match(/int/) or dtype == :byte
+                  it "should return #{dtype} for #{dtype}" do
+
+                    expect(@m.send(meth)).to eq N.new(@size, @a.map { |e| e.send(meth) }, dtype: dtype, stype: stype)
+                    
+                    expect(@m.send(meth).integer_dtype?).to eq true
+                  end
+                elsif dtype.to_s.match(/float/) or dtype.to_s.match(/rational/) 
+                  it "should return dtype int64 for #{dtype}" do
+
+                    expect(@m.send(meth)).to eq N.new(@size, @a.map { |e| e.send(meth) }, dtype: dtype, stype: stype)
+                    
+                    expect(@m.send(meth).dtype).to eq :int64
+                  end
+                elsif dtype.to_s.match(/complex/) 
+                  it "should properly calculte #{meth} for #{dtype}" do
+
+                    expect(@m.send(meth)).to eq N.new(@size, @a.map { |e| e = Complex(e.real.send(meth), e.imag.send(meth)) }, dtype: dtype, stype: stype)
+
+                    expect(@m.send(meth).dtype).to eq :complex64  if dtype == :complex64
+                    expect(@m.send(meth).dtype).to eq :complex128 if dtype == :complex128
+                  end
+                end
+              end
+            end
+          end
+        end
+        
       end
     end
   end

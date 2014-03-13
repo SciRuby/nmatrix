@@ -607,6 +607,50 @@ protected
     self.__dense_map__ { |l| -l }.cast(stype, dtype)
   end
 
+  # These are for calculating the floor or ceil of matrix
+
+  def dtype_for_floor_or_ceil
+    if self.integer_dtype? or [:complex64, :complex128].include?(self.dtype)
+      return_dtype = dtype
+    elsif [:float32, :float64, :rational64, :rational128].include?(self.dtype)
+      return_dtype = :int64
+    end
+
+    return_dtype
+  end
+
+  [:floor, :ceil].each do |meth|  
+    define_method("__list_unary_#{meth}__") do
+      return_dtype = dtype_for_floor_or_ceil
+
+      if [:complex64, :complex128].include?(self.dtype)
+        self.__list_map_stored__(nil) { |l| Complex(l.real.send(meth), l.imag.send(meth)) }.cast(stype, return_dtype) 
+      else
+        self.__list_map_stored__(nil) { |l| l.send(meth) }.cast(stype, return_dtype)   
+      end
+    end
+    
+    define_method("__yale_unary_#{meth}__") do 
+      return_dtype = dtype_for_floor_or_ceil
+
+      if [:complex64, :complex128].include?(self.dtype)
+        self.__yale_map_stored__ { |l| Complex(l.real.send(meth), l.imag.send(meth)) }.cast(stype, return_dtype) 
+      else
+        self.__yale_map_stored__ { |l| l.send(meth) }.cast(stype, return_dtype)   
+      end
+    end
+    
+    define_method("__dense_unary_#{meth}__") do
+      return_dtype = dtype_for_floor_or_ceil
+       
+      if [:complex64, :complex128].include?(self.dtype)
+        self.__dense_map__ { |l| Complex(l.real.send(meth), l.imag.send(meth)) }.cast(stype, return_dtype) 
+      else
+        self.__dense_map__ { |l| l.send(meth) }.cast(stype, return_dtype)   
+      end
+    end     
+  end
+
   # These take two arguments. One might be a matrix, and one might be a scalar.
   # See also monkeys.rb, which contains Math module patches to let the first
   # arg be a scalar
