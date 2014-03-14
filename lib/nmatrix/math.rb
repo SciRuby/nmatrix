@@ -517,8 +517,6 @@ class NMatrix
   #  This should be used for small or medium sized matrices. 
   #  For greater matrices, there should be a separate implementation where
   #  the norm is estimated rather than computed, for the sake of computation speed.
-  #  
-  #  The norm calculation code is written in protected functions.
   #
   #  Currently implemented norms are 1-norm, 2-norm, Frobenius, Infinity.
   #
@@ -535,34 +533,22 @@ class NMatrix
     raise(NotImplementedError, "norm can be calculated only for 2D matrices") unless self.dim == 2
     
     sym_simplify = {:frobenius => :frobenius, :fro => :frobenius, :inf => :infinity, :infinity => :infinity}
-
-    if type.nil?
+    
+    case type
+    when nil 
       return self.two_norm
-    elsif type.is_a?(Fixnum)
-      raise ArgumentError.new("given number has to be 1 or 2") unless type.integer? && type > 0 && type < 3
-
-      return self.one_norm unless type == 2
+    when 1 
+      return self.one_norm
+    when 2 
       return self.two_norm
-    else    
-      raise ArgumentError.new("argument must be integer or symbol, found: #{type.class}") unless type.is_a?(Symbol)
-
-      type_symbol = sym_simplify[type]
-
-      if type_symbol == :frobenius
-        self.fro_norm
-      elsif type_symbol == :infinity
-        self.inf_norm
-      else
-        raise(ArgumentError, "unrecognized norm #{type_symbol}")
-      end
-      
-      return self.fro_norm if type_symbol == :frobenius
-      return self.inf_norm if type_symbol == :infinity
-      
+    when :frobenius, :fro 
+      return self.fro_norm
+    when :infinity, :inf
+      return self.inf_norm  
+    else
+      raise ArgumentError.new("argument must be a valid integer or symbol")
     end
-
   end
-
 
 
   #
