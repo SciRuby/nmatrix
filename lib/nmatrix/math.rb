@@ -532,8 +532,6 @@ class NMatrix
   def norm type = 2
     raise(NotImplementedError, "norm can be calculated only for 2D matrices") unless self.dim == 2
     
-    sym_simplify = {:frobenius => :frobenius, :fro => :frobenius, :inf => :infinity, :infinity => :infinity}
-    
     case type
     when nil 
       return self.two_norm
