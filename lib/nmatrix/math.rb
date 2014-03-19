@@ -534,14 +534,14 @@ class NMatrix
     raise(NotImplementedError, "norm only implemented for dense storage") unless self.stype == :dense 
     
     case type
-    when nil, 2 
-      return self.two_norm
-    when 1 
-      return self.one_norm
+    when nil, 2, -2 
+      return self.two_norm (type == -2)
+    when 1, -1 
+      return self.one_norm (type == -1)
     when :frobenius, :fro 
       return self.fro_norm
-    when :infinity, :inf
-      return self.inf_norm  
+    when :infinity, :inf, -:inf, -:infinity 
+      return self.inf_norm  (type < 0)
     else
       raise ArgumentError.new("argument must be a valid integer or symbol")
     end
@@ -726,16 +726,17 @@ protected
   end
   
   # 2-norm: the largest singular value of the matrix  
-  def two_norm 
+  def two_norm minus = false
     self.dtype == :int32 ? self_cast = self.cast(:dtype => :float32) : self_cast = self.cast(:dtype => :float64)
     
     #TODO: confirm if this is the desired svd calculation
     svd = self_cast.gesvd
-    return svd[1][0, 0] 
+    return svd[1][0, 0] unless minus
+    return svd[1][svd.rows, svd.cols]
   end
   
   # 1-norm: the absolute column sum of the matrix   
-  def one_norm
+  def one_norm minus = false
     #TODO: change traversing method for sparse matrices
     number_of_columns = self.cols      
     col_sums = []
@@ -744,11 +745,12 @@ protected
       col_sums << self.col(i).inject(0) { |sum, number| sum += number.abs}
     end 
        
-    return col_sums.sort!.last
+    return col_sums.sort!.last unless minus
+    return col_sums.sort!.first
   end
   
   # Infinity norm: the absolute row sum of the matrix  
-  def inf_norm  
+  def inf_norm minus = false 
     number_of_rows = self.rows   
     row_sums = []
 
@@ -756,6 +758,7 @@ protected
       row_sums << self.row(i).inject(0) { |sum, number| sum += number.abs}
     end 
        
-    return row_sums.sort!.last
+    return row_sums.sort!.last unless minus
+    return row_sums.sort!.first    
   end
 end
