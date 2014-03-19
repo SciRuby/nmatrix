@@ -531,6 +531,7 @@ class NMatrix
   #
   def norm type = 2
     raise(NotImplementedError, "norm can be calculated only for 2D matrices") unless self.dim == 2
+    raise(NotImplementedError, "norm only implemented for dense storage") unless self.stype == :dense 
     
     case type
     when nil, 2 
@@ -718,20 +719,19 @@ protected
     self.dtype == :int32 ? self_cast = self.cast(:dtype => :float32) : self_cast = self.cast(:dtype => :float64)
 
     number_of_rows.times do |i|
-      column_vector.concat(self_cast.row(i).to_a)                       
-    end  
+      column_vector.concat(self_cast.row(i).to_a)
+    end
  
-    return NMatrix.new([self.size, 1], column_vector).nrm2
+    return NMatrix.new([self.size, 1], column_vector).nrm2   
   end
   
   # 2-norm: the largest singular value of the matrix  
   def two_norm 
-    raise(NotImplementedError, "2-norm only implemented for dense storage") unless self.stype == :dense 
     self.dtype == :int32 ? self_cast = self.cast(:dtype => :float32) : self_cast = self.cast(:dtype => :float64)
-   
+    
     #TODO: confirm if this is the desired svd calculation
     svd = self_cast.gesvd
-    return svd[1][0, 0]    
+    return svd[1][0, 0] 
   end
   
   # 1-norm: the absolute column sum of the matrix   
@@ -741,10 +741,10 @@ protected
     col_sums = []
 
     number_of_columns.times do |i|
-      col_sums << self.col(i).inject(:+)
+      col_sums << self.col(i).inject(0) { |sum, number| sum += number.abs}
     end 
        
-    return col_sums.sort!.last.abs
+    return col_sums.sort!.last
   end
   
   # Infinity norm: the absolute row sum of the matrix  
@@ -753,9 +753,9 @@ protected
     row_sums = []
 
     number_of_rows.times do |i|
-      row_sums << self.row(i).inject(:+)
+      row_sums << self.row(i).inject(0) { |sum, number| sum += number.abs}
     end 
        
-    return row_sums.sort!.last.abs
+    return row_sums.sort!.last
   end
 end
