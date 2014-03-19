@@ -540,8 +540,8 @@ class NMatrix
       return self.one_norm (type == -1)
     when :frobenius, :fro 
       return self.fro_norm
-    when :infinity, :inf, -:inf, -:infinity 
-      return self.inf_norm  (type < 0)
+    when :infinity, :inf, :'-inf', :'-infinity' 
+      return self.inf_norm  (type == :'-inf' || type == :'-infinity')
     else
       raise ArgumentError.new("argument must be a valid integer or symbol")
     end
@@ -732,7 +732,7 @@ protected
     #TODO: confirm if this is the desired svd calculation
     svd = self_cast.gesvd
     return svd[1][0, 0] unless minus
-    return svd[1][svd.rows, svd.cols]
+    return svd[1][svd[1].rows-1, svd[1].cols-1]
   end
   
   # 1-norm: the absolute column sum of the matrix   
