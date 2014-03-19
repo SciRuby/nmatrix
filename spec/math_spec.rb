@@ -166,30 +166,33 @@ describe "math" do
   #TODO: check validity of SVD values in 2-norm
   context "#norm" do
     it "should default to 2-norm" do
-      n = NMatrix.new([2, 3], [1, 2, 3, 5, 6, 7])
-      expect(n.norm).to eq(11.096439361572266)
+      n = NMatrix.new([3, 3], [-4, -3, -2, -1, 0, 1, 2, 3, 4])
+      expect(n.norm).to eq(7.348469257354736)
     end
 
     it "should reject invalid arguments" do
-      n = NMatrix.new([2, 3], [1, 2, 3, 5, 6, 7])
+      n = NMatrix.new([3, 3], [-4, -3, -2, -1, 0, 1, 2, 3, 4])
                  
       expect{n.norm(0.5)}.to raise_error(ArgumentError)
     end
     
     it "should calculate 1 and 2 norms correctly" do
-      n = NMatrix.new([2, 3], [1, 2, 3, 5, 6, 7])
-      expect(n.norm(2)).to eq(11.096439361572266)
-      expect(n.norm(1)).to eq(10)
+      n = NMatrix.new([3, 3], [-4, -3, -2, -1, 0, 1, 2, 3, 4])
+      expect(n.norm(2)).to eq(7.348469257354736)
+      expect(n.norm(1)).to eq(7)
+      expect(n.norm(-2)).to eq(1.8628605857884395e-07)
+      expect(n.norm(-1)).to eq(6)
     end
     
     it "should calculate infinity norms correctly" do
-      n = NMatrix.new([2, 3], [1, 2, 3, 5, 6, 7])
-      expect(n.norm(:inf)).to eq(18)
+      n = NMatrix.new([3, 3], [-4, -3, -2, -1, 0, 1, 2, 3, 4])
+      expect(n.norm(:inf)).to eq(9)
+      expect(n.norm(:'-inf')).to eq(2)
     end
     
     it "should calculate frobenius norms correctly" do
-      n = NMatrix.new([2, 3], [1, 2, 3, 5, 6, 7])
-      expect(n.norm(:fro)).to eq(11.135528725660043)
+      n = NMatrix.new([3, 3], [-4, -3, -2, -1, 0, 1, 2, 3, 4])
+      expect(n.norm(:fro)).to eq(7.745966692414834)
     end
   end
 

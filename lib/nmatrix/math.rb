@@ -519,6 +519,7 @@ class NMatrix
   #  the norm is estimated rather than computed, for the sake of computation speed.
   #
   #  Currently implemented norms are 1-norm, 2-norm, Frobenius, Infinity.
+  #  A minus on the 1, 2 and inf norms returns the minimum instead of the maximum value.
   #
   #  Tested mainly with dense matrices. Further checks and modifications might
   #  be necessary for sparse matrices.
@@ -725,7 +726,7 @@ protected
     return NMatrix.new([self.size, 1], column_vector).nrm2   
   end
   
-  # 2-norm: the largest singular value of the matrix  
+  # 2-norm: the largest/smallest singular value of the matrix  
   def two_norm minus = false
     self.dtype == :int32 ? self_cast = self.cast(:dtype => :float32) : self_cast = self.cast(:dtype => :float64)
     
@@ -735,7 +736,7 @@ protected
     return svd[1][svd[1].rows-1, svd[1].cols-1]
   end
   
-  # 1-norm: the absolute column sum of the matrix   
+  # 1-norm: the maximum/minimum absolute column sum of the matrix   
   def one_norm minus = false
     #TODO: change traversing method for sparse matrices
     number_of_columns = self.cols      
@@ -749,7 +750,7 @@ protected
     return col_sums.sort!.first
   end
   
-  # Infinity norm: the absolute row sum of the matrix  
+  # Infinity norm: the maximum/minimum absolute row sum of the matrix  
   def inf_norm minus = false 
     number_of_rows = self.rows   
     row_sums = []
