@@ -172,16 +172,8 @@ describe "math" do
 
     it "should reject invalid arguments" do
       n = NMatrix.new([2, 3], [1, 2, 3, 5, 6, 7])
-      
-      nums = [0.5, -1, 0]
-      
-      nums.each do |num|        
-        expect{n.norm(num)}.to raise_error(ArgumentError)
-      end
-      
-      expect{n.norm([])}.to raise_error(ArgumentError)        
-      expect{n.norm('fr0')}.to raise_error(ArgumentError)
-      expect{n.norm(:infiniti)}.to raise_error(ArgumentError)
+                 
+      expect{n.norm(0.5)}.to raise_error(ArgumentError)
     end
     
     it "should calculate 1 and 2 norms correctly" do

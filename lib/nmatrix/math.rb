@@ -533,12 +533,10 @@ class NMatrix
     raise(NotImplementedError, "norm can be calculated only for 2D matrices") unless self.dim == 2
     
     case type
-    when nil 
+    when nil, 2 
       return self.two_norm
     when 1 
       return self.one_norm
-    when 2 
-      return self.two_norm
     when :frobenius, :fro 
       return self.fro_norm
     when :infinity, :inf
