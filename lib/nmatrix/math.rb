@@ -724,7 +724,8 @@ protected
   
   # 2-norm: the largest/smallest singular value of the matrix  
   def two_norm minus = false
-    self.dtype == :int32 ? self_cast = self.cast(:dtype => :float32) : self_cast = self.cast(:dtype => :float64)
+    #self.dtype == :int32 ? self_cast = self.cast(:dtype => :float32) : self_cast = self.cast(:dtype => :float64)
+    self_cast = self.cast(:dtype => :float64)
     
     #TODO: confirm if this is the desired svd calculation
     svd = self_cast.gesvd
