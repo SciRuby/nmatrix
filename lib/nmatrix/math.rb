@@ -713,17 +713,13 @@ protected
   
   # Norm calculation methods
   # Frobenius norm: the Euclidean norm of the matrix, treated as if it were a vector
-  def fro_norm     
-    sum = 0
-    number_of_rows = self.rows
-    column_vector = []
-    self.dtype == :int32 ? self_cast = self.cast(:dtype => :float32) : self_cast = self.cast(:dtype => :float64)
+  def fro_norm   
+    #float64 has to be used in any case, since nrm2 will not yield correct result for float32
+    self_cast = self.cast(:dtype => :float64) unless self.dtype == :float64
 
-    number_of_rows.times do |i|
-      column_vector.concat(self_cast.row(i).to_a)
-    end
- 
-    return NMatrix.new([self.size, 1], column_vector).nrm2   
+    column_vector = self_cast.reshape([self.size, 1])
+            
+    return column_vector.nrm2   
   end
   
   # 2-norm: the largest/smallest singular value of the matrix  
