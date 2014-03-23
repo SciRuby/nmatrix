@@ -292,9 +292,8 @@ describe NMatrix do
   end
 
   it "calculates the complex conjugate in-place" do
-    n = NMatrix.new(:dense, 3, [1,2,3,4,5,6,7,8,9], :complex128)
-    n.complex_conjugate!
-    # FIXME: Actually test that values are correct.
+    n = NMatrix.new([2,3], [Complex(2,3)])
+    expect(n.complex_conjugate!).to eq (NMatrix.new([2,3], [Complex(2,-3)]))
   end
 
   it "converts from list to yale properly" do
