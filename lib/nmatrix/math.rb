@@ -608,7 +608,6 @@ protected
   end
 
   # These are for calculating the floor or ceil of matrix
-
   def dtype_for_floor_or_ceil
     if self.integer_dtype? or [:complex64, :complex128, :object].include?(self.dtype)
       return_dtype = dtype
