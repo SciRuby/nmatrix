@@ -296,6 +296,24 @@ describe NMatrix do
     expect(n.complex_conjugate!).to eq (NMatrix.new([2,3], [Complex(2,-3)]))
   end
 
+  context "conjugate out-of-place" do
+    [:complex128, :complex64].each do |dtype|
+      it "calculates the complex conjugate out-of-place for #{dtype}" do
+        n = NMatrix.new([2,3], [Complex(2,3)], dtype: dtype)
+        m = n.complex_conjugate
+        expect(m).to eq (NMatrix.new([2,3], [Complex(2,-3)], dtype: dtype))
+      end
+    end
+
+    [:object, :byte, :int8, :int16, :int32, :int64, :float64, :rational64, :rational128].each do |dtype|
+      it "calculates the complex conjugate out-of-place for #{dtype}" do
+        n = NMatrix.new([2], [1,3], dtype: dtype)
+        m = n.complex_conjugate
+        expect(m).to eq n
+      end
+    end
+  end
+
   it "converts from list to yale properly" do
     m = NMatrix.new(3, 0, stype: :list)
     m[0,2] = 333
