@@ -9,8 +9,8 @@
 //
 // == Copyright Information
 //
-// SciRuby is Copyright (c) 2010 - 2012, Ruby Science Foundation
-// NMatrix is Copyright (c) 2012, Ruby Science Foundation
+// SciRuby is Copyright (c) 2010 - 2014, Ruby Science Foundation
+// NMatrix is Copyright (c) 2012 - 2014, John Woods and the Ruby Science Foundation
 //
 // Please see LICENSE.txt for additional copyright notices.
 //
@@ -34,7 +34,7 @@
  * Standard Includes
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 /*
  * Project Includes
@@ -45,53 +45,55 @@
 #include "data/data.h"
 
 #include "common.h"
-#include "dense.h"
-#include "list.h"
-#include "yale.h"
+#include "dense/dense.h"
+#include "list/list.h"
+#include "yale/yale.h"
 
 /*
  * Macros
  */
 
-#define NUM_STYPES 3
-
-#define NMATRIX_DTYPE_IS_COMPLEX(s)		((s->dtype == COMPLEX64) or (s->dtype == COMPLEX128))
-#define NMATRIX_DTYPE_IS_FLOAT(s)			((s->dtype == FLOAT32) or (s->dtype == FLOAT64))
-#define NMATRIX_DTYPE_IS_INTEGER(s)		(s->dtype <= INT64)
-#define NMATRIX_DTYPE_IS_RATIONAL(s)	((s->dtype == RATIONAL32) or (s->dtype == RATIONAL64) or (s->dtype == RATIONAL128))
-#define NMATRIX_DTYPE_IS_RUBYOBJ(s)		(s->dtype == RUBYOBJ)
+#define NMATRIX_DTYPE_IS_COMPLEX(s)		((s->dtype == nm::COMPLEX64) or (s->dtype == nm::COMPLEX128))
+#define NMATRIX_DTYPE_IS_FLOAT(s)			((s->dtype == nm::FLOAT32) or (s->dtype == nm::FLOAT64))
+#define NMATRIX_DTYPE_IS_INTEGER(s)		(s->dtype <= nm::INT64)
+#define NMATRIX_DTYPE_IS_RATIONAL(s)	((s->dtype == nm::RATIONAL32) or (s->dtype == nm::RATIONAL64) or (s->dtype == nm::RATIONAL128))
+#define NMATRIX_DTYPE_IS_RUBYOBJ(s)		(s->dtype == nm::RUBYOBJ)
 
 
 /*
  * Types
  */
 
-typedef enum {
-	DENSE_STORE,
-	LIST_STORE,
-	YALE_STORE
-} stype_t;
 
 /*
  * Data
  */
 
-extern const char* const STYPE_NAMES[NUM_STYPES];
+namespace nm {
+	const int NUM_STYPES = 3;
+}
 
+extern "C" {
 
-/*
- * Functions
- */
+  extern const char* const STYPE_NAMES[nm::NUM_STYPES];
+  extern void (* const STYPE_MARK[nm::NUM_STYPES])(STORAGE*);
 
-/////////////////////////
-// Copying and Casting //
-/////////////////////////
+  /*
+   * Functions
+   */
 
-STORAGE*	dense_storage_from_list(const STORAGE* rhs, dtype_t l_dtype);
-STORAGE*	dense_storage_from_yale(const STORAGE* rhs, dtype_t l_dtype);
-STORAGE*		list_storage_from_dense(const STORAGE* rhs, dtype_t l_dtype);
-STORAGE*		list_storage_from_yale(const STORAGE* rhs, dtype_t l_dtype);
-STORAGE*		yale_storage_from_list(const STORAGE* rhs, dtype_t l_dtype);
-STORAGE*		yale_storage_from_dense(const STORAGE* rhs, dtype_t l_dtype);
+  /////////////////////////
+  // Copying and Casting //
+  /////////////////////////
+
+  STORAGE*	  nm_dense_storage_from_list(const STORAGE* right, nm::dtype_t l_dtype, void*);
+  STORAGE*	  nm_dense_storage_from_yale(const STORAGE* right, nm::dtype_t l_dtype, void*);
+  STORAGE*		nm_list_storage_from_dense(const STORAGE* right, nm::dtype_t l_dtype, void*);
+  STORAGE*		nm_list_storage_from_yale(const STORAGE* right,  nm::dtype_t l_dtype, void*);
+  STORAGE*		nm_yale_storage_from_list(const STORAGE* right,  nm::dtype_t l_dtype, void*);
+  STORAGE*		nm_yale_storage_from_dense(const STORAGE* right, nm::dtype_t l_dtype, void*);
+
+} // end of extern "C" block
+
 
 #endif // STORAGE_H

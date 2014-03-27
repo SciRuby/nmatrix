@@ -4,3 +4,605 @@
 
   * Initial alpha release
 
+=== 0.0.2 / 2012-09-21
+
+* 15 major enhancements
+
+  * Second alpha release
+
+  * Rewrote NMatrix in C++0x and C++11 using templates, namespaces;
+    removed Ruby generators and CAST parser
+
+  * Added preliminary C API
+
+  * Slicing and referencing support for dense and list matrices (by
+    @flipback)
+
+  * BLAS level-3 xTRSM algorithm added for rationals and BLAS types
+
+  * LAPACK support added, including partially working xGETRF
+    subroutine
+
+  * Element-wise comparisons now return byte-matrices
+
+  * Element-wise operations on list matrices may alter the default
+    value of the return matrix
+
+  * Element-wise division behaves like Ruby division
+
+  * Improved MATLAB .MAT v5 file reading
+
+  * clang support
+
+  * `==` operator now used for matrix equality, `=~` and `!~` for
+    element-wise comparisons
+
+  * Dense `each` returns an Enumerator when called without a block
+
+  * Sped up list storage item deletion, fixed bugs
+
+  * List matrix-to-hash conversion with `to_h`
+
+* Note: Element-wise list operations current disabled
+
+=== 0.0.3 / 2013-01-18
+
+* 8 major enhancements
+
+  * Matrix-scalar operations (dense, list)
+
+  * Shortcuts for matrix creation (by @agarie)
+
+  * Access to most ATLAS-implemented LAPACK functions for those
+    with ATLAS' CLAPACK interface: xGETRF, xGETRI, xGETRS, xGESV,
+    xPOTRF, xPOTRI, xPOTRS, xPOSV, xLASWP, xSCAL, xLAUUM
+
+  * Access to additional ATLAS-implemented BLAS functions: xTRMM,
+    xSYRK, xHERK, xROT, xROTG
+
+  * Non-ATLAS versions of CLAPACK functions: xLASWP, xSCAL, xLAUUM,
+    xROT
+
+  * Matrix inversion (LU and Cholesky; requires CLAPACK)
+
+  * LU factoring with and without CLAPACK
+
+  * Native matrix I/O for dense (supporting upper, lower, hermitian,
+    skew, symmetric, and general) and yale (general only); excludes
+    Ruby objects currently
+
+* 2 bug fixes:
+
+  * Yale-to-list casting
+
+  * Now requires packable-1.3.5 or higher, fixing a problem with
+    MATLAB .mat v5 file I/O (specific to doubles)
+
+=== 0.0.4 / 2013-05-17
+
+* 3 major enhancements
+
+  * Added a more user-friendly interface for cblas_rot in the form of
+    NMatrix::BLAS::rot
+
+  * Added to_hash for Yale matrices
+
+  * Improved source code documentation (by @agarie)
+
+* 4 minor enhancements
+
+  * Spec clean-up (by @masaomi)
+
+  * Made it possible to request a different itype internally for Yale
+    matrices
+
+  * Improved space usage of Yale slice-by-copying, which was
+    requesting more space than needed
+
+  * Improved compile-time Mac OS X and Ubuntu library searching
+
+* 8 bug fixes:
+
+  * NMatrix::BLAS::gemv segfaults
+
+  * Fixed Yale matrix slice-by-copy write error where default itypes
+    (which are based on shape) differ, and a separate problem where
+    incorrect IJA and A entries were written.
+
+  * NVector-scalar operations and NVector-NVector element-wise
+    options now return an NVector instead of an NMatrix
+
+  * Addressed problems with segmentation faults during iteration (by
+    @cjfuller)
+
+  * Addressed Ubuntu/Debian installation problems (incompatibility
+    with apt-supplied atlas)
+
+  * Fixed transpose behavior following slice-by-reference (by
+    @cjfuller)
+
+  * Fixed gem install command in Rakefile (by @jpmckinney)
+
+  * Fixed Spanish language compile issue (by @imcsk8 and @agarie)
+
+=== 0.0.5 / 2013-07-09
+
+* 4 major enhancements
+
+  * NVector orientation is now controlled by its shape, not by the
+    @orientation property
+
+  * NVector default orientation is now a row vector rather than a
+    column, as this is more efficient for Yale storage
+
+  * NVector objects may now be created with dtypes other than dense
+
+  * Exposure of additional ATLAS-implemented BLAS functions,
+    including native rational and Ruby object support, for xANUM (sum
+    of the absolute values of a vector) and xNRM2 (2-norm of a
+    vector); and Ruby helper functions BLAS::anum and BLAS::nrm2
+    which should do more careful argument sanity checking
+
+* 9 minor enhancements
+
+  * Added #yale_vector_insert to NMatrix::YaleFunctions, to speed up
+    insertion of multiple items into a Yale matrix
+
+  * Added #yale_nd_row, #yale_nd_row_as_hash, #yale_nd_row_as_array,
+    #yale_nd_row_as_set, #yale_nd_row_as_sorted_set, #yale_row,
+    #yale_row_as_hash, #yale_row_as_array, #yale_row_as_set,
+    #yale_row_as_sorted_set, #yale_nd_row_size to
+    NMatrix::YaleFunctions in order to speed up getting multiple
+    items from some row of a Yale matrix
+
+  * Improved #yale_ija, #yale_a, #yale_d by allowing an optional
+    index argument, which returns a single array value instead of
+    copying and returning the entire array
+
+  * Improved sorting algorithm for Yale matrix multiplication;
+    instead of selection sort, now uses quicksort; and subs in
+    insertion sort for small partitions
+
+  * Slicing a single row or column now returns an NVector instead
+    of an NMatrix (does not yet work for n-dimensional matrices)
+
+  * Improved function documentation for NVector and NMatrix
+
+  * Added #min, #max, #to_a, #shuffle, #shuffle!, #absolute_sum,
+    #norm2 functions to NVector
+
+  * Aliased missing dimension of NVector#each_stored_with_indices to
+    #each_stored_with_index, which only yields a value and i or j
+    (not both i and j) depending on the vector orientation
+
+  * Added #each_row, #each_column to NMatrix
+
+* 5 bug fixes:
+
+  * Dense iterators now return self (an NMatrix) in order to be
+    consistent with Ruby Array behavior (by @cjfuller)
+
+  * Fixed Yale resize problem (by @v0dro)
+
+  * Fixed Yale nx1 times 1xn multiplication problem
+
+  * Fixed Yale sorting-following-multiplication problem
+
+  * NMatrix::read() now raises an exception when asked to read a file 
+    that does not exist
+
+=== 0.0.6 / 2013-08-09
+
+* 8 major enhancements:
+
+  * Refactored iteration, so that each storage type now has each of:
+    #each, #each_with_indices, #each_stored_with_indices
+
+  * Added element-wise power function (**) for dense matrices (by
+    @agarie)
+
+  * Dramatically improved matrix element-wise and scalar functions so
+    C++ templates are no longer necessary; element-wise operations
+    may now be written in protected Ruby methods that look like
+    NMatrix#__list_elementwise_op__ and NMatrix#__list_scalar_op__
+
+  * Element-wise and scalar operations that might return a true or
+    false now return Ruby matrices
+
+  * Yale element-wise and scalar operations have been added
+
+  * Yale is now allowed to have a non-zero default (specifically to
+    permit true-false matrices and nil sparse bases)
+
+  * Dramatically improved NMatrix#cast to allow for hashed options
+    including a :default for list and yale casts
+
+  * Dramatically improved speed of compilation
+
+* 14 minor enhancements:
+
+  * Improved documentation for exposed BLAS and LAPACK functions
+
+  * Allowed for use of BLAS::rot without cloning x and y (in-place
+    plane rotation); removed unnecessary test of unfriendly version
+
+  * Added more user-friendly cblas_xrotg implementation: BLAS::rotg
+
+  * Moved NMatrix::YaleFunctions::yale_vector_insert to
+    NMatrix#__yale_vector_set__, which is more consistent with
+    behavior
+
+  * Changed notations for protected stype-specific functions, which
+    now look like __stype_method_name__, e.g., __yale_vector_set__
+
+  * Added NMatrix#__list_default_value__ protected function to get
+    the initial (sparse) value for list matrices
+
+  * Changed behavior and names of NMatrix::YaleFunctions methods
+    which get column indices and cell contents by row, so that they
+    now expect the :keys option (like Hash#keys) instead of :array,
+    which doesn't make sense; name changes are as follows:
+      yale_row_as_sorted_set -> yale_ja_d_keys_sorted_set_at
+      yale_row_as_set -> yale_ja_d_keys_set_at
+      yale_row_as_array -> yale_ja_d_keys_at
+      yale_nd_row_as_sorted_set -> yale_ja_sorted_set_at
+      yale_nd_row_as_set -> yale_ja_set_at
+      yale_nd_row_as_array -> yale_ja_at
+    Aliases are included but will be removed without notice.
+
+  * Added NVector#sorted_indices and #binned_sorted_indices for use
+    when running k-nearest neighbor searches on a distance matrix
+
+  * Added NVector::logspace shortcut function (analogous to
+    NVector::linspace)
+
+  * Cleaned up code by removing monkey patches that we stopped using
+    circa v0.0.2 (Array#min, Array#max, String#constantize,
+    String#camelize, String#underscore)
+
+  * Re-enabled element-wise mod (%) method
+
+  * Added NMatrix::guess_dtype class method, which allows you to
+    figure out what dtype (roughly) should be used for any given
+    Ruby value (e.g., 3)
+
+  * String and nil objects in NMatrix cells are no longer outlawed
+    (but are not supported), provided they are of the :object dtype
+
+  * NMatrix#diag shortcut for specifying sparse matrix with a user-
+    specified diagonal array (by @ryanmt)
+
+* 3 bug fixes:
+
+  * Corrected BLAS::rot bounds checking on optional n argument
+
+  * Removed BLAS::rotg and BLAS::nrm2 code for rational numbers, as
+    both involve a square root
+
+  * Repaired list matrix element-wise functions
+
+=== 0.0.7 / 2013-08-22
+
+* 6 major enhancements:
+
+  * Eliminated NVector in favor of NMatrix objects with
+    #effective_dim smaller than #dim; added NVector-like
+    functionality to NMatrix, sometimes with #respond_to? dependent
+    upon matrix dimensions; allowed for NVector.new to continue
+    to function as before, but now returns an NMatrix instead
+
+  * Began major re-factoring of headers for math.cpp
+
+  * Added two singular value decomposition functions for dense
+    NMatrix objects, #gesvd and #gesdd, for floating point and
+    complex dtypes
+
+  * Added additional slicing shorthand, which uses hashes (e.g.,
+    n[0=>3,2] for n[0..3,2]), which may eventually allow users to use
+    n[0:3,2] notation instead (needs Ruby core patch)
+
+  * #[] and #[]= calls no longer need index on those matrix shape
+    elements which are equal to 1 (e.g., vectors)
+
+  * Yale slicing-by-reference has been added
+
+* 18 minor enhancements:
+
+  * Added user-friendly NMatrix::LAPACK::laswp method
+
+  * Added NMatrix#permute_columns! and NMatrix#permute_columns
+
+  * Added NMatrix#abs to compute element-wise absolute values, and
+    #abs_dtype to determine the dtype returned by a call to #abs on a
+    given matrix (needed for RSpec)
+
+  * Added NMatrix#size to compute the total number of cells in an
+    NMatrix object (solely accounting for the shape, not sparsity)
+
+  * Added RSpec monkey patches for #be_within to work with NMatrix
+    objects; usable by requiring "nmatrix/rspec"
+
+  * Added experimental NMatrix::LAPACK::lapack_gesvd function (which
+    does NOT depend upon CLAPACK) (by @ryanmt and @mohawkjohn)
+
+  * Added experimental non-LAPACK-dependent function
+    NMatrix::LAPACK::lapack_gesdd
+
+  * Added NMatrix#supershape method for getting the shape of a
+    slice's parent or other ancestor, which may be useful for calling
+    ATLAS and LAPACK functions on slices
+
+  * Aliased NMatrix[] to function like N[] shortcut for matrix
+    creation (by @agarie)
+
+  * Added #layer for matrices with dimension greater than two
+    (corresponds to #row and #column)
+
+  * Added #rank and #each_rank generics for #row/#column/#layer and
+    #each_row/#each_column/#each_layer respectively (#each_rank
+    replaces #each_along_dim)
+
+  * Replaced #reduce_along_dim with #inject_rank
+
+  * NMatrix#to_a now works for up to two dimensional matrices; and
+    returns a flattened array for single-row matrices
+
+  * NMatrix#to_flat_a now returns a flattened array of all entries
+
+  * Re-organized NMatrix Ruby sources into multiple files: math.rb
+    for instance methods which are mathematical in nature or are
+    essentially ATLAS/LAPACK/BLAS calls, enumerate.rb for methods
+    involving enumeration; and existing shortcuts.rb for convenience
+    functions and shortcut constructors, and nmatrix.rb for core
+    functionality (#inspect, #to_h, #to_a, #to_s, #pretty_print,
+    and so on)
+
+  * Improved #pretty_print, which now also prints layers (the third
+    dimension in a 3D matrix)
+
+  * Re-factored some of dense slicing to remove some redundant code
+
+  * Added shortcut functions #list?, #dense?, #yale? for quickly
+    testing matrix storage type
+
+* 5 bug fixes:
+
+  * Fixed compilation problem involving <typeinfo> and <vector> STL
+    headers
+
+  * Fixed NMatrix#inverse problem with non-square matrices
+
+  * Fixed invalid read problem detected by Valgrind for
+    Yale element-wise subtraction in spec
+
+  * Fixed conversion from Ruby object to Complex and Rational
+
+  * Fixed memory leak in slicing
+
+=== 0.0.8 / 2013-08-23
+
+* 2 bug fixes:
+
+  * Fixed Ubuntu compilation bug caused by math header file
+    refactoring
+
+  * Fixed pry version error which manifests on some systems but not
+    others
+
+=== 0.0.9 / 2013-09-18
+
+* 5 major enhancements:
+
+  * Re-factored NMatrix constructor
+
+  * Improved usability of NMatrix shortcut constructor options
+    (e.g., #zeros, #ones, #random, etc.) using new NMatrix
+    constructor
+
+  * Left-assignment of slices for all matrix storage types (uses a
+    dense cast, or accepts an array or single value)
+
+  * Re-factored Yale into a more object-oriented and less confusing
+    set of header files
+
+  * Enabled Travis CI (by @cjfuller)
+
+* 4 minor enhancements:
+
+  * Renamed some specs in order to change their test order, so that
+    critical tests fail first (particularly in the case of
+    segmentation faults)
+
+  * Default dtype is now :object when no initial values are
+    specified
+
+  * Deprecated NVector#initialize and a number of other unnecessary
+    NVector functionality
+
+  * Made Ubuntu compilation significantly easier (by @cjfuller)
+
+* 2 bug fixes:
+
+  * nil values in matrices are now pretty printed as "nil"
+
+  * Casting from dense to Yale now properly accepts the default
+    value option
+
+=== 0.1.0.rc1 / 2013-12-28
+
+* 4 major enhancements:
+
+  * Improved garbage collection strategy for partial object creation
+    (i.e., when VALUEs are allocated but not registered right away),
+    which in addition to fixing numerous bugs should prevent some new
+    bugs from arising in the future (by @cjfuller)
+
+  * Implemented list storage transpose
+
+  * Implemented generic n-dimensional transpose
+
+  * Implemented == comparison between differing matrix stypes
+
+* 9 minor enhancements:
+
+  * User-friendly #gesvd and #gesdd updates (by @ryanmt)
+
+  * Added experimental #yale_row_key_intersection function for expert
+    recommendation problems
+
+  * Added additional *indgen shortcuts and changed behavior for some;
+    now, #cindgen for :complex64, #zindgen for :complex128, #findgen
+    for :float32, #dindgen for :float64, #rindgen for :rational128,
+    and #rbindgen for Ruby objects (which contain integers); also,
+    removed code repetition
+
+  * Changed #stddev to use elementwise #sqrt instead of a manual map
+    block (by @cjfuller)
+
+  * Added alias from MATLAB `load_mat` method to `load` for
+    consistency with the MatrixMarket loader
+
+  * Improved organization by moving list and yale code into storage/
+    subdirectories
+
+  * Added NMatrix#potrf! and NMatrix#getrf, which are instance methods
+    for calling CLAPACK functions (NMatrix#getrf! already existed)
+
+  * Added GCC installation instructions for Mac OS X Mavericks, and
+    updated the old installation instructions for Mac OS X (both
+    found in scripts/)
+
+  * Switched NMatrix::VERSION to work more like Rails::VERSION, with
+    support for MAJOR, MINOR, TINY, and PRE
+
+  * Added #concat, #hconcat, #vconcat, and #dconcat for joining
+    matrices together
+
+* 16 bug fixes:
+
+  * Spec revisions for lapack_gesdd and lapack_gesvd (by @ryanmt)
+
+  * Fixed two double-free problems (by @cjfuller and @mohawkjohn)
+
+  * Fixed contiguous array marking fencepost error
+
+  * Fixed C/C++ API compatibility problem preventing rb/gsl linking
+
+  * Resolved a number of compiler warnings, including one return-type
+    problem that would likely have become a garbage collection error
+    (if it wasn't already)
+
+  * Fixed -O3 optimization problems
+
+  * Restored NMatrix#asum, #nrm2, #binned_sorted_indices,
+    #sorted_indices which were inadvertantly removed by NVector
+    deprecation; have not tested
+
+  * Experimental #yale_nd_row and functions which call it now checks
+    range of argument to prevent segfault
+
+  * Fixed :* shortcut for a full list dimension (by @cjfuller)
+
+  * Fixed list construction problem which occurred when an initial
+    value array was provided (by @cjfuller)
+
+  * Fixed #inject issue with list and yale matrices of two dimensions
+    (by @cjfuller)
+
+  * Fixed several garbage collection problems (also listed under
+    enhancements) (by @cjfuller)
+
+  * Updated object cleaning target in extconf.rb
+
+  * Fixed possible compilation problem on Mavericks with Xcode 5.02
+
+  * Fixed errors involving undefined symbols, unresolved symbols, and
+    lazy symbol binding
+
+  * Improved LAPACK and BLAS header selection for Ubuntu/Debian
+    systems with ATLAS (by @mvz)
+
+=== 0.1.0.rc2 / 2014-03-12
+
+* No major enhancements.
+
+* 14 minor enhancements:
+
+  * Implemented negative-index slicing (by @rajatkapoor)
+
+  * Added reader for Point Cloud Library's PCD format
+
+  * Added Ruby 2.1 support (including Travis CI testing)
+
+  * Implemented LAPACK-independent exact inverse calculation for
+    dense matrices of size 2x2 and 3x3, as well as
+
+  * Added NMatrix::has_clapack? method to determine whether CLAPACK
+    support has been compiled in
+
+  * Improved conformance of specs to RSpec best practices (by 
+    @duggiefresh)
+
+  * Travis CI now updates the IRC channel when a check passes (by
+    @agarie)
+
+  * Added NMatrix#data_pointer, which returns the memory address of
+    the stored elements in a matrix (generally for use with FFI and
+    other libraries that need pointers)
+
+  * Made NMatrix#clone_structure a public method (was protected)
+
+  * Added :scale option for NMatrix::random to handle non-floating
+    point forms
+
+  * Added complex support to NMatrix::random
+
+  * Aliased NMatrix::random to NMatrix::rand
+
+  * Added NMatrix#reshape! for in-place reshape of dense matrices (by
+    @rajatkapoor)
+
+  * Implemented unary negation of matrices
+
+* 6 bug fixes:
+
+  * Fixed dot product operation on 1-dimensional matrices (by @rve
+    and @cjfuller)
+
+  * Fixed segfault on 1-dimensional matrix transpose (by @cjfuller)
+
+  * Fixed compile error with Ruby 2.1 (by @diminish7)
+
+  * Fixed regression which wasn't causing any problems but was
+    counter to design: stride was declared prior to data storage for
+    dense matrix storage
+
+  * Fixed Rakefile problem which was causing specs to run twice in a
+    row with each call to rake spec
+
+  * NMatrix::random now raises an exception when rational matrices
+    are requested
+
+=== 0.1.0.rc3 / 2014-03-27
+
+* No major enhancements.
+
+* 2 minor enhancements:
+
+  * Exposed NMatrix::LAPACK::geev for LAPACK's xGEEV
+
+  * Added out-of-place complex conjugate for dense and yale storage 
+    (by @rve)
+
+* 1 bug fixes:
+
+  * Fixed critical bug with transposing a matrix reference slice (by
+    @rajatkapoor)
+
+=== 0.1.0.rc4 / 2014-04-??
+
+* No major enhancements.
+
+* No minor enhancements.
+
+* No bug fixes.

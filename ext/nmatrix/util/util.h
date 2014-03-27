@@ -9,8 +9,8 @@
 //
 // == Copyright Information
 //
-// SciRuby is Copyright (c) 2010 - 2012, Ruby Science Foundation
-// NMatrix is Copyright (c) 2012, Ruby Science Foundation
+// SciRuby is Copyright (c) 2010 - 2014, Ruby Science Foundation
+// NMatrix is Copyright (c) 2012 - 2014, John Woods and the Ruby Science Foundation
 //
 // Please see LICENSE.txt for additional copyright notices.
 //
@@ -53,15 +53,26 @@
 /*
  * Functions
  */
+namespace nm {
+  template <typename Type>
+  inline Type gcf(Type x, Type y) {
+    Type t;
 
-template <typename Type>
-Type gcf(Type x, Type y);
+    if (x < 0) x = -x;
+    if (y < 0) y = -y;
 
-/*extern template <>
-int16_t gcf<int16_t>(int16_t, int16_t);
-extern template <>
-int32_t gcf<int32_t>(int32_t, int32_t);
-extern template <>
-int64_t gcf<int64_t>(int64_t, int64_t); */
+    if (x == 0) return y;
+    if (y == 0) return x;
+
+    while (x > 0) {
+      t = x;
+      x = y % x;
+      y = t;
+    }
+
+    return y;
+  }
+} // end of namespace nm
+
 
 #endif // UTIL_H

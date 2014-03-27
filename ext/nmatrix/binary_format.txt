@@ -1,0 +1,53 @@
+This is the proposed binary format for saving and loading NMatrix objects.
+
+Order is little-endian.
+
+List matrices should be converted to dense or yale matrices. There should be no serious need to load or save
+linked-list matrices, since these exist primarily in order to construct efficient yale matrices.
+
+
+First 64-bit block:
+* ui16 major (version)
+* ui16 minor
+* ui16 release
+* i16 NULL
+
+
+Second 64-bit block:
+* ui8 dtype
+* ui8 stype
+* ui8 itype # ui32 for dense
+* ui8 symm
+* i16 NULL
+* ui16 dim    # if 1, NVector; otherwise, NMatrix
+
+
+3rd - nth 64-bit block: shape
+
+itype sets the number of bytes allocated for each shape entry. Since only yale uses itype, dense will pretty
+much always be the UINT32 itype (see nmatrix.h). If the total number of bytes occupied by the shape array is
+less than 8, the rest of the 64-bit block will be padded with zeros.
+
+
+(n+1)th 64-bit block: depends on stype, symm
+
+symm is designed to reduce file size by allowing us to not save certain elements in symmetric, hermitian, skew-
+symmetric, and triangular matrices. These values will be defined in nmatrix.h; 0 indicates standard (no symmetry).
+In later versions, additional patterns may be defined which might even have less to do with symmetry than
+upper/lower do.
+
+When storing a symmetric matrix, we will only store the upper portion. If the matrix is lower triangular, only the
+lower portion will be stored.
+
+For dense, we simply store the contents of the matrix exactly as in memory (or just the upper-triangular part if
+symm is set).
+
+For yale, we store:
+* ui32 ndnz
+* ui32 length (AKA size, the number of elements in A/IJA that aren't nil/undefined)
+
+The latter will serve as the capacity when we read a Yale matrix.
+
+Then we store the a array, again padding with zeros so it's a multiple of 8 bytes.
+
+Then we store the ija array, padding with zeros so it's a multiple of 8 bytes.

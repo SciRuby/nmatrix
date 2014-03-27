@@ -9,8 +9,8 @@
 //
 // == Copyright Information
 //
-// SciRuby is Copyright (c) 2010 - 2012, Ruby Science Foundation
-// NMatrix is Copyright (c) 2012, Ruby Science Foundation
+// SciRuby is Copyright (c) 2010 - 2014, Ruby Science Foundation
+// NMatrix is Copyright (c) 2012 - 2014, John Woods and the Ruby Science Foundation
 //
 // Please see LICENSE.txt for additional copyright notices.
 //
@@ -23,16 +23,18 @@
 //
 // == sl_list.h
 //
-// Singly-linked list implementation
+// Singly-linked list implementation used for List Storage.
 
 #ifndef SL_LIST_H
 #define SL_LIST_H
+
 
 /*
  * Standard Includes
  */
 
-#include <stdlib.h>
+#include <type_traits>
+#include <cstdlib>
 
 /*
  * Project Includes
@@ -42,6 +44,10 @@
 
 #include "data/data.h"
 
+#include "nmatrix.h"
+
+namespace nm { namespace list {
+
 /*
  * Macros
  */
@@ -49,22 +55,6 @@
 /*
  * Types
  */
-
-/* Singly-linked ordered list
- * - holds keys and values
- * - no duplicate keys
- * - keys are ordered
- * - values may be lists themselves
- */
-typedef struct l_node {
-  size_t key;
-  void*  val;
-  struct l_node* next;
-} NODE;
-
-typedef struct {
-  NODE* first;
-} LIST;
 
 /*
  * Data
@@ -79,43 +69,75 @@ typedef struct {
 // Lifecycle //
 ///////////////
 
-LIST*	list_create(void);
-void	list_delete(LIST* list, size_t recursions);
-void	list_mark(LIST* list, size_t recursions);
+LIST*	create(void);
+void	del(LIST* list, size_t recursions);
+void	mark(LIST* list, size_t recursions);
 
 ///////////////
 // Accessors //
 ///////////////
 
-NODE* list_insert(LIST* list, bool replace, size_t key, void* val);
-NODE* list_insert_after(NODE* node, size_t key, void* val);
-void* list_remove(LIST* list, size_t key);
+NODE* insert(LIST* list, bool replace, size_t key, void* val);
+NODE* insert_copy(LIST *list, bool replace, size_t key, void *val, size_t size);
+NODE* insert_first_node(LIST* list, size_t key, void* val, size_t val_size);
+NODE* insert_first_list(LIST* list, size_t key, LIST* l);
+NODE* insert_after(NODE* node, size_t key, void* val);
+NODE* replace_insert_after(NODE* node, size_t key, void* val, bool copy, size_t copy_size);
+void* remove(LIST* list, size_t key);
+void* remove_by_node(LIST* list, NODE* prev, NODE* rm);
+bool remove_recursive(LIST* list, const size_t* coords, const size_t* offset, const size_t* lengths, size_t r, const size_t& dim);
+bool node_is_within_slice(NODE* n, size_t coord, size_t len);
+
+template <typename Type>
+inline NODE* insert_helper(LIST* list, NODE* node, size_t key, Type val) {
+	Type* val_mem = NM_ALLOC(Type);
+	*val_mem = val;
+	
+	if (node == NULL) {
+		return insert(list, false, key, val_mem);
+		
+	} else {
+		return insert_after(node, key, val_mem);
+	}
+}
+
+template <typename Type>
+inline NODE* insert_helper(LIST* list, NODE* node, size_t key, Type* ptr) {
+	if (node == NULL) {
+		return insert(list, false, key, ptr);
+		
+	} else {
+		return insert_after(node, key, ptr);
+	}
+}
 
 ///////////
 // Tests //
 ///////////
 
-template <typename LDType, typename RDType>
-bool list_eqeq_list_template(const LIST* left, const LIST* right, const void* left_val, const void* right_val, size_t recursions, size_t* checked);
-
-template <typename LDType, typename RDType>
-bool list_eqeq_value_template(const LIST* l, const void* v, size_t recursions, size_t* checked);
 
 /////////////
 // Utility //
 /////////////
 
-NODE* list_find(LIST* list, size_t key);
-NODE* list_find_preceding_from(NODE* prev, size_t key);
-NODE* list_find_nearest(LIST* list, size_t key);
-NODE* list_find_nearest_from(NODE* prev, size_t key);
+NODE* find(LIST* list, size_t key);
+NODE* find_preceding_from_node(NODE* prev, size_t key);
+NODE* find_preceding_from_list(LIST* l, size_t key);
+NODE* find_nearest(LIST* list, size_t key);
+NODE* find_nearest_from(NODE* prev, size_t key);
 
 /////////////////////////
 // Copying and Casting //
 /////////////////////////
 
 template <typename LDType, typename RDType>
-static void list_cast_copy_contents_template(LIST* lhs, const LIST* rhs, size_t recursions);
-void list_cast_copy_contents(LIST* lhs, const LIST* rhs, dtype_t lhs_dtype, dtype_t rhs_dtype, size_t recursions);
+void cast_copy_contents(LIST* lhs, const LIST* rhs, size_t recursions);
+
+}} // end of namespace nm::list
+
+extern "C" {
+  void nm_list_cast_copy_contents(LIST* lhs, const LIST* rhs, nm::dtype_t lhs_dtype, nm::dtype_t rhs_dtype, size_t recursions);
+  VALUE nm_list_copy_to_hash(const LIST* l, const nm::dtype_t dtype, size_t recursions, VALUE default_value);
+} // end of extern "C" block
 
 #endif // SL_LIST_H

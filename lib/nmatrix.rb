@@ -8,8 +8,8 @@
 #
 # == Copyright Information
 #
-# SciRuby is Copyright (c) 2010 - 2012, Ruby Science Foundation
-# NMatrix is Copyright (c) 2012, Ruby Science Foundation
+# SciRuby is Copyright (c) 2010 - 2014, Ruby Science Foundation
+# NMatrix is Copyright (c) 2012 - 2014, John Woods and the Ruby Science Foundation
 #
 # Please see LICENSE.txt for additional copyright notices.
 #
@@ -22,30 +22,21 @@
 #
 # == nmatrix.rb
 #
-# This file loads the C extension for NMatrix and adds an autoload for the
-# NMatrix and NVector classes.
-
-############
-# Requires #
-############
-
-# NMatrix
+# This file loads the C extension for NMatrix and all the ruby files.
+#
 
 # For some reason nmatrix.so ends up in a different place during gem build.
-if File.exist? 'lib/nmatrix/nmatrix.so'
-	# Development
-	require 'nmatrix/nmatrix.so'
+if File.exist?("lib/nmatrix/nmatrix.so") #|| File.exist?("lib/nmatrix/nmatrix.bundle")
+  # Development
+  require "nmatrix/nmatrix.so"
 else
-	# Gem
-	require 'nmatrix.so'
+  # Gem
+  require "nmatrix.so"
 end
 
-# Monkey patches.
+require 'nmatrix/nmatrix.rb'
+require 'nmatrix/version.rb'
+#require 'nmatrix/nvector.rb'
+require 'nmatrix/blas.rb'
 require 'nmatrix/monkeys'
-
-#############
-# Autoloads #
-#############
-
-autoload :NMatrix, 'nmatrix/nmatrix'
-autoload :NVector, 'nmatrix/nvector'
+require "nmatrix/shortcuts.rb"

@@ -9,8 +9,8 @@
 //
 // == Copyright Information
 //
-// SciRuby is Copyright (c) 2010 - 2012, Ruby Science Foundation
-// NMatrix is Copyright (c) 2012, Ruby Science Foundation
+// SciRuby is Copyright (c) 2010 - 2014, Ruby Science Foundation
+// NMatrix is Copyright (c) 2012 - 2014, John Woods and the Ruby Science Foundation
 //
 // Please see LICENSE.txt for additional copyright notices.
 //
@@ -35,58 +35,75 @@
 #include <ruby.h>
 
 /*
- * Project Includes
- */
-
-/*
- * Macros
- */
-
-/*
- * Types
- */
-
-/*
  * Data
  */
 
-extern ID rbsym_real,
-					rbsym_imag,
+extern ID nm_rb_dtype,
+          nm_rb_stype,
+
+          nm_rb_capacity,
+          nm_rb_default,
+
+          nm_rb_real,
+					nm_rb_imag,
 		
-					rbsym_numer,
-					rbsym_denom,
+					nm_rb_numer,
+					nm_rb_denom,
 		
-					rbsym_complex_conjugate,
-					rbsym_transpose,
-					rbsym_no_transpose,
+					nm_rb_complex_conjugate,
+					nm_rb_transpose,
+					nm_rb_no_transpose,
+					nm_rb_left,
+					nm_rb_right,
+					nm_rb_upper,
+					nm_rb_lower,
+					nm_rb_unit,
+					nm_rb_nonunit,
 		
-					rbsym_dense,
-					rbsym_list,
-					rbsym_yale,
+					nm_rb_dense,
+					nm_rb_list,
+					nm_rb_yale,
+
+          nm_rb_row,
+          nm_rb_column,
 		
-					rbsym_add,
-					rbsym_sub,
-					rbsym_mul,
-					rbsym_div,
+					nm_rb_add,
+					nm_rb_sub,
+					nm_rb_mul,
+					nm_rb_div,
+
+					nm_rb_negate,
 		
-					rbsym_percent,
-					rbsym_gt,
-					rbsym_lt,
-					rbsym_eql,
-					rbsym_neql,
-					rbsym_gte,
-					rbsym_lte;
+					nm_rb_percent,
+					nm_rb_gt,
+					nm_rb_lt,
+					nm_rb_eql,
+					nm_rb_neql,
+					nm_rb_gte,
+					nm_rb_lte,
+
+					nm_rb_hash;
 
 extern VALUE	cNMatrix,
+              cNMatrix_IO,
+              cNMatrix_IO_Matlab,
 							cNVector,
+							cNMatrix_YaleFunctions,
+							cNMatrix_BLAS,
+							cNMatrix_LAPACK,
+
+							cNMatrix_GC_holder,
 			
 							nm_eDataTypeError,
-							nm_eStorageTypeError;
+              nm_eConvergenceError,
+							nm_eStorageTypeError,
+							nm_eShapeError,
+							nm_eNotInvertibleError;
 
 /*
  * Functions
  */
 
-void ruby_constants_init(void);
+void nm_init_ruby_constants(void);
 
 #endif // RUBY_CONSTANTS_H

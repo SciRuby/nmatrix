@@ -9,8 +9,8 @@
 //
 // == Copyright Information
 //
-// SciRuby is Copyright (c) 2010 - 2012, Ruby Science Foundation
-// NMatrix is Copyright (c) 2012, Ruby Science Foundation
+// SciRuby is Copyright (c) 2010 - 2014, Ruby Science Foundation
+// NMatrix is Copyright (c) 2012 - 2014, John Woods and the Ruby Science Foundation
 //
 // Please see LICENSE.txt for additional copyright notices.
 //
@@ -32,11 +32,7 @@
  * Standard Includes
  */
 
-#include <stdint.h>
-
-/*
- * Project Includes
- */
+#include <cstdint>
 
 /*
  * Macros
@@ -53,29 +49,6 @@
 typedef float		float32_t;
 typedef double	float64_t;
 
-
-#ifndef HAVE_SIZE_T
-  typedef u_int64_t    size_t;
-# define SIZE_T   INT64
-#else
-# if SIZEOF_SIZE_T == 8
-#  define SIZE_T  INT64
-# else
-#  if SIZEOF_SIZE_T == 4
-#   define SIZE_T INT32
-#  else
-#warning Please define size_t and y_size_t manually because sizeof(size_t) is neither 8 nor 4.
-#  endif
-# endif
-#endif
-
-
-/*
- * Data
- */
-
-/*
- * Functions
- */
+typedef size_t  IType;
 
 #endif
