@@ -737,12 +737,11 @@ size_t nm_dense_storage_pos(const DENSE_STORAGE* s, const size_t* coords) {
 void nm_dense_storage_coords(const DENSE_STORAGE* s, const size_t slice_pos, size_t* coords_out) {
 
   size_t temp_pos = slice_pos;
-
+  
   for (size_t i = 0; i < s->dim; ++i) {
     coords_out[i] = (temp_pos - temp_pos % s->stride[i])/s->stride[i] - s->offset[i];
     temp_pos = temp_pos % s->stride[i];
   }
-
 }
 
 /*
@@ -834,16 +833,13 @@ STORAGE* nm_dense_storage_copy_transposed(const STORAGE* rhs_base) {
   DENSE_STORAGE* rhs = (DENSE_STORAGE*)rhs_base;
 
   nm_dense_storage_register(rhs);
-
   size_t *shape = NM_ALLOC_N(size_t, rhs->dim);
 
-  // swap shape and offset
+  // swap shape
   shape[0] = rhs->shape[1];
   shape[1] = rhs->shape[0];
 
   DENSE_STORAGE *lhs = nm_dense_storage_create(rhs->dtype, shape, rhs->dim, NULL, 0);
-  lhs->offset[0] = rhs->offset[1];
-  lhs->offset[1] = rhs->offset[0];
 
   nm_dense_storage_register(lhs);
 
@@ -916,18 +912,17 @@ void ref_slice_copy_transposed(const DENSE_STORAGE* rhs, DENSE_STORAGE* lhs) {
 
   LDType* lhs_els = reinterpret_cast<LDType*>(lhs->elements);
   RDType* rhs_els = reinterpret_cast<RDType*>(rhs->elements);
-
-  size_t count = nm_storage_count_max_elements(lhs);
+  size_t count = nm_storage_count_max_elements(lhs);;
   size_t* temp_coords = NM_ALLOCA_N(size_t, lhs->dim);
   size_t coord_swap_temp;
-
-  while (count-- > 0) {
+  
+   while (count-- > 0) {
     nm_dense_storage_coords(lhs, count, temp_coords);
     NM_SWAP(temp_coords[0], temp_coords[1], coord_swap_temp);
     size_t r_coord = nm_dense_storage_pos(rhs, temp_coords);
     lhs_els[count] = rhs_els[r_coord];
   }
-
+  
   nm_dense_storage_unregister(rhs);
   nm_dense_storage_unregister(lhs);
 
