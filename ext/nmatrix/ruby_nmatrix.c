@@ -156,6 +156,7 @@ static VALUE nm_multiply(VALUE left_v, VALUE right_v);
 static VALUE nm_det_exact(VALUE self);
 static VALUE nm_inverse_exact(VALUE self, VALUE inverse);
 static VALUE nm_complex_conjugate_bang(VALUE self);
+static VALUE nm_complex_conjugate(VALUE self);
 static VALUE nm_reshape_bang(VALUE self, VALUE arg);
 
 static nm::dtype_t	interpret_dtype(int argc, VALUE* argv, nm::stype_t stype);
@@ -262,6 +263,7 @@ void Init_nmatrix() {
 	rb_define_method(cNMatrix, "det_exact", (METHOD)nm_det_exact, 0);
 	rb_define_protected_method(cNMatrix, "__inverse_exact__", (METHOD)nm_inverse_exact, 1);
 	rb_define_method(cNMatrix, "complex_conjugate!", (METHOD)nm_complex_conjugate_bang, 0);
+	rb_define_method(cNMatrix, "complex_conjugate", (METHOD)nm_complex_conjugate, 0);
 	rb_define_protected_method(cNMatrix, "reshape_bang", (METHOD)nm_reshape_bang, 1);
 
 	rb_define_protected_method(cNMatrix, "__dense_each__", (METHOD)nm_dense_each, 0);
@@ -981,11 +983,10 @@ static VALUE nm_hermitian(VALUE self) {
 
 /*
  * call-seq:
- *     complex_conjugate -> NMatrix
+ *     complex_conjugate_bang -> NMatrix
  *
  * Transform the matrix (in-place) to its complex conjugate. Only works on complex matrices.
  *
- * FIXME: For non-complex matrices, someone needs to implement a non-in-place complex conjugate (which doesn't use a bang).
  * Bang should imply that no copy is being made, even temporarily.
  */
 static VALUE nm_complex_conjugate_bang(VALUE self) {
@@ -1023,11 +1024,20 @@ static VALUE nm_complex_conjugate_bang(VALUE self) {
       reinterpret_cast<nm::Complex128*>(elem)[p].i = -reinterpret_cast<nm::Complex128*>(elem)[p].i;
     }
 
-  } else {
-    rb_raise(nm_eDataTypeError, "can only calculate in-place complex conjugate on matrices of type :complex64 or :complex128");
-  }
-
+  } 
   return self;
+}
+
+/*
+ * call-seq:
+ *     complex_conjugate -> NMatrix
+ *
+ * Transform the matrix (non-in-place) to its complex conjugate. Only works on complex matrices.
+ *
+ */
+static VALUE nm_complex_conjugate(VALUE self) {
+  VALUE copy;
+  return nm_complex_conjugate_bang(nm_init_copy(copy,self));
 }
 
 

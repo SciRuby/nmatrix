@@ -89,7 +89,7 @@ describe NMatrix do
     it "correctly accepts :scale parameter" do
       m = NMatrix.random([2,2], dtype: :byte, scale: 255)
       m.each do |v|
-        expect(v).to be > 0
+        expect(v).to be >= 0
         expect(v).to be < 255
       end
     end

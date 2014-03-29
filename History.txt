@@ -583,3 +583,26 @@
   * NMatrix::random now raises an exception when rational matrices
     are requested
 
+=== 0.1.0.rc3 / 2014-03-27
+
+* No major enhancements.
+
+* 2 minor enhancements:
+
+  * Exposed NMatrix::LAPACK::geev for LAPACK's xGEEV
+
+  * Added out-of-place complex conjugate for dense and yale storage 
+    (by @rve)
+
+* 1 bug fixes:
+
+  * Fixed critical bug with transposing a matrix reference slice (by
+    @rajatkapoor)
+
+=== 0.1.0.rc4 / 2014-04-??
+
+* No major enhancements.
+
+* No minor enhancements.
+
+* No bug fixes.
