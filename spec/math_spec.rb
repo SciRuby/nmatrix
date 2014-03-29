@@ -128,7 +128,7 @@ describe "math" do
         context "Floor and ceil for #{stype}" do  
 
           [:floor, :ceil].each do |meth|
-            [:byte,:int8,:int16,:int32,:int64, :float32,:float64,:rational32,:rational64,:rational128, :complex64, :complex128].each do |dtype|
+            [:byte,:int8,:int16,:int32,:int64, :float32,:float64, :object,:rational32,:rational64,:rational128, :complex64, :complex128].each do |dtype|
               context dtype do
                 before :each do
                   @size = [2,2]
@@ -136,12 +136,16 @@ describe "math" do
                   @a    = @m.to_a.flatten
                 end
 
-                if dtype.to_s.match(/int/) or dtype == :byte
+                if dtype.to_s.match(/int/) or [:byte, :object].include?(dtype)
                   it "should return #{dtype} for #{dtype}" do
                     
                     expect(@m.send(meth)).to eq N.new(@size, @a.map { |e| e.send(meth) }, dtype: dtype, stype: stype)
 
-                    expect(@m.send(meth).integer_dtype?).to eq true
+                    if dtype == :object
+                      expect(@m.send(meth).dtype).to eq :object
+                    else
+                      expect(@m.send(meth).integer_dtype?).to eq true
+                    end
                   end
                 elsif dtype.to_s.match(/float/) or dtype.to_s.match(/rational/) 
                   it "should return dtype int64 for #{dtype}" do
