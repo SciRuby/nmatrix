@@ -30,6 +30,7 @@
  */
 
 #include <ruby.h>
+#include <stdexcept>
 
 /*
  * Project Includes
@@ -262,8 +263,13 @@ nm::RubyObject rubyobj_from_cval(void* val, nm::dtype_t dtype) {
 			return RubyObject(*reinterpret_cast<Rational128*>(val));
 
 	  default:
-	  	printf("You tried to convert to a Ruby Object\n");
-	  	throw;
+	  	try {
+	  		throw std::logic_error("Cannot create ruby object");
+	  	}
+	  	catch (std::logic_error err) {
+	  		printf("%s\n", err.what());
+	  	}
+
 	    rb_raise(nm_eDataTypeError, "Conversion to RubyObject requested from unknown/invalid data type (did you try to convert from a VALUE?)");
 	}
 	return Qnil;
