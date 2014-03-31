@@ -191,7 +191,10 @@ static void map_empty_stored_r(RecurseData& result, RecurseData& s, LIST* x, con
   } else {
     std::list<VALUE*> temp_vals;
     while (curr) {
-      VALUE val, s_val = rubyobj_from_cval(curr->val, s.dtype()).rval;
+      VALUE val, s_val;
+      if (s.dtype() == nm::RUBYOBJ) s_val = *reinterpret_cast<nm::RubyObject*>(curr->val);
+      else                          s_val = rubyobj_from_cval(curr->val, s.dtype()).rval;
+
       if (rev) val = rb_yield_values(2, t_init, s_val);
       else     val = rb_yield_values(2, s_val, t_init);
 
@@ -262,7 +265,7 @@ static void map_stored_r(RecurseData& result, RecurseData& left, LIST* x, const 
       size_t key;
       VALUE  val;
 
-      val   = rb_yield_values(1, rubyobj_from_cval(lcurr->val, left.dtype()).rval);
+      val   = rb_yield_values(1, left.dtype() == nm::RUBYOBJ ? *reinterpret_cast<VALUE*>(lcurr->val) : rubyobj_from_cval(lcurr->val, left.dtype()).rval);
       key   = lcurr->key - left.offset(rec);
       lcurr = lcurr->next;
 

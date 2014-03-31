@@ -261,10 +261,9 @@ nm::RubyObject rubyobj_from_cval(void* val, nm::dtype_t dtype) {
 		case RATIONAL128:
 			return RubyObject(*reinterpret_cast<Rational128*>(val));
 
-		case RUBYOBJ:
-			return RubyObject(*reinterpret_cast<RubyObject*>(val));
-
 	  default:
+	  	printf("You tried to convert to a Ruby Object\n");
+	  	throw;
 	    rb_raise(nm_eDataTypeError, "Conversion to RubyObject requested from unknown/invalid data type (did you try to convert from a VALUE?)");
 	}
 	return Qnil;
