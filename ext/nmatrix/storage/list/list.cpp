@@ -192,7 +192,7 @@ static void map_empty_stored_r(RecurseData& result, RecurseData& s, LIST* x, con
     std::list<VALUE*> temp_vals;
     while (curr) {
       VALUE val, s_val;
-      if (s.dtype() == nm::RUBYOBJ) s_val = *reinterpret_cast<VALUE*>(curr->val);
+      if (s.dtype() == nm::RUBYOBJ) s_val = (*reinterpret_cast<nm::RubyObject*>(curr->val)).rval;
       else                          s_val = rubyobj_from_cval(curr->val, s.dtype()).rval;
 
       if (rev) val = rb_yield_values(2, t_init, s_val);
