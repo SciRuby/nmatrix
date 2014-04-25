@@ -59,12 +59,12 @@ namespace nm { namespace list {
 /*
  * Data
  */
- 
+
 
 /*
  * Functions
  */
- 
+
 ////////////////
 // Lifecycle //
 ///////////////
@@ -92,10 +92,10 @@ template <typename Type>
 inline NODE* insert_helper(LIST* list, NODE* node, size_t key, Type val) {
 	Type* val_mem = NM_ALLOC(Type);
 	*val_mem = val;
-	
+
 	if (node == NULL) {
 		return insert(list, false, key, val_mem);
-		
+
 	} else {
 		return insert_after(node, key, val_mem);
 	}
@@ -105,7 +105,7 @@ template <typename Type>
 inline NODE* insert_helper(LIST* list, NODE* node, size_t key, Type* ptr) {
 	if (node == NULL) {
 		return insert(list, false, key, ptr);
-		
+
 	} else {
 		return insert_after(node, key, ptr);
 	}

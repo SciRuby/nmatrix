@@ -46,10 +46,10 @@ extern ID nm_rb_dtype,
 
           nm_rb_real,
 					nm_rb_imag,
-		
+
 					nm_rb_numer,
 					nm_rb_denom,
-		
+
 					nm_rb_complex_conjugate,
 					nm_rb_transpose,
 					nm_rb_no_transpose,
@@ -59,21 +59,21 @@ extern ID nm_rb_dtype,
 					nm_rb_lower,
 					nm_rb_unit,
 					nm_rb_nonunit,
-		
+
 					nm_rb_dense,
 					nm_rb_list,
 					nm_rb_yale,
 
           nm_rb_row,
           nm_rb_column,
-		
+
 					nm_rb_add,
 					nm_rb_sub,
 					nm_rb_mul,
 					nm_rb_div,
 
 					nm_rb_negate,
-		
+
 					nm_rb_percent,
 					nm_rb_gt,
 					nm_rb_lt,
@@ -93,7 +93,7 @@ extern VALUE	cNMatrix,
 							cNMatrix_LAPACK,
 
 							cNMatrix_GC_holder,
-			
+
 							nm_eDataTypeError,
               nm_eConvergenceError,
 							nm_eStorageTypeError,

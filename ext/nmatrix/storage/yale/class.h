@@ -848,7 +848,7 @@ public:
           t_init    = t.const_default_value();
     nm_register_value(s_init);
     nm_register_value(t_init);
-    
+
     // Make a reasonable approximation of the resulting capacity
     size_t s_ndnz   = count_copy_ndnz(),
            t_ndnz   = t.count_copy_ndnz();
@@ -1030,7 +1030,7 @@ protected:
 
     if (s->dtype == nm::RUBYOBJ) {
       nm_unregister_values(reinterpret_cast<VALUE*>(v), v_size);
-    }   
+    }
 
     s->ija      = new_ija;
     s->a        = reinterpret_cast<void*>(new_a);

@@ -179,7 +179,7 @@
     size_t*     shape;              \
     size_t*     offset;             \
 	  int			    count;              \
-	  STORAGE*		src;              
+	  STORAGE*		src;
   #define NM_DEF_STORAGE_CHILD_STRUCT_PRE(name)  typedef struct NM_ ## name { \
                                                     NM_DEF_STORAGE_ELEMENTS;
 
@@ -328,7 +328,7 @@ typedef struct __NM_GC_HOLDER {
 #define NM_DENSE_ELEMENTS(val)  (NM_STORAGE_DENSE(val)->elements)
 #define NM_SIZEOF_DTYPE(val)    (DTYPE_SIZES[NM_DTYPE(val)])
 #define NM_REF(val,slice)      (RefFuncs[NM_STYPE(val)]( NM_STORAGE(val), slice, NM_SIZEOF_DTYPE(val) ))
-    
+
 #define NM_MAX(a,b) (((a)>(b))?(a):(b))
 #define NM_MIN(a,b) (((a)>(b))?(b):(a))
 #define NM_SWAP(a,b,tmp) {(tmp)=(a);(a)=(b);(b)=(tmp);}

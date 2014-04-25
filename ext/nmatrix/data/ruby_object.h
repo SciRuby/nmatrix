@@ -56,32 +56,32 @@
 
 namespace nm {
 template<typename T, typename U>
-struct made_from_same_template : std::false_type {}; 
- 
+struct made_from_same_template : std::false_type {};
+
 template<template<typename> class Templ, typename Arg1, typename Arg2>
 struct made_from_same_template<Templ<Arg1>, Templ<Arg2>> : std::true_type {};
 
 class RubyObject {
 	public:
 	VALUE rval;
-	
+
 	/*
 	 * Value constructor.
 	 */
 	inline RubyObject(VALUE ref = Qnil) : rval(ref) {}
-	
+
 	/*
 	 * Complex number constructor.
 	 */
 	template <typename FloatType, typename = typename std::enable_if<std::is_floating_point<FloatType>::value>::type>
 	inline RubyObject(const Complex<FloatType>& other) : rval(rb_complex_new(rb_float_new(other.r), rb_float_new(other.i))) {}
-	
+
 	/*
 	 * Rational number constructor.
 	 */
 	template <typename IntType, typename = typename std::enable_if<std::is_integral<IntType>::value>::type>
 	inline RubyObject(const Rational<IntType>& other) : rval(rb_rational_new(INT2FIX(other.n), INT2FIX(other.d))) {}
-	
+
 	/*
 	 * Integer constructor.
 	 *
@@ -151,7 +151,7 @@ class RubyObject {
 	/*
 	 * Binary operator definitions.
 	 */
-	
+
 	inline RubyObject operator+(const RubyObject& other) const {
 		return RubyObject(rb_funcall(this->rval, nm_rb_add, 1, other.rval));
 	}
@@ -169,7 +169,7 @@ class RubyObject {
     this->rval = rb_funcall(this->rval, nm_rb_sub, 1, other.rval);
     return *this;
 	}
-	
+
 	inline RubyObject operator*(const RubyObject& other) const {
 		return RubyObject(rb_funcall(this->rval, nm_rb_mul, 1, other.rval));
 	}
@@ -178,7 +178,7 @@ class RubyObject {
     this->rval = rb_funcall(this->rval, nm_rb_mul, 1, other.rval);
     return *this;
 	}
-	
+
 	inline RubyObject operator/(const RubyObject& other) const {
 		return RubyObject(rb_funcall(this->rval, nm_rb_div, 1, other.rval));
 	}
@@ -187,15 +187,15 @@ class RubyObject {
     this->rval = rb_funcall(this->rval, nm_rb_div, 1, other.rval);
     return *this;
 	}
-	
+
 	inline RubyObject operator%(const RubyObject& other) const {
 		return RubyObject(rb_funcall(this->rval, nm_rb_percent, 1, other.rval));
 	}
-	
+
 	inline bool operator>(const RubyObject& other) const {
 		return rb_funcall(this->rval, nm_rb_gt, 1, other.rval) == Qtrue;
 	}
-	
+
 	inline bool operator<(const RubyObject& other) const {
 		return rb_funcall(this->rval, nm_rb_lt, 1, other.rval) == Qtrue;
 	}
@@ -204,7 +204,7 @@ class RubyObject {
 	inline bool operator<(const OtherType& other) const {
 		return *this < RubyObject(other);
 	}
-	
+
 	inline bool operator==(const RubyObject& other) const {
 		return rb_funcall(this->rval, nm_rb_eql, 1, other.rval) == Qtrue;
 	}
@@ -213,7 +213,7 @@ class RubyObject {
 	inline bool operator==(const OtherType& other) const {
 		return *this == RubyObject(other);
 	}
-	
+
 	inline bool operator!=(const RubyObject& other) const {
 		return rb_funcall(this->rval, nm_rb_neql, 1, other.rval) == Qtrue;
 	}
@@ -222,7 +222,7 @@ class RubyObject {
 	inline bool operator!=(const OtherType& other) const {
 		return *this != RubyObject(other);
 	}
-	
+
 	inline bool operator>=(const RubyObject& other) const {
 		return rb_funcall(this->rval, nm_rb_gte, 1, other.rval) == Qtrue;
 	}
@@ -231,7 +231,7 @@ class RubyObject {
 	inline bool operator>=(const OtherType& other) const {
 		return *this >= RubyObject(other);
 	}
-	
+
 	inline bool operator<=(const RubyObject& other) const {
 		return rb_funcall(this->rval, nm_rb_lte, 1, other.rval) == Qtrue;
 	}
@@ -290,7 +290,7 @@ class RubyObject {
 	inline typename std::enable_if<std::is_integral<IntType>::value, IntType>::type to(void) {
 		return NUM2INT(this->rval);
 	}
-	
+
 	/*
 	 * Convert a Ruby object to a floating point number.
 	 */
@@ -298,7 +298,7 @@ class RubyObject {
 	inline typename std::enable_if<std::is_floating_point<FloatType>::value, FloatType>::type to(void) {
 		return NUM2DBL(this->rval);
 	}
-	
+
 	/*
 	 * Convert a Ruby object to a complex number.
 	 */
@@ -306,15 +306,15 @@ class RubyObject {
 	inline typename std::enable_if<made_from_same_template<ComplexType, Complex64>::value, ComplexType>::type to(void) const {
 		if (FIXNUM_P(this->rval) or TYPE(this->rval) == T_FLOAT or TYPE(this->rval) == T_RATIONAL) {
 			return ComplexType(NUM2DBL(this->rval));
-			
+
 		} else if (TYPE(this->rval) == T_COMPLEX) {
 			return ComplexType(NUM2DBL(rb_funcall(this->rval, nm_rb_real, 0)), NUM2DBL(rb_funcall(this->rval, nm_rb_imag, 0)));
-			
+
 		} else {
 			rb_raise(rb_eTypeError, "Invalid conversion to Complex type.");
 		}
 	}
-	
+
 	/*
 	 * Convert a Ruby object to a rational number.
 	 */
@@ -322,10 +322,10 @@ class RubyObject {
 	inline typename std::enable_if<made_from_same_template<RationalType, Rational32>::value, RationalType>::type to(void) const {
 		if (FIXNUM_P(this->rval) or TYPE(this->rval) == T_FLOAT or TYPE(this->rval) == T_COMPLEX) {
 			return RationalType(NUM2INT(this->rval));
-			
+
 		} else if (TYPE(this->rval) == T_RATIONAL) {
 			return RationalType(NUM2INT(rb_funcall(this->rval, nm_rb_numer, 0)), NUM2INT(rb_funcall(this->rval, nm_rb_denom, 0)));
-			
+
 		} else {
 			rb_raise(rb_eTypeError, "Invalid conversion to Rational type.");
 		}

@@ -141,7 +141,7 @@ namespace nm { namespace dense_storage {
       v_size           = nm_storage_count_max_elements(t);
 
     } else if (TYPE(right) == T_ARRAY) {
-      
+
       v_size = RARRAY_LEN(right);
       v      = NM_ALLOC_N(D, v_size);
       if (s->dtype == nm::RUBYOBJ)
@@ -237,7 +237,7 @@ DENSE_STORAGE* nm_dense_storage_create(nm::dtype_t dtype, size_t* shape, size_t 
 
   if (elements_length == count) {
     s->elements = elements;
-    
+
     if (dtype == nm::RUBYOBJ)
       nm_unregister_values(reinterpret_cast<VALUE*>(elements), elements_length);
 
@@ -466,7 +466,7 @@ VALUE nm_dense_map(VALUE self) {
 VALUE nm_dense_each_with_indices(VALUE nmatrix) {
 
   NM_CONSERVATIVE(nm_register_value(nmatrix));
-  
+
   RETURN_SIZED_ENUMERATOR_PRE
   NM_CONSERVATIVE(nm_unregister_value(nmatrix));
   RETURN_SIZED_ENUMERATOR(nmatrix, 0, 0, nm_enumerator_length); // fourth argument only used by Ruby2+
@@ -850,7 +850,7 @@ STORAGE* nm_dense_storage_copy_transposed(const STORAGE* rhs_base) {
 
     if (!ttable[lhs->dtype][rhs->dtype]) {
       nm_dense_storage_unregister(rhs);
-      nm_dense_storage_unregister(lhs);      
+      nm_dense_storage_unregister(lhs);
       rb_raise(nm_eDataTypeError, "transposition between these dtypes is undefined");
     }
 

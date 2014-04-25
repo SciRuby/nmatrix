@@ -604,7 +604,7 @@ namespace yale_storage { // FIXME: Move to yale.cpp
 
     IType ija = lhs->shape[0]+1;
 
-    // Copy contents 
+    // Copy contents
     for (NODE* i_curr = rhs->rows->first; i_curr; i_curr = i_curr->next) {
 
       // Shrink reference
@@ -612,7 +612,7 @@ namespace yale_storage { // FIXME: Move to yale.cpp
       if (i < 0 || i >= (int)rhs->shape[0]) continue;
 
       for (NODE* j_curr = ((LIST*)(i_curr->val))->first; j_curr; j_curr = j_curr->next) {
-        
+
         // Shrink reference
         int j = j_curr->key - rhs->offset[1];
         if (j < 0 || j >= (int)rhs->shape[1]) continue;
@@ -635,7 +635,7 @@ namespace yale_storage { // FIXME: Move to yale.cpp
       }
 
     }
-    
+
     lhs_ija[rhs->shape[0]] = ija; // indicate the end of the last row
     lhs->ndnz = ndnz;
 

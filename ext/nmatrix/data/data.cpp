@@ -85,8 +85,8 @@ namespace nm {
     "asin", "acos", "atan",
     "sinh", "cosh", "tanh",
     "asinh", "acosh", "atanh",
-    "exp", "log2", 
-    "log10", "sqrt", "erf", 
+    "exp", "log2",
+    "log10", "sqrt", "erf",
     "erfc", "cbrt", "gamma",
     "negate", "floor", "ceil"
   };
@@ -252,13 +252,13 @@ nm::RubyObject rubyobj_from_cval(void* val, nm::dtype_t dtype) {
 
 		case COMPLEX128:
 			return RubyObject(*reinterpret_cast<Complex128*>(val));
-			
+
 		case RATIONAL32:
 			return RubyObject(*reinterpret_cast<Rational32*>(val));
-			
+
 		case RATIONAL64:
 			return RubyObject(*reinterpret_cast<Rational64*>(val));
-			
+
 		case RATIONAL128:
 			return RubyObject(*reinterpret_cast<Rational128*>(val));
 

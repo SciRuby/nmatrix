@@ -1024,7 +1024,7 @@ static VALUE nm_complex_conjugate_bang(VALUE self) {
       reinterpret_cast<nm::Complex128*>(elem)[p].i = -reinterpret_cast<nm::Complex128*>(elem)[p].i;
     }
 
-  } 
+  }
   return self;
 }
 
@@ -1051,7 +1051,7 @@ static VALUE nm_complex_conjugate(VALUE self) {
  */
 static VALUE nm_reshape_bang(VALUE self, VALUE arg){
   NMATRIX* m;
-  UnwrapNMatrix(self, m); 
+  UnwrapNMatrix(self, m);
   if(m->stype == nm::DENSE_STORE){
     DENSE_STORAGE* s   = NM_STORAGE_DENSE(self);
     VALUE shape_ary = arg;
@@ -1059,12 +1059,11 @@ static VALUE nm_reshape_bang(VALUE self, VALUE arg){
     size_t size = nm_storage_count_max_elements(s);
     size_t new_size = 1;
     size_t* shape = interpret_shape(shape_ary, &dim);
-    void* elem = s->elements;
     for (size_t index = 0; index < dim; ++index){
       new_size *= shape[index];}
- 
+
     if (size == new_size){
-      s->shape = shape; 
+      s->shape = shape;
       s->dim = dim;
       size_t i, j;
       size_t* stride = NM_ALLOC_N(size_t, dim);
@@ -1078,7 +1077,7 @@ static VALUE nm_reshape_bang(VALUE self, VALUE arg){
       return self;
      }
      else
-       rb_raise(rb_eArgError, "reshape cannot resize; size of new and old matrices must match");  
+       rb_raise(rb_eArgError, "reshape cannot resize; size of new and old matrices must match");
   }
   else {
     rb_raise(rb_eNotImpError, "reshape in place only for dense stype");

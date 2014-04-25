@@ -549,7 +549,7 @@ static char vector_insert_resize(YALE_STORAGE* s, size_t current_size, size_t po
   NM_FREE(s->ija);
   nm_yale_storage_unregister(s);
   NM_FREE(s->a);
-  
+
   if (s->dtype == nm::RUBYOBJ)
     nm_yale_storage_unregister_a(new_a, new_capacity);
 
@@ -943,7 +943,7 @@ static VALUE map_stored(VALUE self) {
   NM_CONSERVATIVE(nm_register_value(self));
   YALE_STORAGE* s = NM_STORAGE_YALE(self);
   YaleStorage<D> y(s);
-  
+
   RETURN_SIZED_ENUMERATOR_PRE
   NM_CONSERVATIVE(nm_unregister_value(self));
   RETURN_SIZED_ENUMERATOR(self, 0, 0, nm_yale_stored_enumerator_length);
@@ -1014,7 +1014,7 @@ static VALUE stored_diagonal_each_with_indices(VALUE nm) {
   RETURN_SIZED_ENUMERATOR_PRE
   NM_CONSERVATIVE(nm_unregister_value(nm));
   RETURN_SIZED_ENUMERATOR(nm, 0, 0, nm_yale_stored_diagonal_length); // FIXME: need diagonal length
-  
+
   for (typename YaleStorage<DType>::const_stored_diagonal_iterator d = y.csdbegin(); d != y.csdend(); ++d) {
     rb_yield_values(3, ~d, d.rb_i(), d.rb_j());
   }
@@ -1123,7 +1123,7 @@ extern "C" {
 void nm_init_yale_functions() {
 	/*
 	 * This module stores methods that are useful for debugging Yale matrices,
-	 * i.e. the ones with +:yale+ stype.	
+	 * i.e. the ones with +:yale+ stype.
 	 */
   cNMatrix_YaleFunctions = rb_define_module_under(cNMatrix, "YaleFunctions");
 
@@ -1555,7 +1555,7 @@ static bool is_pos_default_value(YALE_STORAGE* s, size_t apos) {
  * Only checks the stored indices; does not care about matrix default value.
  */
 static VALUE nm_row_keys_intersection(VALUE m1, VALUE ii1, VALUE m2, VALUE ii2) {
-  
+
   NM_CONSERVATIVE(nm_register_value(m1));
   NM_CONSERVATIVE(nm_register_value(m2));
 
@@ -1658,7 +1658,7 @@ static VALUE nm_a(int argc, VALUE* argv, VALUE self) {
     VALUE* vals = NM_ALLOCA_N(VALUE, size);
 
     nm_register_values(vals, size);
-    
+
     if (NM_DTYPE(self) == nm::RUBYOBJ) {
       for (size_t i = 0; i < size; ++i) {
         vals[i] = reinterpret_cast<VALUE*>(s->a)[i];
@@ -1786,7 +1786,7 @@ static VALUE nm_ia(VALUE self) {
     vals[i] = INT2FIX(s->ija[i]);
   }
 
-  NM_CONSERVATIVE(nm_unregister_value(self)); 
+  NM_CONSERVATIVE(nm_unregister_value(self));
 
   return rb_ary_new4(s->shape[0]+1, vals);
 }
@@ -1887,11 +1887,11 @@ static VALUE nm_ija(int argc, VALUE* argv, VALUE self) {
 static VALUE nm_nd_row(int argc, VALUE* argv, VALUE self) {
 
   NM_CONSERVATIVE(nm_register_value(self));
-  
+
   if (NM_SRC(self) != NM_STORAGE(self)) {
     NM_CONSERVATIVE(nm_unregister_value(self));
     rb_raise(rb_eNotImpError, "must be called on a real matrix and not a slice");
-  }  
+  }
 
   VALUE i_, as;
   rb_scan_args(argc, argv, "11", &i_, &as);
