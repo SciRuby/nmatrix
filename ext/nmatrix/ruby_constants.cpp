@@ -130,7 +130,7 @@ void nm_init_ruby_constants(void) {
 
   nm_rb_negate            = rb_intern("-@");
 
-  nm_rb_percen            = rb_intern("%");
+  nm_rb_percent           = rb_intern("%");
   nm_rb_gt                = rb_intern(">");
   nm_rb_lt                = rb_intern("<");
   nm_rb_eql               = rb_intern("==");

@@ -159,10 +159,10 @@ static VALUE nm_complex_conjugate_bang(VALUE self);
 static VALUE nm_complex_conjugate(VALUE self);
 static VALUE nm_reshape_bang(VALUE self, VALUE arg);
 
-static nm::dtype_t	interpret_dtype(int argc, VALUE* argv, nm::stype_t stype);
-static void*		interpret_initial_value(VALUE arg, nm::dtype_t dtype);
-static size_t*	interpret_shape(VALUE arg, size_t* dim);
-static nm::stype_t	interpret_stype(VALUE arg);
+static nm::dtype_t interpret_dtype(int argc, VALUE* argv, nm::stype_t stype);
+static void* interpret_initial_value(VALUE arg, nm::dtype_t dtype);
+static size_t* interpret_shape(VALUE arg, size_t* dim);
+static nm::stype_t interpret_stype(VALUE arg);
 
 /* Singleton methods */
 static VALUE nm_upcast(VALUE self, VALUE t1, VALUE t2);
@@ -179,29 +179,29 @@ static double get_time(void);
 void Init_nmatrix() {
 
 
-	///////////////////////
-	// Class Definitions //
-	///////////////////////
+  ///////////////////////
+  // Class Definitions //
+  ///////////////////////
 
-	cNMatrix = rb_define_class("NMatrix", rb_cObject);
-	//cNVector = rb_define_class("NVector", cNMatrix);
+  cNMatrix = rb_define_class("NMatrix", rb_cObject);
+  //cNVector = rb_define_class("NVector", cNMatrix);
 
-	// Special exceptions
+  // Special exceptions
 
-	/*
-	 * Exception raised when there's a problem with data.
-	 */
-	nm_eDataTypeError    = rb_define_class("DataTypeError", rb_eStandardError);
+  /*
+   * Exception raised when there's a problem with data.
+   */
+  nm_eDataTypeError = rb_define_class("DataTypeError", rb_eStandardError);
 
-	/*
-	 * Exception raised when something goes wrong with the storage of a matrix.
-	 */
-	nm_eStorageTypeError = rb_define_class("StorageTypeError", rb_eStandardError);
+  /*
+   * Exception raised when something goes wrong with the storage of a matrix.
+   */
+  nm_eStorageTypeError = rb_define_class("StorageTypeError", rb_eStandardError);
 
-	/*
-	 * Exception raise when the matrix shape is not appropriate for a given operation.
-	 */
-	nm_eShapeError = rb_define_class("ShapeError", rb_eStandardError);
+  /*
+   * Exception raise when the matrix shape is not appropriate for a given operation.
+   */
+  nm_eShapeError = rb_define_class("ShapeError", rb_eStandardError);
 
   /*
    * Exception raise when an inverse is requested but the matrix is not invertible.
@@ -214,80 +214,80 @@ void Init_nmatrix() {
   cNMatrix_GC_holder = rb_define_class("NMGCHolder", rb_cObject);
 
 
-	///////////////////
-	// Class Methods //
-	///////////////////
+  ///////////////////
+  // Class Methods //
+  ///////////////////
 
-	rb_define_alloc_func(cNMatrix, nm_alloc);
+  rb_define_alloc_func(cNMatrix, nm_alloc);
 
-	///////////////////////
+  ///////////////////////
   // Singleton Methods //
   ///////////////////////
 
-	rb_define_singleton_method(cNMatrix, "upcast", (METHOD)nm_upcast, 2); /* in ext/nmatrix/nmatrix.cpp */
-	rb_define_singleton_method(cNMatrix, "guess_dtype", (METHOD)nm_guess_dtype, 1);
-	rb_define_singleton_method(cNMatrix, "min_dtype", (METHOD)nm_min_dtype, 1);
+  rb_define_singleton_method(cNMatrix, "upcast", (METHOD)nm_upcast, 2); /* in ext/nmatrix/nmatrix.cpp */
+  rb_define_singleton_method(cNMatrix, "guess_dtype", (METHOD)nm_guess_dtype, 1);
+  rb_define_singleton_method(cNMatrix, "min_dtype", (METHOD)nm_min_dtype, 1);
 
-	//////////////////////
-	// Instance Methods //
-	//////////////////////
+  //////////////////////
+  // Instance Methods //
+  //////////////////////
 
-	rb_define_method(cNMatrix, "initialize", (METHOD)nm_init, -1);
-	rb_define_method(cNMatrix, "initialize_copy", (METHOD)nm_init_copy, 1);
-	rb_define_singleton_method(cNMatrix, "read", (METHOD)nm_read, -1);
+  rb_define_method(cNMatrix, "initialize", (METHOD)nm_init, -1);
+  rb_define_method(cNMatrix, "initialize_copy", (METHOD)nm_init_copy, 1);
+  rb_define_singleton_method(cNMatrix, "read", (METHOD)nm_read, -1);
 
-	rb_define_method(cNMatrix, "write", (METHOD)nm_write, -1);
+  rb_define_method(cNMatrix, "write", (METHOD)nm_write, -1);
 
-	// Technically, the following function is a copy constructor.
-	rb_define_protected_method(cNMatrix, "clone_transpose", (METHOD)nm_init_transposed, 0);
+  // Technically, the following function is a copy constructor.
+  rb_define_protected_method(cNMatrix, "clone_transpose", (METHOD)nm_init_transposed, 0);
 
-	rb_define_method(cNMatrix, "dtype", (METHOD)nm_dtype, 0);
-	rb_define_method(cNMatrix, "stype", (METHOD)nm_stype, 0);
-	rb_define_method(cNMatrix, "cast_full",  (METHOD)nm_cast, 3);
-	rb_define_method(cNMatrix, "default_value", (METHOD)nm_default_value, 0);
-	rb_define_protected_method(cNMatrix, "__list_default_value__", (METHOD)nm_list_default_value, 0);
-	rb_define_protected_method(cNMatrix, "__yale_default_value__", (METHOD)nm_yale_default_value, 0);
+  rb_define_method(cNMatrix, "dtype", (METHOD)nm_dtype, 0);
+  rb_define_method(cNMatrix, "stype", (METHOD)nm_stype, 0);
+  rb_define_method(cNMatrix, "cast_full",  (METHOD)nm_cast, 3);
+  rb_define_method(cNMatrix, "default_value", (METHOD)nm_default_value, 0);
+  rb_define_protected_method(cNMatrix, "__list_default_value__", (METHOD)nm_list_default_value, 0);
+  rb_define_protected_method(cNMatrix, "__yale_default_value__", (METHOD)nm_yale_default_value, 0);
 
-	rb_define_method(cNMatrix, "[]", (METHOD)nm_mref, -1);
-	rb_define_method(cNMatrix, "slice", (METHOD)nm_mget, -1);
-	rb_define_method(cNMatrix, "[]=", (METHOD)nm_mset, -1);
-	rb_define_method(cNMatrix, "is_ref?", (METHOD)nm_is_ref, 0);
-	rb_define_method(cNMatrix, "dimensions", (METHOD)nm_dim, 0);
-	rb_define_method(cNMatrix, "effective_dimensions", (METHOD)nm_effective_dim, 0);
+  rb_define_method(cNMatrix, "[]", (METHOD)nm_mref, -1);
+  rb_define_method(cNMatrix, "slice", (METHOD)nm_mget, -1);
+  rb_define_method(cNMatrix, "[]=", (METHOD)nm_mset, -1);
+  rb_define_method(cNMatrix, "is_ref?", (METHOD)nm_is_ref, 0);
+  rb_define_method(cNMatrix, "dimensions", (METHOD)nm_dim, 0);
+  rb_define_method(cNMatrix, "effective_dimensions", (METHOD)nm_effective_dim, 0);
 
-	rb_define_protected_method(cNMatrix, "__list_to_hash__", (METHOD)nm_to_hash, 0); // handles list and dense, which are n-dimensional
+  rb_define_protected_method(cNMatrix, "__list_to_hash__", (METHOD)nm_to_hash, 0); // handles list and dense, which are n-dimensional
 
-	rb_define_method(cNMatrix, "shape", (METHOD)nm_shape, 0);
-	rb_define_method(cNMatrix, "supershape", (METHOD)nm_supershape, 0);
-	rb_define_method(cNMatrix, "offset", (METHOD)nm_offset, 0);
-	rb_define_method(cNMatrix, "det_exact", (METHOD)nm_det_exact, 0);
-	rb_define_protected_method(cNMatrix, "__inverse_exact__", (METHOD)nm_inverse_exact, 1);
-	rb_define_method(cNMatrix, "complex_conjugate!", (METHOD)nm_complex_conjugate_bang, 0);
-	rb_define_method(cNMatrix, "complex_conjugate", (METHOD)nm_complex_conjugate, 0);
-	rb_define_protected_method(cNMatrix, "reshape_bang", (METHOD)nm_reshape_bang, 1);
+  rb_define_method(cNMatrix, "shape", (METHOD)nm_shape, 0);
+  rb_define_method(cNMatrix, "supershape", (METHOD)nm_supershape, 0);
+  rb_define_method(cNMatrix, "offset", (METHOD)nm_offset, 0);
+  rb_define_method(cNMatrix, "det_exact", (METHOD)nm_det_exact, 0);
+  rb_define_protected_method(cNMatrix, "__inverse_exact__", (METHOD)nm_inverse_exact, 1);
+  rb_define_method(cNMatrix, "complex_conjugate!", (METHOD)nm_complex_conjugate_bang, 0);
+  rb_define_method(cNMatrix, "complex_conjugate", (METHOD)nm_complex_conjugate, 0);
+  rb_define_protected_method(cNMatrix, "reshape_bang", (METHOD)nm_reshape_bang, 1);
 
-	rb_define_protected_method(cNMatrix, "__dense_each__", (METHOD)nm_dense_each, 0);
-	rb_define_protected_method(cNMatrix, "__dense_map__", (METHOD)nm_dense_map, 0);
-	rb_define_protected_method(cNMatrix, "__dense_map_pair__", (METHOD)nm_dense_map_pair, 1);
-	rb_define_method(cNMatrix, "each_with_indices", (METHOD)nm_each_with_indices, 0);
-	rb_define_method(cNMatrix, "each_stored_with_indices", (METHOD)nm_each_stored_with_indices, 0);
-	rb_define_method(cNMatrix, "map_stored", (METHOD)nm_map_stored, 0);
-	rb_define_method(cNMatrix, "each_ordered_stored_with_indices", (METHOD)nm_each_ordered_stored_with_indices, 0);
-	rb_define_protected_method(cNMatrix, "__list_map_merged_stored__", (METHOD)nm_list_map_merged_stored, 2);
-	rb_define_protected_method(cNMatrix, "__list_map_stored__", (METHOD)nm_list_map_stored, 1);
-	rb_define_protected_method(cNMatrix, "__yale_map_merged_stored__", (METHOD)nm_yale_map_merged_stored, 2);
-	rb_define_protected_method(cNMatrix, "__yale_map_stored__", (METHOD)nm_yale_map_stored, 0);
-	rb_define_protected_method(cNMatrix, "__yale_stored_diagonal_each_with_indices__", (METHOD)nm_yale_stored_diagonal_each_with_indices, 0);
-	rb_define_protected_method(cNMatrix, "__yale_stored_nondiagonal_each_with_indices__", (METHOD)nm_yale_stored_nondiagonal_each_with_indices, 0);
+  rb_define_protected_method(cNMatrix, "__dense_each__", (METHOD)nm_dense_each, 0);
+  rb_define_protected_method(cNMatrix, "__dense_map__", (METHOD)nm_dense_map, 0);
+  rb_define_protected_method(cNMatrix, "__dense_map_pair__", (METHOD)nm_dense_map_pair, 1);
+  rb_define_method(cNMatrix, "each_with_indices", (METHOD)nm_each_with_indices, 0);
+  rb_define_method(cNMatrix, "each_stored_with_indices", (METHOD)nm_each_stored_with_indices, 0);
+  rb_define_method(cNMatrix, "map_stored", (METHOD)nm_map_stored, 0);
+  rb_define_method(cNMatrix, "each_ordered_stored_with_indices", (METHOD)nm_each_ordered_stored_with_indices, 0);
+  rb_define_protected_method(cNMatrix, "__list_map_merged_stored__", (METHOD)nm_list_map_merged_stored, 2);
+  rb_define_protected_method(cNMatrix, "__list_map_stored__", (METHOD)nm_list_map_stored, 1);
+  rb_define_protected_method(cNMatrix, "__yale_map_merged_stored__", (METHOD)nm_yale_map_merged_stored, 2);
+  rb_define_protected_method(cNMatrix, "__yale_map_stored__", (METHOD)nm_yale_map_stored, 0);
+  rb_define_protected_method(cNMatrix, "__yale_stored_diagonal_each_with_indices__", (METHOD)nm_yale_stored_diagonal_each_with_indices, 0);
+  rb_define_protected_method(cNMatrix, "__yale_stored_nondiagonal_each_with_indices__", (METHOD)nm_yale_stored_nondiagonal_each_with_indices, 0);
 
-	rb_define_method(cNMatrix, "==",	  (METHOD)nm_eqeq,				1);
+  rb_define_method(cNMatrix, "==",     (METHOD)nm_eqeq,         1);
 
-	rb_define_method(cNMatrix, "+",			(METHOD)nm_ew_add,			1);
-	rb_define_method(cNMatrix, "-",			(METHOD)nm_ew_subtract,	1);
-  rb_define_method(cNMatrix, "*",			(METHOD)nm_ew_multiply,	1);
-	rb_define_method(cNMatrix, "/",			(METHOD)nm_ew_divide,		1);
-  rb_define_method(cNMatrix, "**",    (METHOD)nm_ew_power,    1);
-  rb_define_method(cNMatrix, "%",     (METHOD)nm_ew_mod,      1);
+  rb_define_method(cNMatrix, "+",      (METHOD)nm_ew_add,       1);
+  rb_define_method(cNMatrix, "-",      (METHOD)nm_ew_subtract,  1);
+  rb_define_method(cNMatrix, "*",      (METHOD)nm_ew_multiply,  1);
+  rb_define_method(cNMatrix, "/",      (METHOD)nm_ew_divide,    1);
+  rb_define_method(cNMatrix, "**",     (METHOD)nm_ew_power,     1);
+  rb_define_method(cNMatrix, "%",      (METHOD)nm_ew_mod,       1);
 
   rb_define_method(cNMatrix, "atan2", (METHOD)nm_noncom_ew_atan2, -1);
   rb_define_method(cNMatrix, "ldexp", (METHOD)nm_noncom_ew_ldexp, -1);
@@ -316,70 +316,70 @@ void Init_nmatrix() {
   rb_define_method(cNMatrix, "log",   (METHOD)nm_unary_log,  -1);
   rb_define_method(cNMatrix, "-@",    (METHOD)nm_unary_negate,0);
   rb_define_method(cNMatrix, "floor", (METHOD)nm_unary_floor, 0);
-  rb_define_method(cNMatrix, "ceil", (METHOD)nm_unary_ceil, 0);
+  rb_define_method(cNMatrix, "ceil",  (METHOD)nm_unary_ceil,  0);
 
-	rb_define_method(cNMatrix, "=~", (METHOD)nm_ew_eqeq, 1);
-	rb_define_method(cNMatrix, "!~", (METHOD)nm_ew_neq, 1);
-	rb_define_method(cNMatrix, "<=", (METHOD)nm_ew_leq, 1);
-	rb_define_method(cNMatrix, ">=", (METHOD)nm_ew_geq, 1);
-	rb_define_method(cNMatrix, "<", (METHOD)nm_ew_lt, 1);
-	rb_define_method(cNMatrix, ">", (METHOD)nm_ew_gt, 1);
+  rb_define_method(cNMatrix, "=~", (METHOD)nm_ew_eqeq, 1);
+  rb_define_method(cNMatrix, "!~", (METHOD)nm_ew_neq,  1);
+  rb_define_method(cNMatrix, "<=", (METHOD)nm_ew_leq,  1);
+  rb_define_method(cNMatrix, ">=", (METHOD)nm_ew_geq,  1);
+  rb_define_method(cNMatrix, "<",  (METHOD)nm_ew_lt,   1);
+  rb_define_method(cNMatrix, ">",  (METHOD)nm_ew_gt,   1);
 
-	/////////////////////////////
-	// Helper Instance Methods //
-	/////////////////////////////
-	rb_define_protected_method(cNMatrix, "__yale_vector_set__", (METHOD)nm_vector_set, -1);
+  /////////////////////////////
+  // Helper Instance Methods //
+  /////////////////////////////
+  rb_define_protected_method(cNMatrix, "__yale_vector_set__", (METHOD)nm_vector_set, -1);
 
-	/////////////////////////
-	// Matrix Math Methods //
-	/////////////////////////
-	rb_define_method(cNMatrix, "dot",		(METHOD)nm_multiply,		1);
+  /////////////////////////
+  // Matrix Math Methods //
+  /////////////////////////
+  rb_define_method(cNMatrix, "dot", (METHOD)nm_multiply, 1);
 
-	rb_define_method(cNMatrix, "symmetric?", (METHOD)nm_symmetric, 0);
-	rb_define_method(cNMatrix, "hermitian?", (METHOD)nm_hermitian, 0);
+  rb_define_method(cNMatrix, "symmetric?", (METHOD)nm_symmetric, 0);
+  rb_define_method(cNMatrix, "hermitian?", (METHOD)nm_hermitian, 0);
 
-	rb_define_method(cNMatrix, "capacity", (METHOD)nm_capacity, 0);
+  rb_define_method(cNMatrix, "capacity", (METHOD)nm_capacity, 0);
 
-	/////////////////
-	// FFI Methods //
-	/////////////////
-	rb_define_method(cNMatrix, "data_pointer", (METHOD)nm_data_pointer, 0);
+  /////////////////
+  // FFI Methods //
+  /////////////////
+  rb_define_method(cNMatrix, "data_pointer", (METHOD)nm_data_pointer, 0);
 
-	/////////////
-	// Aliases //
-	/////////////
+  /////////////
+  // Aliases //
+  /////////////
 
-	rb_define_alias(cNMatrix, "dim", "dimensions");
-	rb_define_alias(cNMatrix, "effective_dim", "effective_dimensions");
-	rb_define_alias(cNMatrix, "equal?", "eql?");
+  rb_define_alias(cNMatrix, "dim", "dimensions");
+  rb_define_alias(cNMatrix, "effective_dim", "effective_dimensions");
+  rb_define_alias(cNMatrix, "equal?", "eql?");
 
-	///////////////////////
-	// Symbol Generation //
-	///////////////////////
+  ///////////////////////
+  // Symbol Generation //
+  ///////////////////////
 
-	nm_init_ruby_constants();
+  nm_init_ruby_constants();
 
-	//////////////////////////
-	// YaleFunctions module //
-	//////////////////////////
+  //////////////////////////
+  // YaleFunctions module //
+  //////////////////////////
 
-	nm_init_yale_functions();
+  nm_init_yale_functions();
 
-	/////////////////
-	// BLAS module //
-	/////////////////
+  /////////////////
+  // BLAS module //
+  /////////////////
 
-	nm_math_init_blas();
+  nm_math_init_blas();
 
-	///////////////
-	// IO module //
-	///////////////
-	nm_init_io();
+  ///////////////
+  // IO module //
+  ///////////////
+  nm_init_io();
 
-	/////////////////////////////////////////////////
-	// Force compilation of necessary constructors //
-	/////////////////////////////////////////////////
-	nm_init_data();
+  /////////////////////////////////////////////////
+  // Force compilation of necessary constructors //
+  /////////////////////////////////////////////////
+  nm_init_data();
 }
 
 
@@ -607,20 +607,20 @@ void nm_completely_unregister_value(VALUE& val) {
     nm_gc_ll_node* last = NULL;
     while (curr) {
       if (curr->val == &val) {
-	if (last) {
-	  last->next = curr->next;
-	} else {
-	  gc_value_holder_struct->start = curr->next;
-	}
-	nm_gc_ll_node* temp_next = curr->next;
-	curr->next = allocated_pool->start;
-	curr->val = NULL;
-	curr->n = 0;
-	allocated_pool->start = curr;
-	curr = temp_next;
+  if (last) {
+    last->next = curr->next;
+  } else {
+    gc_value_holder_struct->start = curr->next;
+  }
+  nm_gc_ll_node* temp_next = curr->next;
+  curr->next = allocated_pool->start;
+  curr->val = NULL;
+  curr->n = 0;
+  allocated_pool->start = curr;
+  curr = temp_next;
       } else {
-	last = curr;
-	curr = curr->next;
+  last = curr;
+  curr = curr->next;
       }
     }
   }
@@ -1191,7 +1191,7 @@ static VALUE nm_init_new_version(int argc, VALUE* argv, VALUE self) {
 
   if (!NIL_P(initial_ary)) {
 
-    if (TYPE(initial_ary) == T_ARRAY) 	v_size = RARRAY_LEN(initial_ary);
+    if (TYPE(initial_ary) == T_ARRAY)   v_size = RARRAY_LEN(initial_ary);
     else                                v_size = 1;
 
     v = interpret_initial_value(initial_ary, dtype);
@@ -1300,31 +1300,40 @@ static VALUE nm_init_new_version(int argc, VALUE* argv, VALUE self) {
  *
  * Create a new NMatrix.
  *
- * The only mandatory argument is shape, which may be a positive integer or an array of positive integers.
+ * The only mandatory argument is shape, which may be a positive integer or an
+ * array of positive integers.
  *
- * It is recommended that you supply an initialization value or array of values. Without one, Yale and List matrices will
- * be initialized to 0; and dense matrices will be undefined.
+ * It is recommended that you supply an initialization value or array of values.
+ * Without one, Yale and List matrices will be initialized to 0; and dense
+ * matrices will be undefined.
  *
- * Additional options may be provided using keyword arguments. The keywords are +:dtype, +:stype+, +:capacity+, and
- * +:default+. Only Yale uses a capacity argument, which is used to reserve the initial size of its storage vectors.
- * List and Yale both accept a default value (which itself defaults to 0). This default is taken from the initial value
- * if such a value is given; it is more likely to be required when an initial array is provided.
+ * Additional options may be provided using keyword arguments. The keywords are
+ * +:dtype, +:stype+, +:capacity+, and +:default+. Only Yale uses a capacity
+ * argument, which is used to reserve the initial size of its storage vectors.
+ * List and Yale both accept a default value (which itself defaults to 0). This
+ * default is taken from the initial value if such a value is given; it is more
+ * likely to be required when an initial array is provided.
  *
- * The storage type, or stype, is used to specify whether we want a +:dense+, +:list+, or +:yale+ matrix; dense is the
- * default.
+ * The storage type, or stype, is used to specify whether we want a +:dense+,
+ * +:list+, or +:yale+ matrix; dense is the default.
  *
- * The data type, or dtype, can be one of: :byte, :int8, :int16, :int32, :int64, :float32, :float64, :complex64,
- * :complex128, :rational128, or :object. The constructor will attempt to guess it from the initial value/array/default
- * provided, if any. Otherwise, the default is :object, which stores any type of Ruby object.
+ * The data type, or dtype, can be one of: :byte, :int8, :int16, :int32,
+ * :int64, :float32, :float64, :complex64, :complex128, :rational128, or
+ * :object. The constructor will attempt to guess it from the initial
+ * value/array/default provided, if any. Otherwise, the default is :object,
+ * which stores any type of Ruby object.
  *
- * In addition to the above, there is a legacy constructor from the alpha version. To use that version, you must be
- * providing exactly four arguments. It is now deprecated.
+ * In addition to the above, there is a legacy constructor from the alpha
+ * version. To use that version, you must be providing exactly four arguments.
+ * It is now deprecated.
  *
- * There is one additional constructor for advanced users, which takes seven arguments and is only for creating Yale
- * matrices with known IA, JA, and A arrays. This is used primarily internally for IO, e.g., reading Matlab matrices,
- * which are stored in old Yale (not our Yale) format. But be careful; there are no overflow warnings. All of these
- * constructors are defined for power-users. Everyone else should probably resort to the shortcut functions defined in
- * shortcuts.rb.
+ * There is one additional constructor for advanced users, which takes seven
+ * arguments and is only for creating Yale matrices with known IA, JA, and A
+ * arrays. This is used primarily internally for IO, e.g., reading Matlab
+ * matrices, which are stored in old Yale (not our Yale) format. But be
+ * careful; there are no overflow warnings. All of these constructors are
+ * defined for power-users. Everyone else should probably resort to the
+ * shortcut functions defined in shortcuts.rb.
  */
 static VALUE nm_init(int argc, VALUE* argv, VALUE nm) {
   NM_CONSERVATIVE(nm_register_value(nm));
@@ -1333,7 +1342,7 @@ static VALUE nm_init(int argc, VALUE* argv, VALUE nm) {
   if (argc <= 3) { // Call the new constructor unless all four arguments are given (or the 7-arg version is given)
     NM_CONSERVATIVE(nm_unregister_values(argv, argc));
     NM_CONSERVATIVE(nm_unregister_value(nm));
-  	return nm_init_new_version(argc, argv, nm);
+    return nm_init_new_version(argc, argv, nm);
   }
 
   /* First, determine stype (dense by default) */
@@ -1373,36 +1382,36 @@ static VALUE nm_init(int argc, VALUE* argv, VALUE nm) {
   size_t init_cap = 0, init_val_len = 0;
   void* init_val  = NULL;
   if (!SYMBOL_P(argv[1+offset]) || TYPE(argv[1+offset]) == T_ARRAY) {
-  	// Initial value provided (could also be initial capacity, if yale).
+    // Initial value provided (could also be initial capacity, if yale).
 
     if (stype == nm::YALE_STORE && NM_RUBYVAL_IS_NUMERIC(argv[1+offset])) {
       init_cap = FIX2UINT(argv[1+offset]);
 
     } else {
-    	// 4: initial value / dtype
+      // 4: initial value / dtype
       init_val = interpret_initial_value(argv[1+offset], dtype);
 
-      if (TYPE(argv[1+offset]) == T_ARRAY) 	init_val_len = RARRAY_LEN(argv[1+offset]);
+      if (TYPE(argv[1+offset]) == T_ARRAY)   init_val_len = RARRAY_LEN(argv[1+offset]);
       else                                  init_val_len = 1;
     }
 
   } else {
-  	// DType is RUBYOBJ.
+    // DType is RUBYOBJ.
 
     if (stype == nm::DENSE_STORE) {
-    	/*
-    	 * No need to initialize dense with any kind of default value unless it's
-    	 * an RUBYOBJ matrix.
-    	 */
+      /*
+       * No need to initialize dense with any kind of default value unless it's
+       * an RUBYOBJ matrix.
+       */
       if (dtype == nm::RUBYOBJ) {
-      	// Pretend [nil] was passed for RUBYOBJ.
-      	init_val = NM_ALLOC(VALUE);
+        // Pretend [nil] was passed for RUBYOBJ.
+        init_val = NM_ALLOC(VALUE);
         *(VALUE*)init_val = Qnil;
 
         init_val_len = 1;
 
       } else {
-      	init_val = NULL;
+        init_val = NULL;
       }
     } else if (stype == nm::LIST_STORE) {
       init_val = NM_ALLOC_N(char, DTYPE_SIZES[dtype]);
@@ -1588,7 +1597,7 @@ static nm::symm_t interpret_symm(VALUE symm) {
   else if (symm_id == rb_herm)       return nm::HERM;
   else if (symm_id == nm_rb_upper)   return nm::UPPER;
   else if (symm_id == nm_rb_lower)   return nm::LOWER;
-  else                            rb_raise(rb_eArgError, "unrecognized symmetry argument");
+  else                               rb_raise(rb_eArgError, "unrecognized symmetry argument");
 
   return nm::NONSYMM;
 }
@@ -1671,13 +1680,14 @@ static VALUE rb_get_errno_exc(const char* which) {
 }
 
 
-
 /*
- * Binary file writer for NMatrix standard format. file should be a path, which we aren't going to
- * check very carefully (in other words, this function should generally be called from a Ruby
- * helper method). Function also takes a symmetry argument, which allows us to specify that we only want to
- * save the upper triangular portion of the matrix (or if the matrix is a lower triangular matrix, only
- * the lower triangular portion). nil means regular storage.
+ * Binary file writer for NMatrix standard format. file should be a path, which
+ * we aren't going to check very carefully (in other words, this function
+ * should generally be called from a Ruby helper method). Function also takes a
+ * symmetry argument, which allows us to specify that we only want to save the
+ * upper triangular portion of the matrix (or if the matrix is a lower
+ * triangular matrix, only the lower triangular portion). nil means regular
+ * storage.
  */
 static VALUE nm_write(int argc, VALUE* argv, VALUE self) {
   using std::ofstream;
@@ -1775,12 +1785,13 @@ static VALUE nm_write(int argc, VALUE* argv, VALUE self) {
 
 
 /*
- * Binary file reader for NMatrix standard format. file should be a path, which we aren't going to
- * check very carefully (in other words, this function should generally be called from a Ruby
- * helper method).
+ * Binary file reader for NMatrix standard format. file should be a path, which
+ * we aren't going to check very carefully (in other words, this function
+ * should generally be called from a Ruby helper method).
  *
- * Note that currently, this function will by default refuse to read files that are newer than
- * your version of NMatrix. To force an override, set the second argument to anything other than nil.
+ * Note that currently, this function will by default refuse to read files that
+ * are newer than your version of NMatrix. To force an override, set the second
+ * argument to anything other than nil.
  *
  * Returns an NMatrix Ruby object.
  */
@@ -2016,7 +2027,8 @@ static VALUE nm_mset(int argc, VALUE* argv, VALUE self) {
  *
  * For elementwise, use * instead.
  *
- * The two matrices must be of the same stype (for now). If dtype differs, an upcast will occur.
+ * The two matrices must be of the same stype (for now). If dtype differs, an
+ * upcast will occur.
  */
 static VALUE nm_multiply(VALUE left_v, VALUE right_v) {
   NM_CONSERVATIVE(nm_register_value(left_v));
@@ -2091,7 +2103,8 @@ static VALUE nm_multiply(VALUE left_v, VALUE right_v) {
  * In other words, if you set your matrix to be 3x4, the dim is 2. If the
  * matrix was initialized as 3x4x3, the dim is 3.
  *
- * Use #effective_dim to get the dimension of an NMatrix which acts as a vector (e.g., a column or row).
+ * Use #effective_dim to get the dimension of an NMatrix which acts as a vector
+ * (e.g., a column or row).
  */
 static VALUE nm_dim(VALUE self) {
   return INT2FIX(NM_STORAGE(self)->dim);
@@ -2123,7 +2136,8 @@ static VALUE nm_shape(VALUE self) {
  * call-seq:
  *     offset -> Array
  *
- * Get the offset (slice position) of a matrix. Typically all zeros, unless you have a reference slice.
+ * Get the offset (slice position) of a matrix. Typically all zeros, unless you
+ * have a reference slice.
  */
 static VALUE nm_offset(VALUE self) {
   NM_CONSERVATIVE(nm_register_value(self));
@@ -2431,9 +2445,9 @@ static VALUE noncom_elementwise_op(nm::noncom_ewop_t op, VALUE self, VALUE other
         sym = "__list_elementwise_" + nm::NONCOM_EWOP_NAMES[op] + "__";
         break;
       default:
-	NM_CONSERVATIVE(nm_unregister_value(self));
-	NM_CONSERVATIVE(nm_unregister_value(other));
-	rb_raise(rb_eNotImpError, "unknown storage type requested element-wise operation");
+  NM_CONSERVATIVE(nm_unregister_value(self));
+  NM_CONSERVATIVE(nm_unregister_value(other));
+  rb_raise(rb_eNotImpError, "unknown storage type requested element-wise operation");
       }
       NM_CONSERVATIVE(nm_unregister_value(self));
       NM_CONSERVATIVE(nm_unregister_value(other));
@@ -2472,7 +2486,7 @@ static VALUE is_symmetric(VALUE self, bool hermitian) {
         nm_dense_storage_is_hermitian((DENSE_STORAGE*)(m->storage), m->storage->shape[0]);
 
       } else {
-      	nm_dense_storage_is_symmetric((DENSE_STORAGE*)(m->storage), m->storage->shape[0]);
+        nm_dense_storage_is_symmetric((DENSE_STORAGE*)(m->storage), m->storage->shape[0]);
       }
 
     } else {
@@ -2493,7 +2507,8 @@ static VALUE is_symmetric(VALUE self, bool hermitian) {
 /*
  * Guess the dtype given a Ruby VALUE and return it as a symbol.
  *
- * Not to be confused with nm_dtype_guess, which returns an nm::dtype_t. (This calls that.)
+ * Not to be confused with nm_dtype_guess, which returns an nm::dtype_t. (This
+ * calls that.)
  */
 static VALUE nm_guess_dtype(VALUE self, VALUE v) {
   return ID2SYM(rb_intern(DTYPE_NAMES[nm_dtype_guess(v)]));
@@ -2537,13 +2552,14 @@ nm::dtype_t nm_dtype_min_rational(VALUE vv) {
 /*
  * Return the minimum dtype required to store a given value.
  *
- * This is kind of arbitrary. For Float, it always returns :float32 for example, since in some cases neither :float64
- * not :float32 are sufficient.
+ * This is kind of arbitrary. For Float, it always returns :float32 for
+ * example, since in some cases neither :float64 not :float32 are sufficient.
  *
- * This function is used in upcasting for scalar math. We want to ensure that :int8 + 1 does not return an :int64, basically.
+ * This function is used in upcasting for scalar math. We want to ensure that
+ * :int8 + 1 does not return an :int64, basically.
  *
- * FIXME: Eventually, this function should actually look at the value stored in Fixnums (for example), so that it knows
- * whether to return :int64 or :int32.
+ * FIXME: Eventually, this function should actually look at the value stored in
+ * Fixnums (for example), so that it knows whether to return :int64 or :int32.
  */
 nm::dtype_t nm_dtype_min(VALUE v) {
 
@@ -2628,11 +2644,11 @@ nm::dtype_t nm_dtype_guess(VALUE v) {
 #endif
 
   case T_ARRAY:
-  	/*
-  	 * May be passed for dense -- for now, just look at the first element.
+    /*
+     * May be passed for dense -- for now, just look at the first element.
      *
-  	 * TODO: Look at entire array for most specific type.
-  	 */
+     * TODO: Look at entire array for most specific type.
+     */
 
     return nm_dtype_guess(RARRAY_PTR(v)[0]);
 
@@ -2645,8 +2661,8 @@ nm::dtype_t nm_dtype_guess(VALUE v) {
 
 
 /*
- * Allocate and return a SLICE object, which will contain the appropriate coordinate and length information for
- * accessing some part of a matrix.
+ * Allocate and return a SLICE object, which will contain the appropriate
+ * coordinate and length information for accessing some part of a matrix.
  */
 static SLICE* get_slice(size_t dim, int argc, VALUE* arg, size_t* shape) {
   NM_CONSERVATIVE(nm_register_values(arg, argc));
@@ -2755,30 +2771,30 @@ static nm::dtype_t interpret_dtype(int argc, VALUE* argv, nm::stype_t stype) {
   int offset;
 
   switch (argc) {
-  	case 1:
-  		offset = 0;
-  		break;
+    case 1:
+      offset = 0;
+      break;
 
-  	case 2:
-  		offset = 1;
-  		break;
+    case 2:
+      offset = 1;
+      break;
 
-  	default:
-  		rb_raise(rb_eArgError, "Need an initial value or a dtype.");
-  		break;
+    default:
+      rb_raise(rb_eArgError, "Need an initial value or a dtype.");
+      break;
   }
 
   if (SYMBOL_P(argv[offset])) {
-  	return nm_dtype_from_rbsymbol(argv[offset]);
+    return nm_dtype_from_rbsymbol(argv[offset]);
 
   } else if (TYPE(argv[offset]) == T_STRING) {
-  	return nm_dtype_from_rbstring(StringValue(argv[offset]));
+    return nm_dtype_from_rbstring(StringValue(argv[offset]));
 
   } else if (stype == nm::YALE_STORE) {
-  	rb_raise(rb_eArgError, "Yale storage class requires a dtype.");
+    rb_raise(rb_eArgError, "Yale storage class requires a dtype.");
 
   } else {
-  	return nm_dtype_guess(argv[0]);
+    return nm_dtype_guess(argv[0]);
   }
 }
 
@@ -2792,15 +2808,15 @@ static void* interpret_initial_value(VALUE arg, nm::dtype_t dtype) {
   void* init_val;
 
   if (TYPE(arg) == T_ARRAY) {
-  	// Array
+    // Array
     init_val = NM_ALLOC_N(char, DTYPE_SIZES[dtype] * RARRAY_LEN(arg));
     NM_CHECK_ALLOC(init_val);
     for (index = 0; index < RARRAY_LEN(arg); ++index) {
-    	rubyval_to_cval(RARRAY_PTR(arg)[index], dtype, (char*)init_val + (index * DTYPE_SIZES[dtype]));
+      rubyval_to_cval(RARRAY_PTR(arg)[index], dtype, (char*)init_val + (index * DTYPE_SIZES[dtype]));
     }
 
   } else {
-  	// Single value
+    // Single value
     init_val = rubyobj_to_cval(arg, dtype);
   }
 
@@ -2847,13 +2863,13 @@ static size_t* interpret_shape(VALUE arg, size_t* dim) {
  */
 static nm::stype_t interpret_stype(VALUE arg) {
   if (SYMBOL_P(arg)) {
-  	return nm_stype_from_rbsymbol(arg);
+    return nm_stype_from_rbsymbol(arg);
 
   } else if (TYPE(arg) == T_STRING) {
-  	return nm_stype_from_rbstring(StringValue(arg));
+    return nm_stype_from_rbstring(StringValue(arg));
 
   } else {
-  	rb_raise(rb_eArgError, "Expected storage type");
+    rb_raise(rb_eArgError, "Expected storage type");
   }
 }
 
@@ -2972,7 +2988,8 @@ static VALUE nm_inverse_exact(VALUE self, VALUE inverse) {
 /*
  * Calculate the exact determinant of a dense matrix.
  *
- * Returns nil for dense matrices which are not square or number of dimensions other than 2.
+ * Returns nil for dense matrices which are not square or number of dimensions
+ * other than 2.
  *
  * Note: Currently only implemented for 2x2 and 3x3 matrices.
  */
@@ -3009,9 +3026,11 @@ static VALUE nm_det_exact(VALUE self) {
 
 
 /*
- * Returns the pointer to the matrix storage's data. This is useful primarily when you are using FFI with NMatrix --
- * say, for example, you want to pass a float* to some function, and your NMatrix is a :float32 :dense matrix. Then you
- * can call this function and get that pointer directly instead of copying the data.
+ * Returns the pointer to the matrix storage's data. This is useful primarily
+ * when you are using FFI with NMatrix -- say, for example, you want to pass a
+ * float* to some function, and your NMatrix is a :float32 :dense matrix. Then
+ * you can call this function and get that pointer directly instead of copying
+ * the data.
  */
 static VALUE nm_data_pointer(VALUE self) {
   //if (NM_DTYPE(self) == nm::LIST_STORE)
@@ -3051,14 +3070,14 @@ VALUE rb_nmatrix_dense_create(nm::dtype_t dtype, size_t* shape, size_t dim, void
 
   // Do not allow a dim of 1. Treat it as a column or row matrix.
   if (dim == 1) {
-    nm_dim				= 2;
-    shape_copy		= NM_ALLOC_N(size_t, nm_dim);
-    shape_copy[0]	= shape[0];
-    shape_copy[1]	= 1;
+    nm_dim        = 2;
+    shape_copy    = NM_ALLOC_N(size_t, nm_dim);
+    shape_copy[0]  = shape[0];
+    shape_copy[1]  = 1;
 
   } else {
-    nm_dim			= dim;
-    shape_copy	= NM_ALLOC_N(size_t, nm_dim);
+    nm_dim      = dim;
+    shape_copy  = NM_ALLOC_N(size_t, nm_dim);
     memcpy(shape_copy, shape, sizeof(size_t)*nm_dim);
   }
 
@@ -3087,8 +3106,8 @@ VALUE rb_nmatrix_dense_create(nm::dtype_t dtype, size_t* shape, size_t dim, void
  *
  * Basically just a convenience wrapper for rb_nmatrix_dense_create().
  *
- * Returns a properly-wrapped Ruby NMatrix object as a VALUE. Included for backwards compatibility
- * for when NMatrix had an NVector class.
+ * Returns a properly-wrapped Ruby NMatrix object as a VALUE. Included for
+ * backwards compatibility for when NMatrix had an NVector class.
  */
 VALUE rb_nvector_dense_create(nm::dtype_t dtype, void* elements, size_t length) {
   size_t dim = 1, shape = length;
