@@ -46,8 +46,8 @@
  * Types
  */
 
-typedef float		float32_t;
-typedef double	float64_t;
+typedef float   float32_t;
+typedef double  float64_t;
 
 typedef size_t  IType;
 

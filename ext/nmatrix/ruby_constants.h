@@ -45,60 +45,60 @@ extern ID nm_rb_dtype,
           nm_rb_default,
 
           nm_rb_real,
-					nm_rb_imag,
+          nm_rb_imag,
 
-					nm_rb_numer,
-					nm_rb_denom,
+          nm_rb_numer,
+          nm_rb_denom,
 
-					nm_rb_complex_conjugate,
-					nm_rb_transpose,
-					nm_rb_no_transpose,
-					nm_rb_left,
-					nm_rb_right,
-					nm_rb_upper,
-					nm_rb_lower,
-					nm_rb_unit,
-					nm_rb_nonunit,
+          nm_rb_complex_conjugate,
+          nm_rb_transpose,
+          nm_rb_no_transpose,
+          nm_rb_left,
+          nm_rb_right,
+          nm_rb_upper,
+          nm_rb_lower,
+          nm_rb_unit,
+          nm_rb_nonunit,
 
-					nm_rb_dense,
-					nm_rb_list,
-					nm_rb_yale,
+          nm_rb_dense,
+          nm_rb_list,
+          nm_rb_yale,
 
           nm_rb_row,
           nm_rb_column,
 
-					nm_rb_add,
-					nm_rb_sub,
-					nm_rb_mul,
-					nm_rb_div,
+          nm_rb_add,
+          nm_rb_sub,
+          nm_rb_mul,
+          nm_rb_div,
 
-					nm_rb_negate,
+          nm_rb_negate,
 
-					nm_rb_percent,
-					nm_rb_gt,
-					nm_rb_lt,
-					nm_rb_eql,
-					nm_rb_neql,
-					nm_rb_gte,
-					nm_rb_lte,
+          nm_rb_percent,
+          nm_rb_gt,
+          nm_rb_lt,
+          nm_rb_eql,
+          nm_rb_neql,
+          nm_rb_gte,
+          nm_rb_lte,
 
-					nm_rb_hash;
+          nm_rb_hash;
 
-extern VALUE	cNMatrix,
+extern VALUE  cNMatrix,
               cNMatrix_IO,
               cNMatrix_IO_Matlab,
-							cNVector,
-							cNMatrix_YaleFunctions,
-							cNMatrix_BLAS,
-							cNMatrix_LAPACK,
+              cNVector,
+              cNMatrix_YaleFunctions,
+              cNMatrix_BLAS,
+              cNMatrix_LAPACK,
 
-							cNMatrix_GC_holder,
+              cNMatrix_GC_holder,
 
-							nm_eDataTypeError,
+              nm_eDataTypeError,
               nm_eConvergenceError,
-							nm_eStorageTypeError,
-							nm_eShapeError,
-							nm_eNotInvertibleError;
+              nm_eStorageTypeError,
+              nm_eShapeError,
+              nm_eNotInvertibleError;
 
 /*
  * Functions
