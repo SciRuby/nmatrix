@@ -68,24 +68,24 @@ typedef Complex<float64_t> Complex128;
 
 template <typename Type>
 class Complex {
-	public:
-	// The real and immaginary parts of the complex number.
-	Type r;
-	Type i;
+  public:
+  // The real and immaginary parts of the complex number.
+  Type r;
+  Type i;
 
-	/*
-	 * Default constructor.
-	 */
-	inline Complex(Type real = 0, Type imaginary = 0) : r(real), i(imaginary) {}
+  /*
+   * Default constructor.
+   */
+  inline Complex(Type real = 0, Type imaginary = 0) : r(real), i(imaginary) {}
 
-	/*
-	 * Copy constructors.
-	 */
-	template <typename ComplexType>
-	inline Complex(const Complex<ComplexType>& other) : r(other.r), i(other.i) {}
+  /*
+   * Copy constructors.
+   */
+  template <typename ComplexType>
+  inline Complex(const Complex<ComplexType>& other) : r(other.r), i(other.i) {}
 
-	template <typename IntType, typename = typename std::enable_if<std::is_integral<IntType>::value>::type>
-	inline Complex(const Rational<IntType>& other) : r(Type(other.n) / Type(other.d)), i(0) {}
+  template <typename IntType, typename = typename std::enable_if<std::is_integral<IntType>::value>::type>
+  inline Complex(const Rational<IntType>& other) : r(Type(other.n) / Type(other.d)), i(0) {}
 
   Complex(const RubyObject& other);
 
@@ -109,18 +109,18 @@ class Complex {
 
 
 
-	/*
-	 * Binary operator definitions for various types.
-	 */
+  /*
+   * Binary operator definitions for various types.
+   */
 
-	////////////////////////////////
-	// Complex-Complex Operations //
-	////////////////////////////////
+  ////////////////////////////////
+  // Complex-Complex Operations //
+  ////////////////////////////////
 
-	template <typename OtherType>
-	inline Complex<Type> operator+(const Complex<OtherType>& other) const {
-		return Complex<Type>(this->r + other.r, this->i + other.i);
-	}
+  template <typename OtherType>
+  inline Complex<Type> operator+(const Complex<OtherType>& other) const {
+    return Complex<Type>(this->r + other.r, this->i + other.i);
+  }
 
   template <typename OtherType>
   inline Complex<Type>& operator+=(const Complex<OtherType>& other) {
@@ -129,15 +129,15 @@ class Complex {
     return *this;
   }
 
-	template <typename OtherType>
-	inline Complex<Type> operator-(const Complex<OtherType>& other) const {
-		return Complex<Type>(this->r - other.r, this->i - other.i);
-	}
+  template <typename OtherType>
+  inline Complex<Type> operator-(const Complex<OtherType>& other) const {
+    return Complex<Type>(this->r - other.r, this->i - other.i);
+  }
 
-	template <typename OtherType>
-	inline Complex<Type> operator*(const Complex<OtherType>& other) const {
-		return Complex<Type>(this->r * other.r - this->i * other.i, this->r * other.i + this->i * other.r);
-	}
+  template <typename OtherType>
+  inline Complex<Type> operator*(const Complex<OtherType>& other) const {
+    return Complex<Type>(this->r * other.r - this->i * other.i, this->r * other.i + this->i * other.r);
+  }
 
   template <typename OtherType>
   inline Complex<Type>& operator*=(const Complex<OtherType>& other) {
@@ -146,144 +146,144 @@ class Complex {
     return *this;
   }
 
-	template <typename OtherType>
-	inline Complex<Type> operator/(const Complex<OtherType>& other) const {
-		Type new_r, new_i;
-		Type denom = other.i * other.i + other.r * other.r;
+  template <typename OtherType>
+  inline Complex<Type> operator/(const Complex<OtherType>& other) const {
+    Type new_r, new_i;
+    Type denom = other.i * other.i + other.r * other.r;
 
-		new_r = (this->r * other.r + this->i * other.i) / denom;
-		new_i = (this->i * other.r - this->r * other.i) / denom;
+    new_r = (this->r * other.r + this->i * other.i) / denom;
+    new_i = (this->i * other.r - this->r * other.i) / denom;
 
-		return Complex<Type>(new_r, new_i);
-	}
+    return Complex<Type>(new_r, new_i);
+  }
 
-	template <typename OtherType>
-	inline bool operator<(const Complex<OtherType>& other) const {
-		return (this->r < other.r) || ((this->r <= other.r) && (this->i < other.i));
-	}
+  template <typename OtherType>
+  inline bool operator<(const Complex<OtherType>& other) const {
+    return (this->r < other.r) || ((this->r <= other.r) && (this->i < other.i));
+  }
 
-	template <typename OtherType>
-	inline bool operator>(const Complex<OtherType>& other) const {
-		return (this->r > other.r) || ((this->r >= other.r) && (this->i > other.i));
-	}
+  template <typename OtherType>
+  inline bool operator>(const Complex<OtherType>& other) const {
+    return (this->r > other.r) || ((this->r >= other.r) && (this->i > other.i));
+  }
 
-	template <typename OtherType>
-	inline bool operator==(const Complex<OtherType>& other) const {
-		return FP_EQUAL(this->r, other.r) && FP_EQUAL(this->i, other.i);
-	}
+  template <typename OtherType>
+  inline bool operator==(const Complex<OtherType>& other) const {
+    return FP_EQUAL(this->r, other.r) && FP_EQUAL(this->i, other.i);
+  }
 
-	template <typename OtherType>
-	inline bool operator!=(const Complex<OtherType>& other) const {
-		return !(*this == other);
-	}
+  template <typename OtherType>
+  inline bool operator!=(const Complex<OtherType>& other) const {
+    return !(*this == other);
+  }
 
-	template <typename OtherType>
-	inline bool operator<=(const Complex<OtherType>& other) const {
-		return (*this < other) || (*this == other);
-	}
+  template <typename OtherType>
+  inline bool operator<=(const Complex<OtherType>& other) const {
+    return (*this < other) || (*this == other);
+  }
 
-	template <typename OtherType>
-	inline bool operator>=(const Complex<OtherType>& other) const {
-		return (*this > other) || (*this == other);
-	}
+  template <typename OtherType>
+  inline bool operator>=(const Complex<OtherType>& other) const {
+    return (*this > other) || (*this == other);
+  }
 
-	template <typename OtherType>
-	inline operator Complex<OtherType> () const {
-		return Complex<OtherType>((OtherType)this->r, (OtherType)this->i);
-	}
+  template <typename OtherType>
+  inline operator Complex<OtherType> () const {
+    return Complex<OtherType>((OtherType)this->r, (OtherType)this->i);
+  }
 
-	/////////////////////////////////
-	// Complex-Rational Operations //
-	/////////////////////////////////
+  /////////////////////////////////
+  // Complex-Rational Operations //
+  /////////////////////////////////
 
-	template <typename RationalType>
-	inline Complex<Type> operator+(const Rational<RationalType>& other) const {
-		return *this + Complex<Type>(other);
-	}
+  template <typename RationalType>
+  inline Complex<Type> operator+(const Rational<RationalType>& other) const {
+    return *this + Complex<Type>(other);
+  }
 
-	template <typename RationalType>
-	inline Complex<Type> operator-(const Rational<RationalType>& other) const {
-		return *this - Complex<Type>(other);
-	}
+  template <typename RationalType>
+  inline Complex<Type> operator-(const Rational<RationalType>& other) const {
+    return *this - Complex<Type>(other);
+  }
 
-	template <typename RationalType>
-	inline Complex<Type> operator*(const Rational<RationalType>& other) const {
-		return *this * Complex<Type>(other);
-	}
+  template <typename RationalType>
+  inline Complex<Type> operator*(const Rational<RationalType>& other) const {
+    return *this * Complex<Type>(other);
+  }
 
-	template <typename RationalType>
-	inline Complex<Type> operator/(const Rational<RationalType>& other) const {
-		return *this / Complex<Type>(other);
-	}
-
-	template <typename RationalType, typename = typename std::enable_if<std::is_integral<RationalType>::value>::type>
-	inline bool operator!=(const Rational<RationalType>& other) const {
-	  return *this != Complex<Type>(other);
-	}
+  template <typename RationalType>
+  inline Complex<Type> operator/(const Rational<RationalType>& other) const {
+    return *this / Complex<Type>(other);
+  }
 
   template <typename RationalType, typename = typename std::enable_if<std::is_integral<RationalType>::value>::type>
-	inline bool operator==(const Rational<RationalType>& other) const {
-	  return *this == Complex<Type>(other);
-	}
+  inline bool operator!=(const Rational<RationalType>& other) const {
+    return *this != Complex<Type>(other);
+  }
 
-	///////////////////////////////
-	// Complex-Native Operations //
-	///////////////////////////////
+  template <typename RationalType, typename = typename std::enable_if<std::is_integral<RationalType>::value>::type>
+  inline bool operator==(const Rational<RationalType>& other) const {
+    return *this == Complex<Type>(other);
+  }
 
-	template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
-	inline Complex<Type> operator+(const NativeType& other) const {
-		return *this + Complex<Type>(other);
-	}
+  ///////////////////////////////
+  // Complex-Native Operations //
+  ///////////////////////////////
 
-	template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
-	inline Complex<Type> operator-(const NativeType& other) const {
-		return *this - Complex<Type>(other);
-	}
+  template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
+  inline Complex<Type> operator+(const NativeType& other) const {
+    return *this + Complex<Type>(other);
+  }
 
-	template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
-	inline Complex<Type> operator*(const NativeType& other) const {
-		return *this * Complex<Type>(other);
-	}
+  template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
+  inline Complex<Type> operator-(const NativeType& other) const {
+    return *this - Complex<Type>(other);
+  }
 
-	template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
-	inline Complex<Type> operator/(const NativeType& other) const {
-		return *this / Complex<Type>(other);
-	}
+  template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
+  inline Complex<Type> operator*(const NativeType& other) const {
+    return *this * Complex<Type>(other);
+  }
 
-	template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
-	inline bool operator<(const NativeType& other) const {
-		return *this < Complex<Type>(other);
-	}
+  template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
+  inline Complex<Type> operator/(const NativeType& other) const {
+    return *this / Complex<Type>(other);
+  }
 
-	template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
-	inline bool operator>(const NativeType& other) const {
-		return *this > Complex<Type>(other);
-	}
+  template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
+  inline bool operator<(const NativeType& other) const {
+    return *this < Complex<Type>(other);
+  }
 
-	template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
-	inline bool operator==(const NativeType& other) const {
-		return *this == Complex<Type>(other);
-	}
+  template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
+  inline bool operator>(const NativeType& other) const {
+    return *this > Complex<Type>(other);
+  }
 
-	template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
-	inline bool operator!=(const NativeType& other) const {
-		return *this != Complex<Type>(other);
-	}
+  template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
+  inline bool operator==(const NativeType& other) const {
+    return *this == Complex<Type>(other);
+  }
 
-	template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
-	inline bool operator<=(const NativeType& other) const {
-		return *this <= Complex<Type>(other);
-	}
+  template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
+  inline bool operator!=(const NativeType& other) const {
+    return *this != Complex<Type>(other);
+  }
 
-	template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
-	inline bool operator>=(const NativeType& other) const {
-		return *this >= Complex<Type>(other);
-	}
+  template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
+  inline bool operator<=(const NativeType& other) const {
+    return *this <= Complex<Type>(other);
+  }
 
-	template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
-	inline operator NativeType () const {
-		return (NativeType)this->r;
-	}
+  template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
+  inline bool operator>=(const NativeType& other) const {
+    return *this >= Complex<Type>(other);
+  }
+
+  template <typename NativeType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
+  inline operator NativeType () const {
+    return (NativeType)this->r;
+  }
 };
 
 
@@ -294,12 +294,12 @@ class Complex {
 
 template <typename IntType, typename ComplexType, typename = typename std::enable_if<std::is_integral<IntType>::value>::type>
 inline bool operator==(const Rational<IntType>& left, const Complex<ComplexType>& right) {
-	return Complex<ComplexType>(left) == right;
+  return Complex<ComplexType>(left) == right;
 }
 
 template <typename IntType, typename ComplexType, typename = typename std::enable_if<std::is_integral<IntType>::value>::type>
 inline bool operator!=(const Rational<IntType>& left, const Complex<ComplexType>& right) {
-	return Complex<ComplexType>(left) != right;
+  return Complex<ComplexType>(left) != right;
 }
 
 
@@ -309,52 +309,52 @@ inline bool operator!=(const Rational<IntType>& left, const Complex<ComplexType>
 
 template <typename NativeType, typename ComplexType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
 inline Complex<ComplexType> operator+(const NativeType& left, const Complex<ComplexType>& right) {
-	return Complex<ComplexType>(left) + right;
+  return Complex<ComplexType>(left) + right;
 }
 
 template <typename NativeType, typename ComplexType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
 inline Complex<ComplexType> operator-(const NativeType& left, const Complex<ComplexType>& right) {
-	return Complex<ComplexType>(left) - right;
+  return Complex<ComplexType>(left) - right;
 }
 
 template <typename NativeType, typename ComplexType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
 inline Complex<ComplexType> operator*(const NativeType& left, const Complex<ComplexType>& right) {
-	return Complex<ComplexType>(left) * right;
+  return Complex<ComplexType>(left) * right;
 }
 
 template <typename NativeType, typename ComplexType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
 inline Complex<ComplexType> operator/(const NativeType& left, const Complex<ComplexType>& right) {
-	return Complex<ComplexType>(left) / right;
+  return Complex<ComplexType>(left) / right;
 }
 
 template <typename NativeType, typename ComplexType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
 inline bool operator<(const NativeType left, const Complex<ComplexType>& right) {
-	return Complex<ComplexType>(left) < right;
+  return Complex<ComplexType>(left) < right;
 }
 
 template <typename NativeType, typename ComplexType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
 inline bool operator>(const NativeType left, const Complex<ComplexType>& right) {
-	return Complex<ComplexType>(left) > right;
+  return Complex<ComplexType>(left) > right;
 }
 
 template <typename NativeType, typename ComplexType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
 inline bool operator==(const NativeType left, const Complex<ComplexType>& right) {
-	return Complex<ComplexType>(left) == right;
+  return Complex<ComplexType>(left) == right;
 }
 
 template <typename NativeType, typename ComplexType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
 inline bool operator!=(const NativeType left, const Complex<ComplexType>& right) {
-	return Complex<ComplexType>(left) != right;
+  return Complex<ComplexType>(left) != right;
 }
 
 template <typename NativeType, typename ComplexType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
 inline bool operator<=(const NativeType left, const Complex<ComplexType>& right) {
-	return Complex<ComplexType>(left) <= right;
+  return Complex<ComplexType>(left) <= right;
 }
 
 template <typename NativeType, typename ComplexType, typename = typename std::enable_if<std::is_arithmetic<NativeType>::value>::type>
 inline bool operator>=(const NativeType left, const Complex<ComplexType>& right) {
-	return Complex<ComplexType>(left) >= right;
+  return Complex<ComplexType>(left) >= right;
 }
 
 template <typename Type>
