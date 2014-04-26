@@ -46,19 +46,19 @@ EWOPS = [
         ]
 
 LR_ALLOWED = {
-  :uint8_t	 		=> DTYPES,
-  :int8_t				=> DTYPES,
-  :int16_t			=> DTYPES,
-  :int32_t			=> DTYPES,
-  :int64_t			=> DTYPES,
-  :float32_t		=> DTYPES,
-  :float64_t		=> DTYPES,
-  :'nm::Complex64'		=> DTYPES,
-  :'nm::Complex128'		=> DTYPES,
-  :'nm::Rational32'		=> nullify([:float32_t, :float64_t, :'nm::Complex64', :'nm::Complex128']),
-  :'nm::Rational64'		=> nullify([:float32_t, :float64_t, :'nm::Complex64', :'nm::Complex128']),
-  :'nm::Rational128'	=> nullify([:float32_t, :float64_t, :'nm::Complex64', :'nm::Complex128']),
-  :'nm::RubyObject'		=> DTYPES
+  :uint8_t      => DTYPES,
+  :int8_t       => DTYPES,
+  :int16_t      => DTYPES,
+  :int32_t      => DTYPES,
+  :int64_t      => DTYPES,
+  :float32_t    => DTYPES,
+  :float64_t    => DTYPES,
+  :'nm::Complex64'    => DTYPES,
+  :'nm::Complex128'   => DTYPES,
+  :'nm::Rational32'   => nullify([:float32_t, :float64_t, :'nm::Complex64', :'nm::Complex128']),
+  :'nm::Rational64'   => nullify([:float32_t, :float64_t, :'nm::Complex64', :'nm::Complex128']),
+  :'nm::Rational128'  => nullify([:float32_t, :float64_t, :'nm::Complex64', :'nm::Complex128']),
+  :'nm::RubyObject'   => DTYPES
 }
 
 lines =

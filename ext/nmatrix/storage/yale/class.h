@@ -729,15 +729,13 @@ public:
 
     YALE_STORAGE* lhs;
     if (slice) {
-      size_t* xshape    = NM_ALLOC_N(size_t, 2);
-      xshape[0]         = shape(0);
-      xshape[1]         = shape(1);
-      size_t ndnz       = count_copy_ndnz();
-      size_t reserve    = shape(0) + ndnz + 1;
+      size_t* xshape = NM_ALLOC_N(size_t, 2);
+      xshape[0] = shape(0);
+      xshape[1] = shape(1);
+      size_t ndnz = count_copy_ndnz();
+      size_t reserve = shape(0) + ndnz + 1;
 
-//      std::cerr << "reserve = " << reserve << std::endl;
-
-      lhs               = YaleStorage<E>::create(xshape, reserve);
+      lhs = YaleStorage<E>::create(xshape, reserve);
 
       // FIXME: This should probably be a throw which gets caught outside of the object.
       if (lhs->capacity < reserve)
@@ -747,16 +745,16 @@ public:
       copy<E, Yield>(*lhs);
     } else {
       // Copy the structure and setup the IJA structure.
-      lhs               = alloc_struct_copy<E>(s->capacity);
+      lhs = alloc_struct_copy<E>(s->capacity);
 
       E* la = reinterpret_cast<E*>(lhs->a);
 
       nm_yale_storage_register(lhs);
       for (size_t m = 0; m < size(); ++m) {
         if (Yield) {
-	  la[m] = rb_yield(nm::yale_storage::nm_rb_dereference(a(m)));
-	}
-        else       la[m] = static_cast<E>(a(m));
+   la[m] = rb_yield(nm::yale_storage::nm_rb_dereference(a(m)));
+ }
+        else la[m] = static_cast<E>(a(m));
       }
       nm_yale_storage_unregister(lhs);
 
@@ -848,7 +846,7 @@ public:
           t_init    = t.const_default_value();
     nm_register_value(s_init);
     nm_register_value(t_init);
-    
+
     // Make a reasonable approximation of the resulting capacity
     size_t s_ndnz   = count_copy_ndnz(),
            t_ndnz   = t.count_copy_ndnz();
@@ -1030,7 +1028,7 @@ protected:
 
     if (s->dtype == nm::RUBYOBJ) {
       nm_unregister_values(reinterpret_cast<VALUE*>(v), v_size);
-    }   
+    }
 
     s->ija      = new_ija;
     s->a        = reinterpret_cast<void*>(new_a);

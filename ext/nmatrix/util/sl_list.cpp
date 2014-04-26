@@ -56,7 +56,7 @@ namespace nm { namespace list {
 /*
  * Global Variables
  */
- 
+
 
 /*
  * Forward Declarations
@@ -95,7 +95,7 @@ void del(LIST* list, size_t recursions) {
       //fprintf(stderr, "    free_val: %p\n", curr->val);
       nm_list_storage_completely_unregister_node(curr);
       NM_FREE(curr->val);
-      
+
     } else {
       //fprintf(stderr, "    free_list: %p\n", list);
       del((LIST*)curr->val, recursions - 1);
@@ -117,14 +117,14 @@ void mark(LIST* list, size_t recursions) {
 
   while (curr != NULL) {
     next = curr->next;
-    
+
     if (recursions == 0) {
     	rb_gc_mark(*((VALUE*)(curr->val)));
-    	
+
     } else {
     	mark((LIST*)curr->val, recursions - 1);
     }
-    
+
     curr = next;
   }
 }
@@ -164,7 +164,7 @@ NODE* insert_first_list(LIST* list, size_t key, LIST* l) {
 }
 
 
-/* 
+/*
  * Given a list and a key/value-ptr pair, create a node (and return that node).
  * If NULL is returned, it means insertion failed.
  * If the key already exists in the list, replace tells it to delete the old
@@ -175,26 +175,26 @@ NODE* insert(LIST* list, bool replace, size_t key, void* val) {
 
   if (list->first == NULL) {
   	// List is empty
-  	
+
     //if (!(ins = malloc(sizeof(NODE)))) return NULL;
     ins = NM_ALLOC(NODE);
     ins->next             = NULL;
     ins->val              = val;
     ins->key              = key;
     list->first           = ins;
-    
+
     return ins;
 
   } else if (key < list->first->key) {
   	// Goes at the beginning of the list
-  	
+
     //if (!(ins = malloc(sizeof(NODE)))) return NULL;
     ins = NM_ALLOC(NODE);
     ins->next             = list->first;
     ins->val              = val;
     ins->key              = key;
     list->first           = ins;
-    
+
     return ins;
   }
 
@@ -210,7 +210,7 @@ NODE* insert(LIST* list, bool replace, size_t key, void* val) {
     } else {
       NM_FREE(val);
     }
-    
+
     return ins;
 
   } else {
@@ -311,10 +311,10 @@ void* remove_by_key(LIST* list, size_t key) {
   if (list->first->key == key) {
     val = list->first->val;
     rm  = list->first;
-    
+
     list->first = rm->next;
     NM_FREE(rm);
-    
+
     return val;
   }
 
@@ -417,11 +417,11 @@ NODE* find(LIST* list, size_t key) {
 
   // see if we can find it.
   f = find_nearest_from(list->first, key);
-  
+
   if (!f || f->key == key) {
   	return f;
   }
-  
+
   return NULL;
 }
 
@@ -459,7 +459,7 @@ NODE* find_preceding_from_node(NODE* prev, size_t key) {
 
   if (!curr || key <= curr->key) {
   	return prev;
-  	
+
   } else {
   	return find_preceding_from_node(curr, key);
   }
@@ -498,7 +498,7 @@ NODE* find_nearest_from(NODE* prev, size_t key) {
 
   if (!f->next) { // key exceeds final node; return final node.
   	return f;
-  	
+
   } else if (key == f->next->key) { // node already present; return location
   	return f->next;
 

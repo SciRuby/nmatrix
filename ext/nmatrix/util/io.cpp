@@ -251,7 +251,7 @@ static VALUE nm_rbstring_merge(VALUE self, VALUE rb_real, VALUE rb_imaginary, VA
   size_t merge_pos  = 0;
 
   // Merge the two sequences
-  for (size_t i = 0; i < RSTRING_LEN(rb_real); i += len) {
+  for (size_t i = 0; i < (size_t)RSTRING_LEN(rb_real); i += len) {
 
     // Copy real number
     memcpy(merge + merge_pos, real + i, len);

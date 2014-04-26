@@ -60,28 +60,28 @@ inline int ger(int m, int n, DType alpha, DType* x, int incx, DType* y, int incy
 
   if (incx == 1) {
 
-	  for (size_t j = 0; j < n; ++j, jy += incy) {
-	    if (y[jy] != 0) {
-		    DType temp = alpha * y[jy];
-		    for (size_t i = 0; i < m; ++i) {
-		      a[i + j * lda] += x[i] * temp;
-		    }
-	    }
-	  }
+    for (size_t j = 0; j < n; ++j, jy += incy) {
+      if (y[jy] != 0) {
+        DType temp = alpha * y[jy];
+        for (size_t i = 0; i < m; ++i) {
+          a[i + j * lda] += x[i] * temp;
+        }
+      }
+    }
 
   } else {
 
     int kx = incx > 0 ? 0 : -(m-1) * incx;
 
-	  for (size_t j = 0; j < n; ++j, jy += incy) {
-	    if (y[jy] != 0) {
-    		DType temp = alpha * y[jy];
+    for (size_t j = 0; j < n; ++j, jy += incy) {
+      if (y[jy] != 0) {
+        DType temp = alpha * y[jy];
 
-    		for (size_t i = 0, ix = kx; i < m; ++i, ix += incx) {
+        for (size_t i = 0, ix = kx; i < m; ++i, ix += incx) {
           a[i + j * lda] += x[ix] * temp;
-    		}
-	    }
-	  }
+        }
+      }
+    }
 
   }
 
