@@ -69,17 +69,17 @@ extern "C" {
   // Lifecycle //
   ///////////////
 
-  LIST_STORAGE*	nm_list_storage_create(nm::dtype_t dtype, size_t* shape, size_t dim, void* init_val);
-  void					nm_list_storage_delete(STORAGE* s);
-  void					nm_list_storage_delete_ref(STORAGE* s);
-  void					nm_list_storage_mark(STORAGE*);
-  void          nm_list_storage_register(const STORAGE* s);
-  void          nm_list_storage_unregister(const STORAGE* s);
-  void          nm_list_storage_register_list(const LIST* l, size_t recursions);
-  void          nm_list_storage_unregister_list(const LIST* l, size_t recursions);
-  void          nm_list_storage_register_node(const NODE* n);
-  void          nm_list_storage_unregister_node(const NODE* n);
-  void		      nm_list_storage_completely_unregister_node(const NODE* curr);
+  LIST_STORAGE* nm_list_storage_create(nm::dtype_t dtype, size_t* shape, size_t dim, void* init_val);
+  void nm_list_storage_delete(STORAGE* s);
+  void nm_list_storage_delete_ref(STORAGE* s);
+  void nm_list_storage_mark(STORAGE*);
+  void nm_list_storage_register(const STORAGE* s);
+  void nm_list_storage_unregister(const STORAGE* s);
+  void nm_list_storage_register_list(const LIST* l, size_t recursions);
+  void nm_list_storage_unregister_list(const LIST* l, size_t recursions);
+  void nm_list_storage_register_node(const NODE* n);
+  void nm_list_storage_unregister_node(const NODE* n);
+  void nm_list_storage_completely_unregister_node(const NODE* curr);
   ///////////////
   // Accessors //
   ///////////////
@@ -88,8 +88,8 @@ extern "C" {
   void* nm_list_storage_ref(const STORAGE* s, SLICE* slice);
   void* nm_list_storage_get(const STORAGE* s, SLICE* slice);
   NODE* nm_list_storage_insert(STORAGE* s, SLICE* slice, void* val);
-  void  nm_list_storage_set(VALUE left, SLICE* slice, VALUE right);
-  void  nm_list_storage_remove(STORAGE* s, SLICE* slice);
+  void nm_list_storage_set(VALUE left, SLICE* slice, VALUE right);
+  void nm_list_storage_remove(STORAGE* s, SLICE* slice);
 
   ///////////
   // Tests //
@@ -123,9 +123,9 @@ extern "C" {
   /////////////////////////
 
   LIST_STORAGE* nm_list_storage_copy(const LIST_STORAGE* rhs);
-  STORAGE*      nm_list_storage_copy_transposed(const STORAGE* rhs_base);
-  STORAGE*      nm_list_storage_cast_copy(const STORAGE* rhs, nm::dtype_t new_dtype, void*);
-  VALUE         nm_list_storage_to_hash(const LIST_STORAGE* s, const nm::dtype_t dtype);
+  STORAGE* nm_list_storage_copy_transposed(const STORAGE* rhs_base);
+  STORAGE* nm_list_storage_cast_copy(const STORAGE* rhs, nm::dtype_t new_dtype, void*);
+  VALUE nm_list_storage_to_hash(const LIST_STORAGE* s, const nm::dtype_t dtype);
 
   // Exposed functions
   VALUE nm_to_hash(VALUE self);

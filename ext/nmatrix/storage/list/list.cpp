@@ -181,7 +181,7 @@ static void map_empty_stored_r(RecurseData& result, RecurseData& s, LIST* x, con
       if (!val->first) nm::list::del(val, 0);
       else {
         nm_list_storage_register_list(val, rec-1);
-	temp_vals.push_front(val);
+  temp_vals.push_front(val);
         nm::list::insert_helper(x, xcurr, curr->key - offset, val);
       }
       curr = curr->next;
@@ -359,7 +359,7 @@ static void map_merged_stored_r(RecurseData& result, RecurseData& left, RecurseD
         key   = lcurr->key - left.offset(rec);
         lcurr = lcurr->next;
       } else if (!lcurr || (rcurr && (rcurr->key - right.offset(rec) < lcurr->key - left.offset(rec)))) {
-	      val   = rb_yield_values(2, left.init_obj(), rubyobj_from_cval(rcurr->val, right.dtype()).rval);
+        val   = rb_yield_values(2, left.init_obj(), rubyobj_from_cval(rcurr->val, right.dtype()).rval);
         key   = rcurr->key - right.offset(rec);
         rcurr = rcurr->next;
       } else { // == and both present
@@ -978,7 +978,7 @@ VALUE nm_list_map_stored(VALUE left, VALUE init) {
     init = rb_yield_values(1, sdata.init_obj());
     nm_register_value(init);
   }
-	// Allocate a new shape array for the resulting matrix.
+  // Allocate a new shape array for the resulting matrix.
   void* init_val = NM_ALLOC(VALUE);
   memcpy(init_val, &init, sizeof(VALUE));
   nm_register_value(*reinterpret_cast<VALUE*>(init_val));
@@ -1319,12 +1319,12 @@ void nm_list_storage_remove(STORAGE* storage, SLICE* slice) {
  * Comparison of contents for list storage.
  */
 bool nm_list_storage_eqeq(const STORAGE* left, const STORAGE* right) {
-	NAMED_LR_DTYPE_TEMPLATE_TABLE(ttable, nm::list_storage::eqeq_r, bool, nm::list_storage::RecurseData& left, nm::list_storage::RecurseData& right, const LIST* l, const LIST* r, size_t rec)
+  NAMED_LR_DTYPE_TEMPLATE_TABLE(ttable, nm::list_storage::eqeq_r, bool, nm::list_storage::RecurseData& left, nm::list_storage::RecurseData& right, const LIST* l, const LIST* r, size_t rec)
 
   nm::list_storage::RecurseData ldata(reinterpret_cast<const LIST_STORAGE*>(left)),
                                 rdata(reinterpret_cast<const LIST_STORAGE*>(right));
 
-	return ttable[left->dtype][right->dtype](ldata, rdata, ldata.top_level_list(), rdata.top_level_list(), ldata.dim()-1);
+  return ttable[left->dtype][right->dtype](ldata, rdata, ldata.top_level_list(), rdata.top_level_list(), ldata.dim()-1);
 }
 
 //////////
@@ -1393,7 +1393,7 @@ size_t nm_list_storage_count_nd_elements(const LIST_STORAGE* s) {
   size_t count = 0;
 
   if (s->dim != 2) {
-  	rb_raise(rb_eNotImpError, "non-diagonal element counting only defined for dim = 2");
+    rb_raise(rb_eNotImpError, "non-diagonal element counting only defined for dim = 2");
   }
 
   for (i_curr = s->rows->first; i_curr; i_curr = i_curr->next) {
@@ -1404,7 +1404,7 @@ size_t nm_list_storage_count_nd_elements(const LIST_STORAGE* s) {
       int j = j_curr->key - s->offset[1];
       if (j < 0 || j >= (int)s->shape[1]) continue;
 
-      if (i != j)  	++count;
+      if (i != j) ++count;
     }
   }
 

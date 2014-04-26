@@ -85,7 +85,7 @@
  */
 
 extern "C" {
-  static YALE_STORAGE*	alloc(nm::dtype_t dtype, size_t* shape, size_t dim);
+  static YALE_STORAGE* alloc(nm::dtype_t dtype, size_t* shape, size_t dim);
 
   static size_t yale_count_slice_copy_ndnz(const YALE_STORAGE* s, size_t*, size_t*);
 
@@ -117,26 +117,26 @@ template <typename LD, typename RD>
 static VALUE map_merged_stored(VALUE left, VALUE right, VALUE init);
 
 template <typename DType>
-static bool						ndrow_is_empty(const YALE_STORAGE* s, IType ija, const IType ija_next);
+static bool ndrow_is_empty(const YALE_STORAGE* s, IType ija, const IType ija_next);
 
 template <typename LDType, typename RDType>
-static bool						ndrow_eqeq_ndrow(const YALE_STORAGE* l, const YALE_STORAGE* r, IType l_ija, const IType l_ija_next, IType r_ija, const IType r_ija_next);
+static bool ndrow_eqeq_ndrow(const YALE_STORAGE* l, const YALE_STORAGE* r, IType l_ija, const IType l_ija_next, IType r_ija, const IType r_ija_next);
 
 template <typename LDType, typename RDType>
-static bool           eqeq(const YALE_STORAGE* left, const YALE_STORAGE* right);
+static bool eqeq(const YALE_STORAGE* left, const YALE_STORAGE* right);
 
 template <typename LDType, typename RDType>
 static bool eqeq_different_defaults(const YALE_STORAGE* s, const LDType& s_init, const YALE_STORAGE* t, const RDType& t_init);
 
-static void						increment_ia_after(YALE_STORAGE* s, IType ija_size, IType i, long n);
+static void increment_ia_after(YALE_STORAGE* s, IType ija_size, IType i, long n);
 
-static IType				  insert_search(YALE_STORAGE* s, IType left, IType right, IType key, bool& found);
-
-template <typename DType>
-static char           vector_insert(YALE_STORAGE* s, size_t pos, size_t* j, void* val_, size_t n, bool struct_only);
+static IType insert_search(YALE_STORAGE* s, IType left, IType right, IType key, bool& found);
 
 template <typename DType>
-static char           vector_insert_resize(YALE_STORAGE* s, size_t current_size, size_t pos, size_t* j, size_t n, bool struct_only);
+static char vector_insert(YALE_STORAGE* s, size_t pos, size_t* j, void* val_, size_t n, bool struct_only);
+
+template <typename DType>
+static char vector_insert_resize(YALE_STORAGE* s, size_t current_size, size_t pos, size_t* j, size_t n, bool struct_only);
 
 template <typename DType>
 static std::tuple<long,bool,std::queue<std::tuple<IType,IType,int> > > count_slice_set_ndnz_change(YALE_STORAGE* s, size_t* coords, size_t* lengths, DType* v, size_t v_size);
@@ -436,13 +436,13 @@ int binary_search(YALE_STORAGE* s, IType left, IType right, IType key) {
   IType mid_j = ija[mid];
 
   if (mid_j == key)
-  	return mid;
+   return mid;
 
   else if (mid_j > key)
-  	return binary_search(s, left, mid - 1, key);
+   return binary_search(s, left, mid - 1, key);
 
   else
-  	return binary_search(s, mid + 1, right, key);
+   return binary_search(s, mid + 1, right, key);
 }
 
 
@@ -499,11 +499,14 @@ static char vector_insert_resize(YALE_STORAGE* s, size_t current_size, size_t po
   if (new_capacity > max_capacity) {
     new_capacity = max_capacity;
 
-    if (current_size + n > max_capacity) rb_raise(rb_eNoMemError, "insertion size exceeded maximum yale matrix size");
+    if (current_size + n > max_capacity) {
+      rb_raise(rb_eNoMemError, "insertion size exceeded maximum yale matrix size");
+    }
   }
 
-  if (new_capacity < current_size + n)
-  	new_capacity = current_size + n;
+  if (new_capacity < current_size + n) {
+    new_capacity = current_size + n;
+  }
 
   nm_yale_storage_register(s);
 
@@ -564,8 +567,8 @@ static char vector_insert_resize(YALE_STORAGE* s, size_t current_size, size_t po
  * diag). Does not free anything; you are responsible!
  *
  * TODO: Improve this so it can handle non-contiguous element insertions
- *	efficiently. For now, we can just sort the elements in the row in
- *	question.)
+ *       efficiently. For now, we can just sort the elements in the row in
+ *       question.)
  */
 template <typename DType>
 static char vector_insert(YALE_STORAGE* s, size_t pos, size_t* j, void* val_, size_t n, bool struct_only) {
@@ -585,7 +588,7 @@ static char vector_insert(YALE_STORAGE* s, size_t pos, size_t* j, void* val_, si
     vector_insert_resize<DType>(s, size, pos, j, n, struct_only);
 
     // Need to get the new locations for ija and a.
-  	ija = s->ija;
+    ija = s->ija;
     a   = reinterpret_cast<DType*>(s->a);
   } else {
     /*
@@ -594,7 +597,7 @@ static char vector_insert(YALE_STORAGE* s, size_t pos, size_t* j, void* val_, si
      * the end, one element at a time.
      *
      * TODO: This can be made slightly more efficient, but only after the tests
-     *	are written.
+     *       are written.
      */
 
     if (struct_only) {
@@ -655,10 +658,10 @@ static IType insert_search(YALE_STORAGE* s, IType left, IType right, IType key, 
     return mid;
 
   } else if (mid_j > key) {
-  	return insert_search(s, left, mid-1, key, found);
+    return insert_search(s, left, mid-1, key, found);
 
   } else {
-  	return insert_search(s, mid+1, right, key, found);
+    return insert_search(s, mid+1, right, key, found);
   }
 }
 
@@ -1121,10 +1124,10 @@ static bool is_pos_default_value(YALE_STORAGE* s, size_t apos) {
 extern "C" {
 
 void nm_init_yale_functions() {
-	/*
-	 * This module stores methods that are useful for debugging Yale matrices,
-	 * i.e. the ones with +:yale+ stype.
-	 */
+  /*
+   * This module stores methods that are useful for debugging Yale matrices,
+   * i.e. the ones with +:yale+ stype.
+   */
   cNMatrix_YaleFunctions = rb_define_module_under(cNMatrix, "YaleFunctions");
 
   // Expert recommendation. Eventually this should go in a separate gem, or at least a separate module.
