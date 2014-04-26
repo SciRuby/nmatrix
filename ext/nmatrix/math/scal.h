@@ -47,7 +47,7 @@ namespace nm { namespace math {
 /*  ===================================================================== */
 
 template <typename DType>
-inline void scal(const int n, const DType da, DType* dx,	const int incx) {
+inline void scal(const int n, const DType da, DType* dx, const int incx) {
 
   // This used to have unrolled loops, like dswap. They were in the way.
 

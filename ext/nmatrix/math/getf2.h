@@ -59,15 +59,15 @@ inline int getf2(const int m, const int n, DType* a, const int lda, int *ipiv) {
 
       /* Compute elements J+1:M of J-th column. */
 
-	    if (j < m-1) {
+      if (j < m-1) {
         if (std::abs(a[j+j*lda]) >= std::numeric_limits<DType>::min()) {
           scal<DType>(m-j, 1.0 / a[j+j*lda], &a[j+1+j*lda], 1);
-		    } else {
-		      for (size_t i = 0; i < m-j; ++i) { // changed
-			      a[j+i+j*lda] /= a[j+j*lda];
-		      }
-		    }
-	    }
+        } else {
+          for (size_t i = 0; i < m-j; ++i) { // changed
+            a[j+i+j*lda] /= a[j+j*lda];
+          }
+        }
+      }
 
     } else { // singular matrix
       return j; // U(j,j) is exactly zero, div by zero if answer is used to solve a system of equations.
