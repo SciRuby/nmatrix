@@ -226,9 +226,9 @@ $libs += " -llapack -lcblas -latlas "
 
 
 # For release, these next two should both be changed to -O3.
-$CFLAGS += " -O3" #" -O0 -g "
+$CFLAGS += " -O3 -g" #" -O0 -g "
 #$CFLAGS += " -static -O0 -g "
-$CPPFLAGS += " -O3 -std=#{$CPP_STANDARD}" #" -O0 -g -std=#{$CPP_STANDARD} " #-fmax-errors=10 -save-temps
+$CPPFLAGS += " -O3 -std=#{$CPP_STANDARD} -g" #" -O0 -g -std=#{$CPP_STANDARD} " #-fmax-errors=10 -save-temps
 #$CPPFLAGS += " -static -O0 -g -std=#{$CPP_STANDARD} "
 
 CONFIG['warnflags'].gsub!('-Wshorten-64-to-32', '') # doesn't work except in Mac-patched gcc (4.2)
@@ -252,3 +252,4 @@ open('Makefile', 'a') do |f|
   clean_objs_paths = %w{data storage storage/dense storage/yale storage/list util}.map { |d| "#{d}/*.#{CONFIG["OBJEXT"]}" }
   f.write("CLEANOBJS := $(CLEANOBJS) #{clean_objs_paths.join(' ')}")
 end
+

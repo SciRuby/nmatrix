@@ -201,7 +201,7 @@ describe NMatrix::LAPACK do
         end
 
         expect(u).to be_within(err).of(left_true)
-        #FIXME: Is the next line correct?
+        #FIXME: Is the next line correct? check http://www.oraclebytes.com/reference/packages/view/UTL_NLA/lapack_gesdd-%28p%29
         expect(vt[0...right_true.shape[0], 0...right_true.shape[1]-1]).to be_within(err).of(right_true[0...right_true.shape[0],0...right_true.shape[1]-1])
         expect(s.transpose).to be_within(err).of(s_true.row(0))
       end

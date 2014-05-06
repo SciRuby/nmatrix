@@ -1,7 +1,7 @@
 language: ruby
-cache: bundler
+cache: bundler: false
 env:
-  - CPLUS_INCLUDE_PATH=/usr/include/atlas C_INCLUDE_PATH=/usr/include/atlas
+  - CPLUS_INCLUDE_PATH=/usr/include:/usr/include/atlas C_INCLUDE_PATH=/usr/include/atlas:/usr/include
 rvm:
   - "1.9.2"
   - "1.9.3"
@@ -10,7 +10,7 @@ rvm:
   - "2.1.1"
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -qq libatlas-base-dev
+  - sudo apt-get install -qq libatlas-base-dev libfftw3-dev libfftw3
 script: bundle exec rake compile && bundle exec rake spec
 notifications:
   irc: "chat.freenode.net#sciruby"

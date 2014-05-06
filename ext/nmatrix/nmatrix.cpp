@@ -83,7 +83,7 @@ extern "C" {
 namespace nm {
 
   /*
-   * This function is pulled out separately so it can be called for hermitian matrix writing, which also uses it.
+   * This function is pulled out separately so it can be called for Hermitian matrix writing, which also uses it.
    */
   template <typename DType>
   size_t write_padded_dense_elements_upper(std::ofstream& f, DENSE_STORAGE* storage, symm_t symm) {

@@ -42,12 +42,12 @@ SPECDIR = BASEDIR + 'spec'
 
 VALGRIND_OPTIONS = [
     "--tool=memcheck",
-    #"--leak-check=yes",
+    "--leak-check=yes",
     "--num-callers=15",
-    #"--error-limit=no",
+    "--error-limit=no",
     "--partial-loads-ok=yes",
-    "--undef-value-errors=no" #,
-    #"--dsymutil=yes"
+    "--undef-value-errors=no",
+    "--dsymutil=yes"
 ]
 
 CALLGRIND_OPTIONS = [
@@ -60,7 +60,7 @@ CALLGRIND_OPTIONS = [
 VALGRIND_MEMORYFILL_OPTIONS = [
     "--freelist-vol=100000000",
     "--malloc-fill=6D",
-    "--free-fill=66 ",
+    "--free-fill=66 "
 ]
 
 GDB_OPTIONS = []
@@ -115,10 +115,10 @@ namespace :spec do
 
   RSPEC_CMD = [ 'ruby', '-S', 'rspec', '-Ilib:ext', SPECDIR.to_s ]
 
-  #desc "Run the spec for generator.rb"
-  #task :generator do |task|
-  #  run 'rspec spec/generator_spec.rb'
-  #end
+  desc "Run the spec for generator.rb"
+  task :generator do |task|
+    run 'rspec spec/generator_spec.rb'
+  end
 
   desc "Run specs under GDB."
   task :gdb => [ :compile ] do |task|
@@ -211,5 +211,3 @@ RDoc::Task.new do |rdoc|
   rdoc.main = "README.rdoc"
   rdoc.rdoc_files.include(%w{README.rdoc History.txt LICENSE.txt CONTRIBUTING.md ext/nmatrix/binary_format.txt lib/nmatrix/**/*.rb ext/nmatrix/**/*.cpp ext/nmatrix/**/*.c ext/nmatrix/**/*.h})
 end
-
-# vim: syntax=ruby
