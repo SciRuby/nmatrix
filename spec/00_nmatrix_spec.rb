@@ -46,8 +46,16 @@ describe NMatrix do
     expect { n[0] }.to raise_error(ArgumentError)
   end
 
-  it "calculates exact determinants on small square matrices" do
+  it "calculates exact determinants on small dense square matrices" do
     expect(NMatrix.new(2, [1,2,3,4], stype: :dense, dtype: :int64).det_exact).to eq(-2)
+  end
+
+  it "calculates exact determinants on small yale square matrices" do
+    expect(NMatrix.new(2, [1,2,3,4], stype: :yale, dtype: :int64).det_exact).to eq(-2)
+  end
+
+  it "calculates exact determinants on small list square matrices" do
+    expect(NMatrix.new(2, [1,2,3,4], stype: :list, dtype: :int64).det_exact).to eq(-2)
   end
 
   it "calculates determinants" do
