@@ -29,10 +29,6 @@
 require 'spec_helper'
 
 describe "math" do
-  #after :each do
-  #  GC.start
-  #end
-
   context "elementwise math functions" do
 
     [:dense,:list,:yale].each do |stype|

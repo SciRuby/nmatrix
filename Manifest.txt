@@ -66,7 +66,7 @@ ext/nmatrix/math/getf2.h
 ext/nmatrix/math/getrf.h
 ext/nmatrix/math/getri.h
 ext/nmatrix/math/getrs.h
-ext/nmatrix/math/idamax.h
+ext/nmatrix/math/imax.h
 ext/nmatrix/math/inc.h
 ext/nmatrix/math/laswp.h
 ext/nmatrix/math/long_dtype.h

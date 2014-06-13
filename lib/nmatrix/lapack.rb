@@ -193,7 +193,6 @@ class NMatrix
       # Perform eigenvalue decomposition on a matrix using LAPACK's xGEEV function.
       #
       def geev(matrix, which=:both)
-        result = alloc_evd_result(matrix)
         jobvl = (which == :both || which == :left) ? :left : false
         jobvr = (which == :both || which == :right) ? :right : false
 

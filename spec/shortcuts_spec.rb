@@ -25,15 +25,10 @@
 # Specs for the shortcuts used in NMatrix and in NVector.
 #
 
-# Can we use require_relative here instead?
-require File.join(File.dirname(__FILE__), "spec_helper.rb")
+require 'spec_helper'
 require 'pry'
 
 describe NMatrix do
-  #after :each do
-  #  GC.start
-  #end
-
   it "zeros() creates a matrix of zeros" do
     m = NMatrix.zeros(3)
     n = NMatrix.new([3, 3], 0)

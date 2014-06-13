@@ -603,6 +603,10 @@
 
 * No major enhancements.
 
-* No minor enhancements.
+* 1 minor enhancements:
 
-* No bug fixes.
+  * NMatrix#floor and #ceil implemented (by @v0dro)
+
+* 1 bug fixes:
+
+  * Disallowed out-of-bounds rank calls (by @andrewcsmith)

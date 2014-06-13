@@ -25,8 +25,7 @@
 # Tests for statistical functions in NMatrix.
 #
 
-# Can we use require_relative here instead?
-require File.join(File.dirname(__FILE__), "spec_helper.rb")
+require 'spec_helper'
 require 'pry'
 
 describe "Statistical functions" do

@@ -25,14 +25,9 @@
 # Basic tests for NMatrix. These should load first, as they're
 # essential to NMatrix operation.
 #
-
-require File.dirname(__FILE__) + "/spec_helper.rb"
+require 'spec_helper'
 
 describe NMatrix do
-  #after :each do
-  #  GC.start
-  #end
-
   it "creates a matrix with the new constructor" do
     n = NMatrix.new([2,2], [0,1,2,3], dtype: :int64)
     expect(n.shape).to eq([2,2])
@@ -393,6 +388,18 @@ describe 'NMatrix' do
       expect(n.lower_triangle!).to eq(NMatrix.new(4, [1,0,0,0,5,6,0,0,9,10,11,0,13,14,15,16]))
       n = NMatrix.seq(4)+1
       expect(n.lower_triangle!(2)).to eq(NMatrix.new(4, [1,2,3,0,5,6,7,8,9,10,11,12,13,14,15,16]))
+    end
+  end
+
+  context "#rank" do
+    it "should get the rank of a 2-dimensional matrix" do
+      n = NMatrix.seq([2,3])
+      expect(n.rank(0, 0)).to eq(N[[0,1,2]])
+    end
+
+    it "should raise an error when the rank is out of bounds" do
+      n = NMatrix.seq([2,3])
+      expect { n.rank(2, 0) }.to raise_error(RangeError)
     end
   end
 

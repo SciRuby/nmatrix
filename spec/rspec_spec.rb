@@ -24,7 +24,7 @@
 #
 # A spec for testing monkey patches to RSpec for NMatrix.
 #
-require File.join(File.dirname(__FILE__), "spec_helper.rb")
+require 'spec_helper'
 
 describe "RSpec" do
   it "should permit #be_within to be used on a dense NMatrix" do

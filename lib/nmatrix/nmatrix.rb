@@ -352,6 +352,10 @@ class NMatrix
   #
   # See @row (dimension = 0), @column (dimension = 1)
   def rank(shape_idx, rank_idx, meth = :copy)
+    
+    if shape_idx > (self.dim-1)
+      raise(RangeError, "#rank call was out of bounds")
+    end
 
     params = Array.new(self.dim)
     params.each.with_index do |v,d|
@@ -562,7 +566,7 @@ class NMatrix
       new_cap = matrices.inject(self.capacity - self.shape[0]) do |total,m|
         total + m.capacity - m.shape[0]
       end - self.shape[0] + new_shape[0]
-      opts = {capacity: self.new_cap}.merge(opts)
+      opts = {capacity: new_cap}.merge(opts)
     end
 
     # Do the actual construction.

@@ -30,27 +30,6 @@
 #define SWAP_H
 
 namespace nm { namespace math {
-/*
-template <typename DType>
-inline void swap(int n, DType *dx, int incx, DType *dy, int incy) {
-
-  if (n <= 0) return;
-
-  // For negative increments, start at the end of the array.
-  int ix = incx < 0 ? (-n+1)*incx : 0,
-      iy = incy < 0 ? (-n+1)*incy : 0;
-
-  if (incx < 0) ix = (-n + 1) * incx;
-  if (incy < 0) iy = (-n + 1) * incy;
-
-  for (size_t i = 0; i < n; ++i, ix += incx, iy += incy) {
-    DType dtemp = dx[ix];
-    dx[ix]      = dy[iy];
-    dy[iy]      = dtemp;
-  }
-  return;
-} /* dswap */
-
 // This is the old BLAS version of this function. ATLAS has an optimized version, but
 // it's going to be tough to translate.
 template <typename DType>

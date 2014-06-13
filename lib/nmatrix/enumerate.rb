@@ -72,7 +72,7 @@ class NMatrix
   def map(&bl)
     return enum_for(:map) unless block_given?
     cp = self.cast(dtype: :object)
-    cp.map! &bl
+    cp.map!(&bl)
     cp
   end
 

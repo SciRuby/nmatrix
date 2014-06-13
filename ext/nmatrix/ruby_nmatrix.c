@@ -184,7 +184,6 @@ void Init_nmatrix() {
 	///////////////////////
 
 	cNMatrix = rb_define_class("NMatrix", rb_cObject);
-	//cNVector = rb_define_class("NVector", cNMatrix);
 
 	// Special exceptions
 
@@ -526,7 +525,7 @@ static void __nm_initialize_value_container() {
     gc_value_holder_struct->start = NULL;
     allocated_pool->start = NULL;
     *gc_value_holder = Data_Wrap_Struct(cNMatrix_GC_holder, __nm_mark_value_container, NULL, gc_value_holder_struct);
-    rb_global_variable(gc_value_holder); 
+    rb_global_variable(gc_value_holder);
   }
 }
 
@@ -1024,7 +1023,7 @@ static VALUE nm_complex_conjugate_bang(VALUE self) {
       reinterpret_cast<nm::Complex128*>(elem)[p].i = -reinterpret_cast<nm::Complex128*>(elem)[p].i;
     }
 
-  } 
+  }
   return self;
 }
 
@@ -1051,7 +1050,7 @@ static VALUE nm_complex_conjugate(VALUE self) {
  */
 static VALUE nm_reshape_bang(VALUE self, VALUE arg){
   NMATRIX* m;
-  UnwrapNMatrix(self, m); 
+  UnwrapNMatrix(self, m);
   if(m->stype == nm::DENSE_STORE){
     DENSE_STORAGE* s   = NM_STORAGE_DENSE(self);
     VALUE shape_ary = arg;
@@ -1062,9 +1061,9 @@ static VALUE nm_reshape_bang(VALUE self, VALUE arg){
     void* elem = s->elements;
     for (size_t index = 0; index < dim; ++index){
       new_size *= shape[index];}
- 
+
     if (size == new_size){
-      s->shape = shape; 
+      s->shape = shape;
       s->dim = dim;
       size_t i, j;
       size_t* stride = NM_ALLOC_N(size_t, dim);
@@ -1078,7 +1077,7 @@ static VALUE nm_reshape_bang(VALUE self, VALUE arg){
       return self;
      }
      else
-       rb_raise(rb_eArgError, "reshape cannot resize; size of new and old matrices must match");  
+       rb_raise(rb_eArgError, "reshape cannot resize; size of new and old matrices must match");
   }
   else {
     rb_raise(rb_eNotImpError, "reshape in place only for dense stype");
@@ -1179,7 +1178,7 @@ static VALUE nm_init_new_version(int argc, VALUE* argv, VALUE self) {
       init = RARRAY_LEN(initial_ary) == 1 ? rubyobj_to_cval(rb_ary_entry(initial_ary, 0), dtype) : NULL;
     else
       init = rubyobj_to_cval(initial_ary, dtype);
-    
+
     if (dtype == nm::RUBYOBJ) {
       nm_register_values(reinterpret_cast<VALUE*>(init), 1);
     }
@@ -1191,7 +1190,7 @@ static VALUE nm_init_new_version(int argc, VALUE* argv, VALUE self) {
   }
 
   if (!NIL_P(initial_ary)) {
-    
+
     if (TYPE(initial_ary) == T_ARRAY) 	v_size = RARRAY_LEN(initial_ary);
     else                                v_size = 1;
 
@@ -1330,7 +1329,7 @@ static VALUE nm_init_new_version(int argc, VALUE* argv, VALUE self) {
 static VALUE nm_init(int argc, VALUE* argv, VALUE nm) {
   NM_CONSERVATIVE(nm_register_value(nm));
   NM_CONSERVATIVE(nm_register_values(argv, argc));
-  
+
   if (argc <= 3) { // Call the new constructor unless all four arguments are given (or the 7-arg version is given)
     NM_CONSERVATIVE(nm_unregister_values(argv, argc));
     NM_CONSERVATIVE(nm_unregister_value(nm));
@@ -1493,7 +1492,7 @@ VALUE nm_cast(VALUE self, VALUE new_stype_symbol, VALUE new_dtype_symbol, VALUE 
   nm_register_nmatrix(m);
 
   VALUE to_return = Data_Wrap_Struct(CLASS_OF(self), nm_mark, nm_delete, m);
-  
+
   nm_unregister_nmatrix(m);
   NM_CONSERVATIVE(nm_unregister_value(self));
   NM_CONSERVATIVE(nm_unregister_value(init));
@@ -1980,7 +1979,7 @@ static VALUE nm_mref(int argc, VALUE* argv, VALUE self) {
  *     n[3,3] = n[2,3] = 5.0
  */
 static VALUE nm_mset(int argc, VALUE* argv, VALUE self) {
-  
+
   size_t dim = NM_DIM(self); // last arg is the value
 
   VALUE to_return = Qnil;
@@ -2113,7 +2112,7 @@ static VALUE nm_shape(VALUE self) {
   nm_register_values(shape, s->dim);
   for (size_t index = 0; index < s->dim; ++index)
     shape[index] = INT2FIX(s->shape[index]);
-  
+
   nm_unregister_values(shape, s->dim);
   NM_CONSERVATIVE(nm_unregister_value(self));
   return rb_ary_new4(s->dim, shape);
@@ -2153,11 +2152,11 @@ static VALUE nm_supershape(VALUE self) {
   STORAGE* s   = NM_STORAGE(self);
   if (s->src == s) {
     return nm_shape(self); // easy case (not a slice)
-  } 
+  }
   else s = s->src;
 
   NM_CONSERVATIVE(nm_register_value(self));
-  
+
   VALUE* shape = NM_ALLOCA_N(VALUE, s->dim);
   nm_register_values(shape, s->dim);
   for (size_t index = 0; index < s->dim; ++index)
@@ -2661,7 +2660,7 @@ static SLICE* get_slice(size_t dim, int argc, VALUE* arg, size_t* shape) {
   // r is the shape position; t is the slice position. They may differ when we're dealing with a
   // matrix where the effective dimension is less than the dimension (e.g., a vector).
   for (size_t r = 0, t = 0; r < dim; ++r) {
-    VALUE v = t == argc ? Qnil : arg[t];
+    VALUE v = t == (unsigned int)argc ? Qnil : arg[t];
 
     // if the current shape indicates a vector and fewer args were supplied than necessary, just use 0
     if (argc - t + r < dim && shape[r] == 1) {
@@ -2690,11 +2689,11 @@ static SLICE* get_slice(size_t dim, int argc, VALUE* arg, size_t* shape) {
 
       if (rb_ary_entry(begin_end, 0) >= 0)
         slice->coords[r]  = FIX2INT(rb_ary_entry(begin_end, 0));
-      else 
+      else
         slice->coords[r]  = shape[r] + FIX2INT(rb_ary_entry(begin_end, 0));
       if (rb_ary_entry(begin_end, 1) >= 0)
         slice->lengths[r] = FIX2INT(rb_ary_entry(begin_end, 1)) - slice->coords[r];
-      else 
+      else
         slice->lengths[r] = shape[r] + FIX2INT(rb_ary_entry(begin_end, 1)) - slice->coords[r];
 
       if (RHASH_EMPTY_P(v)) t++; // go on to the next

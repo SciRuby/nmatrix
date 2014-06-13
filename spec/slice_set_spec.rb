@@ -24,15 +24,11 @@
 #
 # Test of slice set operations.
 
+require 'spec_helper'
 require 'pry'
-require File.dirname(__FILE__) + "/spec_helper.rb"
 
 describe "Set slice operation" do
   include RSpec::Longrun::DSL
-
-  #after :each do
-  #  GC.start
-  #end
 
   [:dense, :yale, :list].each do |stype|
     context "for #{stype}" do
