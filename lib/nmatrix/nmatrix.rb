@@ -51,6 +51,7 @@ class NMatrix
 
     autoload :Market, 'nmatrix/io/market.rb'
     autoload :PointCloud, 'nmatrix/io/point_cloud.rb'
+    autoload :HarwellBoeing, 'nmatrix/io/harwell_boeing.rb'
   end
 
   class << self

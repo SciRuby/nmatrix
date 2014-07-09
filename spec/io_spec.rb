@@ -85,6 +85,11 @@ describe NMatrix::IO do
     expect(n[0,3]).to eq(0)
   end
 
+  it "loads a Harwell Boeing format file, determines matrix format based on file extension", :focus => true do
+    n = NMatrix::IO::HarwellBoeing.load("spec/test.rua")
+    # TODO : Add expectations here
+  end
+
   it "raises an error when reading a non-existent file" do
     fn = rand(10000000).to_i.to_s
     while File.exist?(fn)
