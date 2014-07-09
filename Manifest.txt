@@ -54,6 +54,8 @@ ext/nmatrix/util/io.h
 ext/nmatrix/util/sl_list.cpp
 ext/nmatrix/util/sl_list.h
 ext/nmatrix/util/util.h
+ext/nmatrix/util/hb_io.cpp
+ext/nmatrix/util/hb_io.h
 ext/nmatrix/math.cpp
 ext/nmatrix/math/asum.h
 ext/nmatrix/math/geev.h

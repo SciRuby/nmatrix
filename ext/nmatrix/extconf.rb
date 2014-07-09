@@ -102,7 +102,7 @@ $CXXFLAGS = ["-Wall -Werror=return-type",$CXXFLAGS].join(" ")
 $CPPFLAGS = ["-Wall -Werror=return-type",$CPPFLAGS].join(" ")
 
 # When adding objects here, make sure their directories are included in CLEANOBJS down at the bottom of extconf.rb.
-basenames = %w{nmatrix ruby_constants data/data util/io math util/sl_list storage/common storage/storage storage/dense/dense storage/yale/yale storage/list/list}
+basenames = %w{nmatrix ruby_constants data/data util/io util/hb_io math util/sl_list storage/common storage/storage storage/dense/dense storage/yale/yale storage/list/list}
 $objs = basenames.map { |b| "#{b}.o"   }
 $srcs = basenames.map { |b| "#{b}.cpp" }
 

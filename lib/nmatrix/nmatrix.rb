@@ -49,8 +49,45 @@ class NMatrix
       autoload :Mat5Reader, 'nmatrix/io/mat5_reader'
     end
 
-    autoload :Market, 'nmatrix/io/market.rb'
-    autoload :PointCloud, 'nmatrix/io/point_cloud.rb'
+    module HarwellBoeing
+      class << self
+        def load file_path, opts={}
+          if opts[:header] 
+            NMatrix::IO::HarwellBoeing.load_hb_file file_path, true
+          else
+            hb_data = NMatrix::IO::HarwellBoeing.load_hb_file file_path, false 
+
+            n       = NMatrix.new [hb_data[:header][:nrow] , hb_data[:header][:ncol]], 
+                                   dtype: :float64
+
+            # Each successive number in colptr denotes the starting index of the 
+            # row index of the values of the matrix.
+
+            colptr  = hb_data[:colptr]
+            values  = hb_data[:values]
+            rowind  = hb_data[:rowind]
+
+            col_num = 0
+
+            for j in 1..hb_data[:header][:ncol]
+
+              if colptr[j] - 1 > colptr[j-1] # Check to see if the row is empty
+                for k in (colptr[j-1] - 1)...colptr[j]-1 
+                  row_index                 = rowind[k]
+                  n[row_index - 1, col_num] = values[k]
+                end
+              end
+              col_num += 1
+            end
+
+            [n,hb_data[:header]]
+          end
+        end
+      end
+    end
+
+    autoload :Market,        'nmatrix/io/market.rb'
+    autoload :PointCloud,    'nmatrix/io/point_cloud.rb'
     autoload :HarwellBoeing, 'nmatrix/io/harwell_boeing.rb'
   end
 

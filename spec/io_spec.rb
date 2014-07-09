@@ -85,9 +85,24 @@ describe NMatrix::IO do
     expect(n[0,3]).to eq(0)
   end
 
-  it "loads a Harwell Boeing format file, determines matrix format based on file extension", :focus => true do
-    n = NMatrix::IO::HarwellBoeing.load("spec/test.rua")
-    # TODO : Add expectations here
+  it "loads a matrix in Harwell Boeing file format (only real numbers for now)", :focus => true do
+
+    # The test matrix used below has been adopted from http://people.sc.fsu.edu/~jburkardt/cpp_src/hb_io/rua_32.txt
+    h = NMatrix::IO::HarwellBoeing.load("spec/test.rua", :header => true)
+
+    expect(h.is_a? Hash ).to eq(true)
+    check_hb_header(h)
+
+    n,h = NMatrix::IO::HarwellBoeing.load("spec/test.rua")
+    expect(n.is_a? NMatrix ).to eq(true)
+    expect(n.cols).to eq(32)
+    expect(n.rows).to eq(32)
+
+    expect(n[0,0])  .to eq(101)
+    expect(n[31, 31]).to eq(3232)
+
+    expect(h.is_a? Hash ).to eq(true)
+    check_hb_header(h)
   end
 
   it "raises an error when reading a non-existent file" do
