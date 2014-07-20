@@ -109,6 +109,30 @@ def create_vector(stype) #:nodoc:
   m
 end
 
+def check_hb_header(h)
+  expect(h[:title])    .to eq("1Real unsymmetric assembled matrix based on IBM32")
+  expect(h[:key])      .to eq("RUA_32")
+  expect(h[:totcrd])   .to eq(36)
+  expect(h[:ptrcrd])   .to eq(3)
+  expect(h[:indcrd])   .to eq(8)
+  expect(h[:valcrd])   .to eq(13)
+  expect(h[:rhscrd])   .to eq(12)
+  expect(h[:key])      .to eq('RUA_32')
+  expect(h[:mxtype])   .to eq('RUA')
+  expect(h[:rhstyp])   .to eq('FGX')
+  
+  expect(h[:nrow])     .to eq(32)
+  expect(h[:ncol])     .to eq(32)
+  expect(h[:nnzero])   .to eq(126)
+  expect(h[:neltvl])   .to eq(0)
+  expect(h[:nrhs])     .to eq(1)
+  expect(h[:nrhsix])   .to eq(0)
+  expect(h[:ptrfmt])   .to eq('(16I5)')
+  expect(h[:indfmt])   .to eq('(16I5)')
+  expect(h[:valfmt])   .to eq('(10F7.1)')
+  expect(h[:rhsfmt])   .to eq('(10F7.1)')
+end
+
 # Stupid but independent comparison for slice_spec
 def nm_eql(n, m) #:nodoc:
   if n.shape != m.shape
