@@ -85,9 +85,43 @@ describe NMatrix::IO do
     expect(n[0,3]).to eq(0)
   end
 
-  it "loads a Harwell Boeing format file, determines matrix format based on file extension", :focus => true do
+  it "loads a matrix in Harwell Boeing file format", :focus => true do
+
+    # The test matrix used below has been adopted from http://people.sc.fsu.edu/~jburkardt/cpp_src/hb_io/rua_32.txt
     n = NMatrix::IO::HarwellBoeing.load("spec/test.rua")
-    # TODO : Add expectations here
+    expect(n.is_a? NMatrix ).to eq(true)
+    expect(n.cols).to eq(32)
+    expect(n.rows).to eq(32)
+
+    expect(n[0][0])  .to eq(101)
+    expect(n[26][31]).to eq(3232)
+
+    h = NMatrix::IO::HarwellBoeing.load("spec/test.rua", :header => true)
+
+    expect(h.is_a? Hash ).to eq(true)
+    expect(h[:title])    .to eq("1Real unsymmetric assembled matrix based on IBM32")
+    expect(h[:key])      .to eq("RUA_32")
+    expect(h[:totcrd])   .to eq(36)
+    expect(h[:ptrcrd])   .to eq(3)
+    expect(h[:indcrd])   .to eq(8)
+    expect(h[:valcrd])   .to eq(13)
+    expect(h[:rhscrd])   .to eq(12)
+
+    expect(h[:key])      .to eq('RUA_32')
+    expect(h[:mxtype])   .to eq('RUA')
+    expect(h[:rhstyp])   .to eq('FGX')
+   
+    expect(h[:nrow])     .to eq(32)
+    expect(h[:ncol])     .to eq(32)
+    expect(h[:nnzero])   .to eq(126)
+    expect(h[:neltvl])   .to eq(0)
+    expect(h[:nrhs])     .to eq(1)
+    expect(h[:nrhsix])   .to eq(0)
+
+    expect(h[:ptrfmt])   .to eq('(16I5)')
+    expect(h[:indfmt])   .to eq('(16I5)')
+    expect(h[:valfmt])   .to eq('(10F7.1)')
+    expect(h[:rhsfmt])   .to eq('(10F7.1)')
   end
 
   it "raises an error when reading a non-existent file" do
