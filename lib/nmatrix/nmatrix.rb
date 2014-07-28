@@ -28,8 +28,11 @@
 # inspect, pretty_print, element-wise operations).
 #++
 
-require_relative './lapack.rb'
-require_relative './yale_functions.rb'
+require 'nmatrix/lapack.rb'
+require 'nmatrix/yale_functions.rb'
+require 'nmatrix/shortcuts.rb'
+require 'nmatrix/math.rb'
+require 'nmatrix/enumerate.rb'
 
 class NMatrix
 
@@ -352,7 +355,6 @@ class NMatrix
   #
   # See @row (dimension = 0), @column (dimension = 1)
   def rank(shape_idx, rank_idx, meth = :copy)
-    
     if shape_idx > (self.dim-1)
       raise(RangeError, "#rank call was out of bounds")
     end
@@ -946,7 +948,3 @@ protected
   end
 
 end
-
-require_relative './shortcuts.rb'
-require_relative './math.rb'
-require_relative './enumerate.rb'

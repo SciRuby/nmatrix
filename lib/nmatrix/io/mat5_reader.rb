@@ -27,7 +27,7 @@
 #
 #++
 
-require_relative './mat_reader.rb'
+require 'nmatrix/io/mat_reader.rb'
 
 module NMatrix::IO::Matlab
   #

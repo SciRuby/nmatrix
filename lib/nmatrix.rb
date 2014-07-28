@@ -34,8 +34,10 @@ else
   require "nmatrix.so"
 end
 
-require 'nmatrix/nmatrix.rb'
-require 'nmatrix/version.rb'
+require 'nmatrix/io/mat_reader.rb'
+
 require 'nmatrix/blas.rb'
 require 'nmatrix/monkeys'
-require "nmatrix/shortcuts.rb"
+require 'nmatrix/nmatrix.rb'
+require 'nmatrix/shortcuts.rb'
+require 'nmatrix/version.rb'
