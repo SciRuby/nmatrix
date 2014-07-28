@@ -10,6 +10,8 @@ Fast Numerical Linear Algebra Library for Ruby
 
 {<img src=https://travis-ci.org/SciRuby/nmatrix.png>}[https://travis-ci.org/SciRuby/nmatrix]
 
+{<img src="https://codeclimate.com/github/SciRuby/nmatrix.png" />}[https://codeclimate.com/github/SciRuby/nmatrix]
+
 == Description
 
 NMatrix is a fast numerical linear algebra library for Ruby, with dense and sparse matrices, written mostly in C and
@@ -39,7 +41,7 @@ If you want to obtain the latest (development) code, you should generally do:
     bundle install
     bundle exec rake compile
     bundle exec rake repackage
-    gem install pkg/nmatrix-0.1.0.rc4.gem
+    gem install pkg/nmatrix-0.1.0.rc5.gem
 
 Detailed instructions are available for {Mac}[https://github.com/SciRuby/nmatrix/wiki/Installation#mac-os-x] and {Linux}[https://github.com/SciRuby/nmatrix/wiki/Installation#linux].
 We are currently working on Mavericks (Mac OS X) installation instructions, but in general, you'll need Homebrew and should

@@ -28,7 +28,7 @@ require 'spec_helper'
 
 describe "RSpec" do
   it "should permit #be_within to be used on a dense NMatrix" do
-    expect(NMatrix.new(:dense, [4,1], 1.0, :complex128) / 10000.0).to be_within(0.00000001).of(NMatrix.new(:dense, [4,1], 0.0001, :float64))
-    expect(NMatrix.new(:dense, [4,1], 1.0, :complex128) / 10000.0).not_to be_within(0.00000001).of(NMatrix.new(:dense, [4,1], 1.0, :float64))
+    expect(NMatrix.new([4,1], 1.0, dtype: :complex128, stype: :dense) / 10000.0).to be_within(0.00000001).of(NMatrix.new([4,1], 0.0001, dtype: :float64, stype: :dense))
+    expect(NMatrix.new([4,1], 1.0, dtype: :complex128, stype: :dense) / 10000.0).not_to be_within(0.00000001).of(NMatrix.new([4,1], 1.0, dtype: :float64, stype: :dense))
   end
 end

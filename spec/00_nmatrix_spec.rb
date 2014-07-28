@@ -562,4 +562,20 @@ describe 'NMatrix' do
       end
     end
   end
+
+  context "#inject" do
+    it "should sum columns of yale matrix correctly" do
+      n = NMatrix.new([4, 3], stype: :yale, default: 0)
+      n[0,0] = 1
+      n[1,1] = 2
+      n[2,2] = 4
+      n[3,2] = 8
+      column_sums = []
+      n.cols.times do |i|
+        column_sums << n.col(i).inject(:+)
+      end
+      expect(column_sums).to eq([1, 2, 12])
+    end
+  end
+
 end
