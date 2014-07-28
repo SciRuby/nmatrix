@@ -58,6 +58,7 @@ extern "C" {
 #include "data/data.h"
 #include "math/math.h"
 #include "util/io.h"
+#include "util/hb_io.h"
 #include "storage/storage.h"
 #include "storage/list/list.h"
 #include "storage/yale/yale.h"
