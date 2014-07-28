@@ -283,11 +283,11 @@ nm::RubyObject rubyobj_from_cval(void* val, nm::dtype_t dtype) {
  */
 void* rubyobj_to_cval(VALUE val, nm::dtype_t dtype) {
   size_t size =  DTYPE_SIZES[dtype];
-  NM_CONSERVATIVE(nm_register_value(val));
+  NM_CONSERVATIVE(nm_register_value(&val));
   void* ret_val = NM_ALLOC_N(char, size);
 
   rubyval_to_cval(val, dtype, ret_val);
-  NM_CONSERVATIVE(nm_unregister_value(val));
+  NM_CONSERVATIVE(nm_unregister_value(&val));
   return ret_val;
 }
 

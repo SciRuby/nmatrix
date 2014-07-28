@@ -822,6 +822,18 @@ class NMatrix
 
   #
   # call-seq:
+  #     inject -> symbol
+  #
+  # This overrides the inject function to use map_stored for yale matrices
+  #
+  def inject(sym)
+    return super(sym) unless self.yale?
+    return self.map_stored.inject(sym)
+  end
+
+
+  #
+  # call-seq:
   #     clone_structure -> NMatrix
   #
   # This function is like clone, but it only copies the structure and the default value.

@@ -16,11 +16,11 @@ lib/nmatrix/io/mat_reader.rb
 lib/nmatrix/io/point_cloud.rb
 lib/nmatrix/blas.rb
 lib/nmatrix/enumerate.rb
+lib/nmatrix/homogeneous.rb
 lib/nmatrix/lapack.rb
 lib/nmatrix/math.rb
 lib/nmatrix/monkeys.rb
 lib/nmatrix/nmatrix.rb
-lib/nmatrix/nvector.rb
 lib/nmatrix/rspec.rb
 lib/nmatrix/shortcuts.rb
 lib/nmatrix/version.rb

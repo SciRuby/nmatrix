@@ -86,7 +86,7 @@ end
 if RUBY_VERSION < '1.9'
   raise(NotImplementedError, "Sorry, you need at least Ruby 1.9!")
 else
-  $INSTALLFILES = [['nmatrix.h', '$(archdir)'], ['nmatrix.hpp', '$(archdir)'], ['nmatrix_config.h', '$(archdir)']]
+  $INSTALLFILES = [['nmatrix.h', '$(archdir)'], ['nmatrix.hpp', '$(archdir)'], ['nmatrix_config.h', '$(archdir)'], ['nm_memory.h', '$(archdir)']]
   if /cygwin|mingw/ =~ RUBY_PLATFORM
     $INSTALLFILES << ['libnmatrix.a', '$(archdir)']
   end

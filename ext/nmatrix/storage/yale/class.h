@@ -362,7 +362,7 @@ public:
    */
   void insert(SLICE* slice, VALUE right) {
 
-    NM_CONSERVATIVE(nm_register_value(right));
+    NM_CONSERVATIVE(nm_register_value(&right));
 
     std::pair<NMATRIX*,bool> nm_and_free =
       interpret_arg_as_dense_nmatrix(right, dtype());
@@ -410,7 +410,7 @@ public:
       }
     } else NM_FREE(v);
 
-    NM_CONSERVATIVE(nm_unregister_value(right));
+    NM_CONSERVATIVE(nm_unregister_value(&right));
   }
 
 
@@ -843,11 +843,11 @@ public:
    */
   template <typename E>
   VALUE map_merged_stored(VALUE klass, nm::YaleStorage<E>& t, VALUE r_init) const {
-    nm_register_value(r_init);
+    nm_register_value(&r_init);
     VALUE s_init    = const_default_value(),
           t_init    = t.const_default_value();
-    nm_register_value(s_init);
-    nm_register_value(t_init);
+    nm_register_value(&s_init);
+    nm_register_value(&t_init);
     
     // Make a reasonable approximation of the resulting capacity
     size_t s_ndnz   = count_copy_ndnz(),
@@ -861,9 +861,9 @@ public:
     YALE_STORAGE* rs= YaleStorage<nm::RubyObject>::create(xshape, reserve);
 
     if (r_init == Qnil) {
-      nm_unregister_value(r_init);
+      nm_unregister_value(&r_init);
       r_init       = rb_yield_values(2, s_init, t_init);
-      nm_register_value(r_init);
+      nm_register_value(&r_init);
     }
 
     nm::RubyObject r_init_obj(r_init);
@@ -874,13 +874,13 @@ public:
     nm_register_nmatrix(m);
     VALUE result   = Data_Wrap_Struct(klass, nm_mark, nm_delete, m);
     nm_unregister_nmatrix(m);
-    nm_register_value(result);
-    nm_unregister_value(r_init);
+    nm_register_value(&result);
+    nm_unregister_value(&r_init);
 
     RETURN_SIZED_ENUMERATOR_PRE
-    nm_unregister_value(result);
-    nm_unregister_value(t_init);
-    nm_unregister_value(s_init);
+    nm_unregister_value(&result);
+    nm_unregister_value(&t_init);
+    nm_unregister_value(&s_init);
     // No obvious, efficient way to pass a length function as the fourth argument here:
     RETURN_SIZED_ENUMERATOR(result, 0, 0, 0);
 
@@ -924,9 +924,9 @@ public:
         //RB_P(rb_funcall(result, rb_intern("yale_ija"), 0));
       }
     }
-    nm_unregister_value(result);
-    nm_unregister_value(t_init);
-    nm_unregister_value(s_init);
+    nm_unregister_value(&result);
+    nm_unregister_value(&t_init);
+    nm_unregister_value(&s_init);
 
     return result;
   }
