@@ -86,7 +86,7 @@ end
 if RUBY_VERSION < '1.9'
   raise(NotImplementedError, "Sorry, you need at least Ruby 1.9!")
 else
-  $INSTALLFILES = [['nmatrix.h', '$(archdir)'], ['nmatrix.hpp', '$(archdir)'], ['nmatrix_config.h', '$(archdir)'], ['nm_memory.h', '$(archdir)']]
+  $INSTALLFILES = [['nmatrix.h', '$(archdir)'], ['nmatrix.hpp', '$(archdir)'], ['nmatrix_config.h', '$(archdir)']]
   if /cygwin|mingw/ =~ RUBY_PLATFORM
     $INSTALLFILES << ['libnmatrix.a', '$(archdir)']
   end
@@ -102,7 +102,7 @@ $CXXFLAGS = ["-Wall -Werror=return-type",$CXXFLAGS].join(" ")
 $CPPFLAGS = ["-Wall -Werror=return-type",$CPPFLAGS].join(" ")
 
 # When adding objects here, make sure their directories are included in CLEANOBJS down at the bottom of extconf.rb.
-basenames = %w{nmatrix ruby_constants data/data util/io math util/sl_list storage/common storage/storage storage/dense/dense storage/yale/yale storage/list/list}
+basenames = %w{nmatrix ruby_constants data/data util/io util/hb_io math util/sl_list storage/common storage/storage storage/dense/dense storage/yale/yale storage/list/list}
 $objs = basenames.map { |b| "#{b}.o"   }
 $srcs = basenames.map { |b| "#{b}.cpp" }
 
@@ -226,9 +226,9 @@ $libs += " -llapack -lcblas -latlas "
 
 
 # For release, these next two should both be changed to -O3.
-$CFLAGS += " -O3" #" -O0 -g "
+$CFLAGS += " -O3 -g" #" -O0 -g "
 #$CFLAGS += " -static -O0 -g "
-$CPPFLAGS += " -O3 -std=#{$CPP_STANDARD}" #" -O0 -g -std=#{$CPP_STANDARD} " #-fmax-errors=10 -save-temps
+$CPPFLAGS += " -O3 -std=#{$CPP_STANDARD} -g" #" -O0 -g -std=#{$CPP_STANDARD} " #-fmax-errors=10 -save-temps
 #$CPPFLAGS += " -static -O0 -g -std=#{$CPP_STANDARD} "
 
 CONFIG['warnflags'].gsub!('-Wshorten-64-to-32', '') # doesn't work except in Mac-patched gcc (4.2)

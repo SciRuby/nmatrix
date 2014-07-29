@@ -25,12 +25,19 @@
 # Basic tests for NMatrix::IO.
 #
 require "tmpdir" # Used to avoid cluttering the repository.
-require 'spec_helper'
+
 require "./lib/nmatrix"
 
 describe NMatrix::IO do
-  let(:tmp_dir)  { Dir.mktmpdir }
-  let(:test_out) { File.join(tmp_dir, 'test-out') }
+  before :each do
+    @tmp_dir = Dir.mktmpdir
+    @test_out = File.join(@tmp_dir, "test-out")
+  end
+
+  after :each do
+    File.delete(@test_out) if File.file?(@test_out)
+    Dir.rmdir(@tmp_dir)
+  end
 
   it "repacks a string" do
     expect(NMatrix::IO::Matlab.repack("hello", :miUINT8, :byte)).to eq("hello")
@@ -85,6 +92,25 @@ describe NMatrix::IO do
     expect(n[0,3]).to eq(0)
   end
 
+  it "loads a matrix in Harwell Boeing file format (only real numbers for now)", :focus => true do
+
+    # The test matrix used below has been adopted from http://people.sc.fsu.edu/~jburkardt/cpp_src/hb_io/rua_32.txt
+    h = NMatrix::IO::HarwellBoeing.load("spec/test.rua", :header => true)
+
+    expect(h.is_a? Hash ).to eq(true)
+    check_hb_header(h)
+
+    n,h = NMatrix::IO::HarwellBoeing.load("spec/test.rua")
+    expect(n.is_a? NMatrix ).to eq(true)
+    expect(n.cols).to eq(32)
+    expect(n.rows).to eq(32)
+
+    expect(n[0,0])  .to eq(101)
+    expect(n[31, 31]).to eq(3232)
+
+    expect(h.is_a? Hash ).to eq(true)
+    check_hb_header(h)
+  end
   it "raises an error when reading a non-existent file" do
     fn = rand(10000000).to_i.to_s
     while File.exist?(fn)
@@ -95,54 +121,54 @@ describe NMatrix::IO do
 
   it "reads and writes NMatrix dense" do
     n = NMatrix.new(:dense, [4,3], [0,1,2,3,4,5,6,7,8,9,10,11], :int32)
-    n.write(test_out)
+    n.write(@test_out)
 
-    m = NMatrix.read(test_out)
+    m = NMatrix.read(@test_out)
     expect(n).to eq(m)
   end
 
   it "reads and writes NMatrix dense as symmetric" do
     n = NMatrix.new(:dense, 3, [0,1,2,1,3,4,2,4,5], :int16)
-    n.write(test_out, :symmetric)
+    n.write(@test_out, :symmetric)
 
-    m = NMatrix.read(test_out)
+    m = NMatrix.read(@test_out)
     expect(n).to eq(m)
   end
 
   it "reads and writes NMatrix dense as skew" do
     n = NMatrix.new(:dense, 3, [0,1,2,-1,3,4,-2,-4,5], :float64)
-    n.write(test_out, :skew)
+    n.write(@test_out, :skew)
 
-    m = NMatrix.read(test_out)
+    m = NMatrix.read(@test_out)
     expect(n).to eq(m)
   end
 
   it "reads and writes NMatrix dense as hermitian" do
     n = NMatrix.new(:dense, 3, [0,1,2,1,3,4,2,4,5], :complex64)
-    n.write(test_out, :hermitian)
+    n.write(@test_out, :hermitian)
 
-    m = NMatrix.read(test_out)
+    m = NMatrix.read(@test_out)
     expect(n).to eq(m)
   end
 
   it "reads and writes NMatrix dense as upper" do
     n = NMatrix.new(:dense, 3, [-1,1,2,3,4,5,6,7,8], :int32)
-    n.write(test_out, :upper)
+    n.write(@test_out, :upper)
 
     m = NMatrix.new(:dense, 3, [-1,1,2,0,4,5,0,0,8], :int32) # lower version of the same
 
-    o = NMatrix.read(test_out)
+    o = NMatrix.read(@test_out)
     expect(o).to eq(m)
     expect(o).not_to eq(n)
   end
 
   it "reads and writes NMatrix dense as lower" do
     n = NMatrix.new(:dense, 3, [-1,1,2,3,4,5,6,7,8], :int32)
-    n.write(test_out, :lower)
+    n.write(@test_out, :lower)
 
     m = NMatrix.new(:dense, 3, [-1,0,0,3,4,0,6,7,8], :int32) # lower version of the same
 
-    o = NMatrix.read(test_out)
+    o = NMatrix.read(@test_out)
     expect(o).to eq(m)
     expect(o).not_to eq(n)
   end

@@ -13,14 +13,13 @@ lib/nmatrix/rspec.rb
 lib/nmatrix/io/market.rb
 lib/nmatrix/io/mat5_reader.rb
 lib/nmatrix/io/mat_reader.rb
-lib/nmatrix/io/point_cloud.rb
 lib/nmatrix/blas.rb
 lib/nmatrix/enumerate.rb
-lib/nmatrix/homogeneous.rb
 lib/nmatrix/lapack.rb
 lib/nmatrix/math.rb
 lib/nmatrix/monkeys.rb
 lib/nmatrix/nmatrix.rb
+lib/nmatrix/nvector.rb
 lib/nmatrix/rspec.rb
 lib/nmatrix/shortcuts.rb
 lib/nmatrix/version.rb
@@ -33,12 +32,12 @@ ext/nmatrix/data/rational.h
 ext/nmatrix/data/ruby_object.h
 ext/nmatrix/storage/common.cpp
 ext/nmatrix/storage/common.h
+ext/nmatrix/storage/dense.cpp
+ext/nmatrix/storage/dense.h
+ext/nmatrix/storage/list.cpp
+ext/nmatrix/storage/list.h
 ext/nmatrix/storage/storage.cpp
 ext/nmatrix/storage/storage.h
-ext/nmatrix/storage/dense/dense.cpp
-ext/nmatrix/storage/dense/dense.h
-ext/nmatrix/storage/list/list.cpp
-ext/nmatrix/storage/list/list.h
 ext/nmatrix/storage/yale/yale.cpp
 ext/nmatrix/storage/yale/yale.h
 ext/nmatrix/storage/yale/class.h
@@ -54,6 +53,8 @@ ext/nmatrix/util/io.h
 ext/nmatrix/util/sl_list.cpp
 ext/nmatrix/util/sl_list.h
 ext/nmatrix/util/util.h
+ext/nmatrix/util/hb_io.cpp
+ext/nmatrix/util/hb_io.h
 ext/nmatrix/math.cpp
 ext/nmatrix/math/asum.h
 ext/nmatrix/math/geev.h
@@ -66,7 +67,7 @@ ext/nmatrix/math/getf2.h
 ext/nmatrix/math/getrf.h
 ext/nmatrix/math/getri.h
 ext/nmatrix/math/getrs.h
-ext/nmatrix/math/imax.h
+ext/nmatrix/math/idamax.h
 ext/nmatrix/math/inc.h
 ext/nmatrix/math/laswp.h
 ext/nmatrix/math/long_dtype.h
@@ -84,7 +85,6 @@ ext/nmatrix/ruby_constants.cpp
 ext/nmatrix/ruby_constants.h
 ext/nmatrix/ruby_nmatrix.c
 ext/nmatrix/types.h
-ext/nmatrix/nm_memory.h
 ext/nmatrix/extconf.rb
 
 

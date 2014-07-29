@@ -29,6 +29,10 @@
 require 'spec_helper'
 
 describe "math" do
+  #after :each do
+  #  GC.start
+  #end
+
   context "elementwise math functions" do
 
     [:dense,:list,:yale].each do |stype|
@@ -49,13 +53,6 @@ describe "math" do
                   meth.to_s[1...meth.to_s.length].to_sym)
               next if meth == :atanh
 
-              if meth == :-@
-                it "should correctly apply elementwise negation" do
-                  expect(@m.send(meth)).to eq N.new(@size, @a.map { |e| -e }, dtype: dtype, stype: stype)
-                end
-                next
-              end
-
               it "should correctly apply elementwise #{meth}" do
 
                 expect(@m.send(meth)).to eq N.new(@size, @a.map{ |e| Math.send(meth, e) },
@@ -68,7 +65,7 @@ describe "math" do
               it "should correctly apply elementwise #{meth}" do
                 expect(@m.send(meth, @m)).to eq N.new(@size, @a.map{ |e|
                                                      Math.send(meth, e, e) },
-                                                     dtype: :float64,
+                                                     dtype: :float64, 
                                                      stype: stype)
               end
 

@@ -49,35 +49,60 @@ class NMatrix
       autoload :Mat5Reader, 'nmatrix/io/mat5_reader'
     end
 
-    autoload :Market, 'nmatrix/io/market.rb'
-    autoload :PointCloud, 'nmatrix/io/point_cloud.rb'
+    module HarwellBoeing
+      class << self
+        def load file_path, opts={}
+          if opts[:header] 
+            NMatrix::IO::HarwellBoeing.load_hb_file file_path, true
+          else
+            hb_data = NMatrix::IO::HarwellBoeing.load_hb_file file_path, false 
+
+            n       = NMatrix.new [hb_data[:header][:nrow] , hb_data[:header][:ncol]], 
+                                   dtype: :float64
+
+            # Each successive number in colptr denotes the starting index of the 
+            # row index of the values of the matrix.
+
+            colptr  = hb_data[:colptr]
+            values  = hb_data[:values]
+            rowind  = hb_data[:rowind]
+
+            col_num = 0
+
+            for j in 1..hb_data[:header][:ncol]
+
+              if colptr[j] - 1 > colptr[j-1] # Check to see if the row is empty
+                for k in (colptr[j-1] - 1)...colptr[j]-1 
+                  row_index                 = rowind[k]
+                  n[row_index - 1, col_num] = values[k]
+                end
+              end
+              col_num += 1
+            end
+
+            [n,hb_data[:header]]
+          end
+        end
+      end
+    end
+
+    autoload :Market,        'nmatrix/io/market.rb'
+    autoload :PointCloud,    'nmatrix/io/point_cloud.rb'
+    autoload :HarwellBoeing, 'nmatrix/io/harwell_boeing.rb'
   end
 
   class << self
     #
     # call-seq:
-    #     load_matlab_file(path) -> Mat5Reader
+    #     load_file(path) -> Mat5Reader
     #
     # * *Arguments* :
-    #   - +file_path+ -> The path to a version 5 .mat file.
+    #   - +path+ -> The path to a version 5 .mat file.
     # * *Returns* :
     #   - A Mat5Reader object.
     #
-    def load_matlab_file(file_path)
+    def load_file(file_path)
       NMatrix::IO::Mat5Reader.new(File.open(file_path, 'rb')).to_ruby
-    end
-
-    #
-    # call-seq:
-    #     load_pcd_file(path) -> PointCloudReader::MetaReader
-    #
-    # * *Arguments* :
-    #   - +file_path+ -> The path to a PCL PCD file.
-    # * *Returns* :
-    #   - A PointCloudReader::MetaReader object with the matrix stored in its +matrix+ property
-    #
-    def load_pcd_file(file_path)
-      NMatrix::IO::PointCloudReader::MetaReader.new(file_path)
     end
 
     #
@@ -352,10 +377,6 @@ class NMatrix
   #
   # See @row (dimension = 0), @column (dimension = 1)
   def rank(shape_idx, rank_idx, meth = :copy)
-    
-    if shape_idx > (self.dim-1)
-      raise(RangeError, "#rank call was out of bounds")
-    end
 
     params = Array.new(self.dim)
     params.each.with_index do |v,d|
@@ -420,44 +441,14 @@ class NMatrix
   # * *Returns* :
   #   - A copy with a different shape.
   #
-  def reshape new_shape,*shapes
-    if new_shape.is_a?Fixnum
-      newer_shape =  [new_shape]+shapes
-    else  # new_shape is an Array
-      newer_shape = new_shape
-    end
-    t = reshape_clone_structure(newer_shape)
-    left_params  = [:*]*newer_shape.size
-    puts(left_params)
+  def reshape new_shape
+    t = reshape_clone_structure(new_shape)
+    left_params  = [:*]*new_shape.size
     right_params = [:*]*self.shape.size
     t[*left_params] = self[*right_params]
     t
   end
 
-
-  #
-  # call-seq:
-  #     reshape!(new_shape) -> NMatrix
-  #     reshape! new_shape  -> NMatrix
-  #
-  # Reshapes the matrix (in-place) to the desired shape. Note that this function does not do a resize; the product of
-  # the new and old shapes' components must be equal.
-  #
-  # * *Arguments* :
-  #   - +new_shape+ -> Array of positive Fixnums.
-  #
-  def reshape! new_shape,*shapes
-    if self.is_ref?
-      raise(ArgumentError, "This operation cannot be performed on reference slices")
-    else
-      if new_shape.is_a?Fixnum
-        shape =  [new_shape]+shapes
-      else  # new_shape is an Array
-        shape = new_shape
-      end
-      self.reshape_bang(shape)
-    end
-  end
 
   #
   # call-seq:
@@ -566,7 +557,7 @@ class NMatrix
       new_cap = matrices.inject(self.capacity - self.shape[0]) do |total,m|
         total + m.capacity - m.shape[0]
       end - self.shape[0] + new_shape[0]
-      opts = {capacity: new_cap}.merge(opts)
+      opts = {capacity: self.new_cap}.merge(opts)
     end
 
     # Do the actual construction.
@@ -820,33 +811,6 @@ class NMatrix
   end
 
 
-  #
-  # call-seq:
-  #     inject -> symbol
-  #
-  # This overrides the inject function to use map_stored for yale matrices
-  #
-  def inject(sym)
-    return super(sym) unless self.yale?
-    return self.map_stored.inject(sym)
-  end
-
-
-  #
-  # call-seq:
-  #     clone_structure -> NMatrix
-  #
-  # This function is like clone, but it only copies the structure and the default value.
-  # None of the other values are copied. It takes an optional capacity argument. This is
-  # mostly only useful for dense, where you may not want to initialize; for other types,
-  # you should probably use +zeros_like+.
-  #
-  def clone_structure(capacity = nil)
-    opts = {stype: self.stype, default: self.default_value, dtype: self.dtype}
-    opts = {capacity: capacity}.merge(opts) if self.yale?
-    NMatrix.new(self.shape, opts)
-  end
-
   # This is how you write an individual element-wise operation function:
   #def __list_elementwise_add__ rhs
   #  self.__list_map_merged_stored__(rhs){ |l,r| l+r }.cast(self.stype, NMatrix.upcast(self.dtype, rhs.dtype))
@@ -870,6 +834,22 @@ protected
     end
 
     ary
+  end
+
+
+  #
+  # call-seq:
+  #     clone_structure -> NMatrix
+  #
+  # This function is like clone, but it only copies the structure and the default value.
+  # None of the other values are copied. It takes an optional capacity argument. This is
+  # mostly only useful for dense, where you may not want to initialize; for other types,
+  # you should probably use +zeros_like+.
+  #
+  def clone_structure(capacity = nil)
+    opts = {stype: self.stype, default: self.default_value, dtype: self.dtype}
+    opts = {capacity: capacity}.merge(opts) if self.yale?
+    NMatrix.new(self.shape, opts)
   end
 
 

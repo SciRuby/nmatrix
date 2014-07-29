@@ -123,8 +123,8 @@ namespace nm { namespace dense_storage {
    */
   template <typename D>
   void set(VALUE left, SLICE* slice, VALUE right) {
-    NM_CONSERVATIVE(nm_register_value(&left));
-    NM_CONSERVATIVE(nm_register_value(&right));
+    NM_CONSERVATIVE(nm_register_value(left));
+    NM_CONSERVATIVE(nm_register_value(right));
 
     DENSE_STORAGE* s = NM_STORAGE_DENSE(left);
 
@@ -174,8 +174,8 @@ namespace nm { namespace dense_storage {
         nm_unregister_values(reinterpret_cast<VALUE*>(v), v_size);
       NM_FREE(v);
     }
-    NM_CONSERVATIVE(nm_unregister_value(&left));
-    NM_CONSERVATIVE(nm_unregister_value(&right));
+    NM_CONSERVATIVE(nm_unregister_value(left));
+    NM_CONSERVATIVE(nm_unregister_value(right));
 
   }
 
@@ -361,12 +361,12 @@ void nm_dense_storage_unregister(const STORAGE* s) {
  */
 VALUE nm_dense_map_pair(VALUE self, VALUE right) {
 
-  NM_CONSERVATIVE(nm_register_value(&self));
-  NM_CONSERVATIVE(nm_register_value(&right));
+  NM_CONSERVATIVE(nm_register_value(self));
+  NM_CONSERVATIVE(nm_register_value(right));
 
   RETURN_SIZED_ENUMERATOR_PRE
-  NM_CONSERVATIVE(nm_unregister_value(&right));
-  NM_CONSERVATIVE(nm_unregister_value(&self));
+  NM_CONSERVATIVE(nm_unregister_value(right));
+  NM_CONSERVATIVE(nm_unregister_value(self));
   RETURN_SIZED_ENUMERATOR(self, 0, 0, nm_enumerator_length);
 
   DENSE_STORAGE *s = NM_STORAGE_DENSE(self),
@@ -391,10 +391,10 @@ VALUE nm_dense_map_pair(VALUE self, VALUE right) {
            t_index = nm_dense_storage_pos(t, coords);
 
     VALUE sval = NM_DTYPE(self) == nm::RUBYOBJ ? reinterpret_cast<VALUE*>(s->elements)[s_index] : rubyobj_from_cval((char*)(s->elements) + s_index*DTYPE_SIZES[NM_DTYPE(self)], NM_DTYPE(self)).rval;
-    nm_register_value(&sval);
+    nm_register_value(sval);
     VALUE tval = NM_DTYPE(right) == nm::RUBYOBJ ? reinterpret_cast<VALUE*>(t->elements)[t_index] : rubyobj_from_cval((char*)(t->elements) + t_index*DTYPE_SIZES[NM_DTYPE(right)], NM_DTYPE(right)).rval;
     result_elem[k] = rb_yield_values(2, sval, tval);
-    nm_unregister_value(&sval);
+    nm_unregister_value(sval);
   }
 
   VALUE klass = CLASS_OF(self);
@@ -404,8 +404,8 @@ VALUE nm_dense_map_pair(VALUE self, VALUE right) {
 
   nm_unregister_nmatrix(m);
   nm_dense_storage_unregister(result);
-  NM_CONSERVATIVE(nm_unregister_value(&self));
-  NM_CONSERVATIVE(nm_unregister_value(&right));
+  NM_CONSERVATIVE(nm_unregister_value(self));
+  NM_CONSERVATIVE(nm_unregister_value(right));
 
   return to_return;
 
@@ -416,10 +416,10 @@ VALUE nm_dense_map_pair(VALUE self, VALUE right) {
  */
 VALUE nm_dense_map(VALUE self) {
 
-  NM_CONSERVATIVE(nm_register_value(&self));
+  NM_CONSERVATIVE(nm_register_value(self));
 
   RETURN_SIZED_ENUMERATOR_PRE
-  NM_CONSERVATIVE(nm_unregister_value(&self));
+  NM_CONSERVATIVE(nm_unregister_value(self));
   RETURN_SIZED_ENUMERATOR(self, 0, 0, nm_enumerator_length);
 
   DENSE_STORAGE *s = NM_STORAGE_DENSE(self);
@@ -454,7 +454,7 @@ VALUE nm_dense_map(VALUE self) {
 
   nm_unregister_nmatrix(m);
   nm_dense_storage_unregister(result);
-  NM_CONSERVATIVE(nm_unregister_value(&self));
+  NM_CONSERVATIVE(nm_unregister_value(self));
 
   return to_return;
 }
@@ -465,10 +465,10 @@ VALUE nm_dense_map(VALUE self) {
  */
 VALUE nm_dense_each_with_indices(VALUE nmatrix) {
 
-  NM_CONSERVATIVE(nm_register_value(&nmatrix));
+  NM_CONSERVATIVE(nm_register_value(nmatrix));
   
   RETURN_SIZED_ENUMERATOR_PRE
-  NM_CONSERVATIVE(nm_unregister_value(&nmatrix));
+  NM_CONSERVATIVE(nm_unregister_value(nmatrix));
   RETURN_SIZED_ENUMERATOR(nmatrix, 0, 0, nm_enumerator_length); // fourth argument only used by Ruby2+
   DENSE_STORAGE* s = NM_STORAGE_DENSE(nmatrix);
 
@@ -486,7 +486,7 @@ VALUE nm_dense_each_with_indices(VALUE nmatrix) {
     nm_dense_storage_coords(sliced_dummy, k, coords);
     slice_index = nm_dense_storage_pos(s, coords);
     VALUE ary = rb_ary_new();
-    nm_register_value(&ary);
+    nm_register_value(ary);
     if (NM_DTYPE(nmatrix) == nm::RUBYOBJ) rb_ary_push(ary, reinterpret_cast<VALUE*>(s->elements)[slice_index]);
     else rb_ary_push(ary, rubyobj_from_cval((char*)(s->elements) + slice_index*DTYPE_SIZES[NM_DTYPE(nmatrix)], NM_DTYPE(nmatrix)).rval);
 
@@ -496,12 +496,12 @@ VALUE nm_dense_each_with_indices(VALUE nmatrix) {
 
     // yield the array which now consists of the value and the indices
     rb_yield(ary);
-    nm_unregister_value(&ary);
+    nm_unregister_value(ary);
   }
 
   nm_dense_storage_delete(sliced_dummy);
 
-  NM_CONSERVATIVE(nm_unregister_value(&nmatrix));
+  NM_CONSERVATIVE(nm_unregister_value(nmatrix));
 
   return nmatrix;
 
@@ -517,10 +517,10 @@ VALUE nm_dense_each_with_indices(VALUE nmatrix) {
  */
 VALUE nm_dense_each(VALUE nmatrix) {
 
-  NM_CONSERVATIVE(nm_register_value(&nmatrix));
+  NM_CONSERVATIVE(nm_register_value(nmatrix));
 
   RETURN_SIZED_ENUMERATOR_PRE
-  NM_CONSERVATIVE(nm_unregister_value(&nmatrix));
+  NM_CONSERVATIVE(nm_unregister_value(nmatrix));
   RETURN_SIZED_ENUMERATOR(nmatrix, 0, 0, nm_enumerator_length);
 
   DENSE_STORAGE* s = NM_STORAGE_DENSE(nmatrix);
@@ -553,7 +553,7 @@ VALUE nm_dense_each(VALUE nmatrix) {
   }
 
   nm_dense_storage_delete(sliced_dummy);
-  NM_CONSERVATIVE(nm_unregister_value(&nmatrix));
+  NM_CONSERVATIVE(nm_unregister_value(nmatrix));
 
   return nmatrix;
 
@@ -742,6 +742,7 @@ void nm_dense_storage_coords(const DENSE_STORAGE* s, const size_t slice_pos, siz
     coords_out[i] = (temp_pos - temp_pos % s->stride[i])/s->stride[i] - s->offset[i];
     temp_pos = temp_pos % s->stride[i];
   }
+
 }
 
 /*
@@ -833,13 +834,16 @@ STORAGE* nm_dense_storage_copy_transposed(const STORAGE* rhs_base) {
   DENSE_STORAGE* rhs = (DENSE_STORAGE*)rhs_base;
 
   nm_dense_storage_register(rhs);
+
   size_t *shape = NM_ALLOC_N(size_t, rhs->dim);
 
-  // swap shape
+  // swap shape and offset
   shape[0] = rhs->shape[1];
   shape[1] = rhs->shape[0];
 
   DENSE_STORAGE *lhs = nm_dense_storage_create(rhs->dtype, shape, rhs->dim, NULL, 0);
+  lhs->offset[0] = rhs->offset[1];
+  lhs->offset[1] = rhs->offset[0];
 
   nm_dense_storage_register(lhs);
 
@@ -874,26 +878,26 @@ namespace nm {
  * Otherwise, the NMATRIX* still belongs to Ruby and Ruby will free it.
  */
 std::pair<NMATRIX*,bool> interpret_arg_as_dense_nmatrix(VALUE right, nm::dtype_t dtype) {
-  NM_CONSERVATIVE(nm_register_value(&right));
+  NM_CONSERVATIVE(nm_register_value(right));
   if (TYPE(right) == T_DATA && (RDATA(right)->dfree == (RUBY_DATA_FUNC)nm_delete || RDATA(right)->dfree == (RUBY_DATA_FUNC)nm_delete_ref)) {
     NMATRIX *r;
     if (NM_STYPE(right) != DENSE_STORE || NM_DTYPE(right) != dtype || NM_SRC(right) != NM_STORAGE(right)) {
       UnwrapNMatrix( right, r );
       NMATRIX* ldtype_r = nm_cast_with_ctype_args(r, nm::DENSE_STORE, dtype, NULL);
-      NM_CONSERVATIVE(nm_unregister_value(&right));
+      NM_CONSERVATIVE(nm_unregister_value(right));
       return std::make_pair(ldtype_r,true);
     } else {  // simple case -- right-hand matrix is dense and is not a reference and has same dtype
       UnwrapNMatrix( right, r );
-      NM_CONSERVATIVE(nm_unregister_value(&right));
+      NM_CONSERVATIVE(nm_unregister_value(right));
       return std::make_pair(r, false);
     }
     // Do not set v_alloc = true for either of these. It is the responsibility of r/ldtype_r
   } else if (TYPE(right) == T_DATA) {
-    NM_CONSERVATIVE(nm_unregister_value(&right));
+    NM_CONSERVATIVE(nm_unregister_value(right));
     rb_raise(rb_eTypeError, "unrecognized type for slice assignment");
   }
 
-  NM_CONSERVATIVE(nm_unregister_value(&right));
+  NM_CONSERVATIVE(nm_unregister_value(right));
   return std::make_pair<NMATRIX*,bool>(NULL, false);
 }
 
@@ -912,7 +916,8 @@ void ref_slice_copy_transposed(const DENSE_STORAGE* rhs, DENSE_STORAGE* lhs) {
 
   LDType* lhs_els = reinterpret_cast<LDType*>(lhs->elements);
   RDType* rhs_els = reinterpret_cast<RDType*>(rhs->elements);
-  size_t count = nm_storage_count_max_elements(lhs);;
+
+  size_t count = nm_storage_count_max_elements(lhs);
   size_t* temp_coords = NM_ALLOCA_N(size_t, lhs->dim);
   size_t coord_swap_temp;
 

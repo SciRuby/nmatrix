@@ -150,7 +150,7 @@ inline int getrf_nothrow(const int M, const int N, DType* A, const int lda, int*
 
   } else if (MN == 1) { // there's another case for the colmajor version, but i don't know that it's that critical. Calls ATLAS LU2, who knows what that does.
 
-    int i = *ipiv = nm::math::imax<DType>(N, A, 1); // cblas_iamax(N, A, 1);
+    int i = *ipiv = nm::math::idamax<DType>(N, A, 1); // cblas_iamax(N, A, 1);
 
     DType tmp = A[i];
     if (tmp != 0) {
