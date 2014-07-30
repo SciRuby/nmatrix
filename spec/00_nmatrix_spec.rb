@@ -25,9 +25,14 @@
 # Basic tests for NMatrix. These should load first, as they're
 # essential to NMatrix operation.
 #
-require 'spec_helper'
+
+require File.dirname(__FILE__) + "/spec_helper.rb"
 
 describe NMatrix do
+  #after :each do
+  #  GC.start
+  #end
+
   it "creates a matrix with the new constructor" do
     n = NMatrix.new([2,2], [0,1,2,3], dtype: :int64)
     expect(n.shape).to eq([2,2])
@@ -286,6 +291,12 @@ describe NMatrix do
     expect(lambda { NMatrix.new(3,dtype: :int8)[1,1] }).to_not raise_error
   end
 
+  it "calculates the complex conjugate in-place" do
+    n = NMatrix.new(:dense, 3, [1,2,3,4,5,6,7,8,9], :complex128)
+    n.complex_conjugate!
+    # FIXME: Actually test that values are correct.
+  end
+
   it "converts from list to yale properly" do
     m = NMatrix.new(3, 0, stype: :list)
     m[0,2] = 333
@@ -391,18 +402,6 @@ describe 'NMatrix' do
     end
   end
 
-  context "#rank" do
-    it "should get the rank of a 2-dimensional matrix" do
-      n = NMatrix.seq([2,3])
-      expect(n.rank(0, 0)).to eq(N[[0,1,2]])
-    end
-
-    it "should raise an error when the rank is out of bounds" do
-      n = NMatrix.seq([2,3])
-      expect { n.rank(2, 0) }.to raise_error(RangeError)
-    end
-  end
-
   context "#reshape" do
     it "should change the shape of a matrix without the contents changing" do
       n = NMatrix.seq(4)+1
@@ -415,22 +414,6 @@ describe 'NMatrix' do
     end
 
     it "should prevent a resize" do
-      n = NMatrix.seq(4)+1
-      expect { n.reshape([5,2]) }.to raise_error(ArgumentError)
-    end
-
-    it "should do the reshape operation in place" do
-      n = NMatrix.seq(4)+1
-      expect(n.reshape!([8,2]).eql?(n)).to eq(true) # because n itself changes
-    end
-
-    it "reshape and reshape! must produce same result" do
-      n = NMatrix.seq(4)+1
-      a = NMatrix.seq(4)+1
-      expect(n.reshape!([8,2])==a.reshape(8,2)).to eq(true) # because n itself changes
-    end
-
-    it "should prevent a resize in place" do
       n = NMatrix.seq(4)+1
       expect { n.reshape([5,2]) }.to raise_error(ArgumentError)
     end
@@ -507,7 +490,7 @@ describe 'NMatrix' do
     end
   end
 
-  context "#[]" do
+  context "#indexing" do
     it "should return values based on indices" do
       n = NMatrix.new([2,5], [1,2,3,4,5,6,7,8,9,0])
       expect(n[1,0]).to eq 6
@@ -520,62 +503,4 @@ describe 'NMatrix' do
       expect(n[0,0..-2]).to eq(NMatrix.new([1,4],[1,2,3,4]))
     end
   end
-
-  context "#complex_conjugate!" do
-    [:dense, :yale, :list].each do |stype|
-      context(stype) do
-        it "should work in-place for complex dtypes" do
-          pending("not yet implemented for list stype") if stype == :list
-          n = NMatrix.new([2,3], [Complex(2,3)], stype: stype, dtype: :complex128)
-          n.complex_conjugate!
-          expect(n).to eq(NMatrix.new([2,3], [Complex(2,-3)], stype: stype, dtype: :complex128))
-        end
-
-        [:object, :int64].each do |dtype|
-          it "should work in-place for non-complex dtypes" do
-            pending("not yet implemented for list stype") if stype == :list
-            n = NMatrix.new([2,3], 1, stype: stype, dtype: dtype)
-            n.complex_conjugate!
-            expect(n).to eq(NMatrix.new([2,3], [1], stype: stype, dtype: dtype))
-          end
-        end
-      end
-    end
-  end
-
-  context "#complex_conjugate" do
-    [:dense, :yale, :list].each do |stype|
-      context(stype) do
-        it "should work out-of-place for complex dtypes" do
-          pending("not yet implemented for list stype") if stype == :list
-          n = NMatrix.new([2,3], [Complex(2,3)], stype: stype, dtype: :complex128)
-          expect(n.complex_conjugate).to eq(NMatrix.new([2,3], [Complex(2,-3)], stype: stype, dtype: :complex128))
-        end
-
-        [:object, :int64].each do |dtype|
-          it "should work out-of-place for non-complex dtypes" do
-            pending("not yet implemented for list stype") if stype == :list
-            n = NMatrix.new([2,3], 1, stype: stype, dtype: dtype)
-            expect(n.complex_conjugate).to eq(NMatrix.new([2,3], [1], stype: stype, dtype: dtype))
-          end
-        end
-      end
-    end
-  end
-
-  context "#inject" do
-    it "should sum columns of yale matrix correctly" do
-      n = NMatrix.new([4, 3], stype: :yale, default: 0)
-      n[0,0] = 1
-      n[1,1] = 2
-      n[2,2] = 4
-      n[3,2] = 8
-      column_sums = []
-      n.cols.times do |i|
-        column_sums << n.col(i).inject(:+)
-      end
-      expect(column_sums).to eq([1, 2, 12])
-    end
-  end
-
 end

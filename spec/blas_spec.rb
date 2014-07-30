@@ -25,28 +25,13 @@
 # Tests for properly exposed BLAS functions.
 #
 
-require 'spec_helper'
+# Can we use require_relative here instead?
+require File.join(File.dirname(__FILE__), "spec_helper.rb")
 
 describe NMatrix::BLAS do
-  [:byte, :int8, :int16, :int32, :int64,
-   :float32, :float64, :complex64, :complex128,
-   :rational32, :rational64, :rational128,
-   :object
-  ].each do |dtype|
-    context dtype do
-      it "exposes cblas_scal" do
-        x = NMatrix.new([3, 1], [1, 2, 3], dtype: dtype)
-        NMatrix::BLAS.cblas_scal(3, 2, x, 1)
-        expect(x).to eq(NMatrix.new([3, 1], [2, 4, 6], dtype: dtype))
-      end
-
-      it "exposes cblas_imax" do
-        u = NMatrix.new([3,1], [1, 4, 3], dtype: dtype)
-        index = NMatrix::BLAS.cblas_imax(3, u, 1)
-        expect(index).to eq(1)
-      end
-    end
-  end
+  #after :each do
+  #  GC.start
+  #end
 
   [:rational32, :rational64, :rational128, :float32, :float64, :complex64, :complex128].each do |dtype|
     context dtype do

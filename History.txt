@@ -522,17 +522,15 @@
   * Improved LAPACK and BLAS header selection for Ubuntu/Debian
     systems with ATLAS (by @mvz)
 
-=== 0.1.0.rc2 / 2014-03-12
+=== 0.1.0.rc2 / 2014-02-05
 
-* No major enhancements.
+* 1 major enhancements:
 
-* 14 minor enhancements:
+  * Implemented negative slicing indices (by @rajatkapoor)
 
-  * Implemented negative-index slicing (by @rajatkapoor)
+* 3 minor enhancements:
 
-  * Added reader for Point Cloud Library's PCD format
-
-  * Added Ruby 2.1 support (including Travis CI testing)
+  * Added Travis CI testing for Ruby 2.1
 
   * Implemented LAPACK-independent exact inverse calculation for
     dense matrices of size 2x2 and 3x3, as well as
@@ -540,38 +538,14 @@
   * Added NMatrix::has_clapack? method to determine whether CLAPACK
     support has been compiled in
 
-  * Improved conformance of specs to RSpec best practices (by 
-    @duggiefresh)
-
-  * Travis CI now updates the IRC channel when a check passes (by
-    @agarie)
-
-  * Added NMatrix#data_pointer, which returns the memory address of
-    the stored elements in a matrix (generally for use with FFI and
-    other libraries that need pointers)
-
-  * Made NMatrix#clone_structure a public method (was protected)
-
-  * Added :scale option for NMatrix::random to handle non-floating
-    point forms
-
-  * Added complex support to NMatrix::random
-
-  * Aliased NMatrix::random to NMatrix::rand
-
-  * Added NMatrix#reshape! for in-place reshape of dense matrices (by
-    @rajatkapoor)
-
-  * Implemented unary negation of matrices
-
-* 6 bug fixes:
+* 2 bug fixes:
 
   * Fixed dot product operation on 1-dimensional matrices (by @rve
     and @cjfuller)
-
-  * Fixed segfault on 1-dimensional matrix transpose (by @cjfuller)
-
+  
   * Fixed compile error with Ruby 2.1 (by @diminish7)
+<<<<<<< HEAD
+=======
 
   * Fixed regression which wasn't causing any problems but was
     counter to design: stride was declared prior to data storage for
@@ -631,3 +605,4 @@
     the SciRuby rb-gsl fork
 
   * Fixed Yale #inject behavior (by @yoongkang)
+>>>>>>> f420e83... Updated history and merged #257

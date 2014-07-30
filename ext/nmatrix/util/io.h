@@ -33,6 +33,7 @@
  */
 
 #include "nmatrix.h"
+#include "hb_io.h"
 
 #include "data/data.h"
 #include "storage/storage.h"

@@ -46,7 +46,7 @@ inline int getf2(const int m, const int n, DType* a, const int lda, int *ipiv) {
 
     /* Find pivot and test for singularity. */
 
-    int jp = j - 1 + imax<DType>(m-j+1, &a[j + j * lda], 1);
+    int jp = j - 1 + idamax<DType>(m-j+1, &a[j + j * lda], 1);
 
     ipiv[j] = jp;
 

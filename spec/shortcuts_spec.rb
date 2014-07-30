@@ -25,10 +25,15 @@
 # Specs for the shortcuts used in NMatrix and in NVector.
 #
 
-require 'spec_helper'
+# Can we use require_relative here instead?
+require File.join(File.dirname(__FILE__), "spec_helper.rb")
 require 'pry'
 
 describe NMatrix do
+  #after :each do
+  #  GC.start
+  #end
+
   it "zeros() creates a matrix of zeros" do
     m = NMatrix.zeros(3)
     n = NMatrix.new([3, 3], 0)
@@ -65,39 +70,21 @@ describe NMatrix do
     expect(m[3,3]).to eq(arr[3])
   end
 
-  context "::random" do
-    it "creates a matrix of random numbers" do
-      m = NMatrix.random(2)
+  it "random() creates a matrix of random numbers" do
+    m = NMatrix.random(2)
 
-      expect(m.stype).to eq(:dense)
-      expect(m.dtype).to eq(:float64)
-    end
+    expect(m.stype).to eq(:dense)
+    expect(m.dtype).to eq(:float64)
+  end
 
-    it "creates a complex matrix of random numbers" do
-      m = NMatrix.random(2, :dtype => :complex128)
-    end
+  it "random() only accepts an integer or an array as dimension" do
+    m = NMatrix.random([2, 2])
 
-    it "forbids generation of a rational matrix" do
-      expect { m = NMatrix.random(2, dtype: :rational128) }.to raise_error
-    end
+    expect(m.stype).to eq(:dense)
+    expect(m.dtype).to eq(:float64)
 
-    it "correctly accepts :scale parameter" do
-      m = NMatrix.random([2,2], dtype: :byte, scale: 255)
-      m.each do |v|
-        expect(v).to be >= 0
-        expect(v).to be < 255
-      end
-    end
-
-    it "only accepts an integer or an array as dimension" do
-      m = NMatrix.random([2, 2])
-
-      expect(m.stype).to eq(:dense)
-      expect(m.dtype).to eq(:float64)
-
-      expect { NMatrix.random(2.0) }.to raise_error
-      expect { NMatrix.random("not an array or integer") }.to raise_error
-    end
+    expect { NMatrix.random(2.0) }.to raise_error
+    expect { NMatrix.random("not an array or integer") }.to raise_error
   end
 
   it "seq() creates a matrix of integers, sequentially" do

@@ -36,6 +36,7 @@ end
 
 require 'nmatrix/nmatrix.rb'
 require 'nmatrix/version.rb'
+#require 'nmatrix/nvector.rb'
 require 'nmatrix/blas.rb'
 require 'nmatrix/monkeys'
 require "nmatrix/shortcuts.rb"

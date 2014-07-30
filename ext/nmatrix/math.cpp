@@ -122,7 +122,7 @@
 #include "math/gesvd.h"
 #include "math/geev.h"
 #include "math/swap.h"
-#include "math/imax.h"
+#include "math/idamax.h"
 #include "math/scal.h"
 #include "math/ger.h"
 #include "math/getf2.h"
@@ -156,16 +156,11 @@ extern "C" {
   #include <atlas/clapack.h>
 #endif
 
-  /* BLAS Level 1. */
-  static VALUE nm_cblas_scal(VALUE self, VALUE n, VALUE scale, VALUE vector, VALUE incx);
   static VALUE nm_cblas_nrm2(VALUE self, VALUE n, VALUE x, VALUE incx);
   static VALUE nm_cblas_asum(VALUE self, VALUE n, VALUE x, VALUE incx);
   static VALUE nm_cblas_rot(VALUE self, VALUE n, VALUE x, VALUE incx, VALUE y, VALUE incy, VALUE c, VALUE s);
   static VALUE nm_cblas_rotg(VALUE self, VALUE ab);
-  static VALUE nm_cblas_imax(VALUE self, VALUE n, VALUE x, VALUE incx);
 
-  /* BLAS Level 2. */
-  /* BLAS Level 3. */
   static VALUE nm_cblas_gemm(VALUE self, VALUE order, VALUE trans_a, VALUE trans_b, VALUE m, VALUE n, VALUE k, VALUE vAlpha,
                              VALUE a, VALUE lda, VALUE b, VALUE ldb, VALUE vBeta, VALUE c, VALUE ldc);
   static VALUE nm_cblas_gemv(VALUE self, VALUE trans_a, VALUE m, VALUE n, VALUE vAlpha, VALUE a, VALUE lda,
@@ -179,7 +174,6 @@ extern "C" {
   static VALUE nm_cblas_syrk(VALUE self, VALUE order, VALUE uplo, VALUE trans, VALUE n, VALUE k, VALUE alpha, VALUE a,
                              VALUE lda, VALUE beta, VALUE c, VALUE ldc);
 
-  /* LAPACK. */
   static VALUE nm_has_clapack(VALUE self);
   static VALUE nm_clapack_getrf(VALUE self, VALUE order, VALUE m, VALUE n, VALUE a, VALUE lda);
   static VALUE nm_clapack_potrf(VALUE self, VALUE order, VALUE uplo, VALUE n, VALUE a, VALUE lda);
@@ -188,6 +182,7 @@ extern "C" {
   static VALUE nm_clapack_getri(VALUE self, VALUE order, VALUE n, VALUE a, VALUE lda, VALUE ipiv);
   static VALUE nm_clapack_potri(VALUE self, VALUE order, VALUE uplo, VALUE n, VALUE a, VALUE lda);
   static VALUE nm_clapack_laswp(VALUE self, VALUE n, VALUE a, VALUE lda, VALUE k1, VALUE k2, VALUE ipiv, VALUE incx);
+  static VALUE nm_clapack_scal(VALUE self, VALUE n, VALUE scale, VALUE vector, VALUE incx);
   static VALUE nm_clapack_lauum(VALUE self, VALUE order, VALUE uplo, VALUE n, VALUE a, VALUE lda);
 
   static VALUE nm_lapack_gesvd(VALUE self, VALUE jobu, VALUE jobvt, VALUE m, VALUE n, VALUE a, VALUE lda, VALUE s, VALUE u, VALUE ldu, VALUE vt, VALUE ldvt, VALUE lworkspace_size);
@@ -399,6 +394,7 @@ void nm_math_init_blas() {
   rb_define_singleton_method(cNMatrix_LAPACK, "clapack_getri", (METHOD)nm_clapack_getri, 5);
   rb_define_singleton_method(cNMatrix_LAPACK, "clapack_potri", (METHOD)nm_clapack_potri, 5);
   rb_define_singleton_method(cNMatrix_LAPACK, "clapack_laswp", (METHOD)nm_clapack_laswp, 7);
+  rb_define_singleton_method(cNMatrix_LAPACK, "clapack_scal",  (METHOD)nm_clapack_scal,  4);
   rb_define_singleton_method(cNMatrix_LAPACK, "clapack_lauum", (METHOD)nm_clapack_lauum, 5);
 
   /* Non-ATLAS regular LAPACK Functions called via Fortran interface */
@@ -408,12 +404,10 @@ void nm_math_init_blas() {
 
   cNMatrix_BLAS = rb_define_module_under(cNMatrix, "BLAS");
 
-  rb_define_singleton_method(cNMatrix_BLAS, "cblas_scal", (METHOD)nm_cblas_scal, 4);
   rb_define_singleton_method(cNMatrix_BLAS, "cblas_nrm2", (METHOD)nm_cblas_nrm2, 3);
   rb_define_singleton_method(cNMatrix_BLAS, "cblas_asum", (METHOD)nm_cblas_asum, 3);
   rb_define_singleton_method(cNMatrix_BLAS, "cblas_rot",  (METHOD)nm_cblas_rot,  7);
   rb_define_singleton_method(cNMatrix_BLAS, "cblas_rotg", (METHOD)nm_cblas_rotg, 1);
-  rb_define_singleton_method(cNMatrix_BLAS, "cblas_imax", (METHOD)nm_cblas_imax, 3);
 
 	rb_define_singleton_method(cNMatrix_BLAS, "cblas_gemm", (METHOD)nm_cblas_gemm, 14);
 	rb_define_singleton_method(cNMatrix_BLAS, "cblas_gemv", (METHOD)nm_cblas_gemv, 11);
@@ -463,35 +457,6 @@ static inline enum CBLAS_TRANSPOSE blas_transpose_sym(VALUE op) {
   return CblasNoTrans;
 }
 
-/*
- * call-seq:
- *     NMatrix::BLAS.cblas_scal(n, alpha, vector, inc) -> NMatrix
- *
- * BLAS level 1 function +scal+. Works with all dtypes.
- *
- * Scale +vector+ in-place by +alpha+ and also return it. The operation is as
- * follows:
- *  x <- alpha * x
- *
- * - +n+ -> Number of elements of +vector+.
- * - +alpha+ -> Scalar value used in the operation.
- * - +vector+ -> NMatrix of shape [n,1] or [1,n]. Modified in-place.
- * - +inc+ -> Increment used in the scaling function. Should generally be 1.
- */
-static VALUE nm_cblas_scal(VALUE self, VALUE n, VALUE alpha, VALUE vector, VALUE incx) {
-  nm::dtype_t dtype = NM_DTYPE(vector);
-
-  void* scalar = NM_ALLOCA_N(char, DTYPE_SIZES[dtype]);
-  rubyval_to_cval(alpha, dtype, scalar);
-
-  NAMED_DTYPE_TEMPLATE_TABLE(ttable, nm::math::cblas_scal, void, const int n,
-      const void* scalar, void* x, const int incx);
-
-  ttable[dtype](FIX2INT(n), scalar, NM_STORAGE_DENSE(vector)->elements,
-      FIX2INT(incx));
-
-  return vector;
-}
 
 /*
  * Interprets cblas argument which could be :left or :right
@@ -554,17 +519,14 @@ static inline enum CBLAS_ORDER blas_order_sym(VALUE op) {
  *
  * The Givens plane rotation can be used to introduce zero elements into a matrix selectively.
  *
- * This function differs from most of the other raw BLAS accessors. Instead of
- * providing a, b, c, s as arguments, you should only provide a and b (the
- * inputs), and you should provide them as the first two elements of any dense
- * NMatrix type.
+ * This function differs from most of the other raw BLAS accessors. Instead of providing a, b, c, s as arguments, you
+ * should only provide a and b (the inputs), and you should provide them as a single NVector (or the first two elements
+ * of any dense NMatrix or NVector type, specifically).
  *
- * The outputs [c,s] will be returned in a Ruby Array at the end; the input
- * NMatrix will also be modified in-place.
+ * The outputs [c,s] will be returned in a Ruby Array at the end; the input NVector will also be modified in-place.
  *
- * If you provide rationals, be aware that there's a high probability of an
- * error, since rotg includes a square root -- and most rationals' square roots
- * are irrational. You're better off converting to Float first.
+ * If you provide rationals, be aware that there's a high probability of an error, since rotg includes a square root --
+ * and most rationals' square roots are irrational. You're better off converting to Float first.
  *
  * This function, like the other cblas_ functions, does minimal type-checking.
  */
@@ -586,8 +548,8 @@ static VALUE nm_cblas_rotg(VALUE self, VALUE ab) {
     return Qnil;
 
   } else {
-    NM_CONSERVATIVE(nm_register_value(&self));
-    NM_CONSERVATIVE(nm_register_value(&ab));
+    NM_CONSERVATIVE(nm_register_value(self));
+    NM_CONSERVATIVE(nm_register_value(ab));
     void *pC = NM_ALLOCA_N(char, DTYPE_SIZES[dtype]),
          *pS = NM_ALLOCA_N(char, DTYPE_SIZES[dtype]);
 
@@ -607,8 +569,8 @@ static VALUE nm_cblas_rotg(VALUE self, VALUE ab) {
       rb_ary_store(result, 0, rubyobj_from_cval(pC, dtype).rval);
       rb_ary_store(result, 1, rubyobj_from_cval(pS, dtype).rval);
     }
-    NM_CONSERVATIVE(nm_unregister_value(&ab));
-    NM_CONSERVATIVE(nm_unregister_value(&self));
+    NM_CONSERVATIVE(nm_unregister_value(ab));
+    NM_CONSERVATIVE(nm_unregister_value(self));
     return result;
   }
 }
@@ -791,29 +753,7 @@ static VALUE nm_cblas_asum(VALUE self, VALUE n, VALUE x, VALUE incx) {
   return rubyobj_from_cval(Result, rdtype).rval;
 }
 
-/*
- * call-seq:
- *    NMatrix::BLAS.cblas_imax(n, vector, inc) -> Fixnum
- *
- * BLAS level 1 routine.
- *
- * Return the index of the largest element of +vector+.
- *
- * - +n+ -> Vector's size. Generally, you can use NMatrix#rows or NMatrix#cols.
- * - +vector+ -> A NMatrix of shape [n,1] or [1,n] with any dtype.
- * - +inc+ -> It's the increment used when searching. Use 1 except if you know
- *   what you're doing.
- */
-static VALUE nm_cblas_imax(VALUE self, VALUE n, VALUE x, VALUE incx) {
-  NAMED_DTYPE_TEMPLATE_TABLE(ttable, nm::math::cblas_imax, int, const int n, const void* x, const int incx);
 
-  nm::dtype_t dtype = NM_DTYPE(x);
-
-  int index = ttable[dtype](FIX2INT(n), NM_STORAGE_DENSE(x)->elements, FIX2INT(incx));
-
-  // Convert to Ruby's Int value.
-  return INT2FIX(index);
-}
 
 
 /* Call any of the cblas_xgemm functions as directly as possible.
@@ -1258,6 +1198,25 @@ static VALUE nm_lapack_geev(VALUE self, VALUE compute_left, VALUE compute_right,
 }
 
 
+/*
+ * Based on LAPACK's dscal function, but for any dtype.
+ *
+ * In-place modification; returns the modified vector as well.
+ */
+static VALUE nm_clapack_scal(VALUE self, VALUE n, VALUE scale, VALUE vector, VALUE incx) {
+  nm::dtype_t dtype = NM_DTYPE(vector);
+
+  void* da      = NM_ALLOCA_N(char, DTYPE_SIZES[dtype]);
+  rubyval_to_cval(scale, dtype, da);
+
+  NAMED_DTYPE_TEMPLATE_TABLE(ttable, nm::math::clapack_scal, void, const int n, const void* da, void* dx, const int incx);
+
+  ttable[dtype](FIX2INT(n), da, NM_STORAGE_DENSE(vector)->elements, FIX2INT(incx));
+
+  return vector;
+}
+
+
 static VALUE nm_clapack_lauum(VALUE self, VALUE order, VALUE uplo, VALUE n, VALUE a, VALUE lda) {
   static int (*ttable[nm::NUM_DTYPES])(const enum CBLAS_ORDER, const enum CBLAS_UPLO, const int n, void* a, const int lda) = {
       /*nm::math::clapack_lauum<uint8_t, false>,
@@ -1427,6 +1386,7 @@ static VALUE nm_clapack_getrs(VALUE self, VALUE order, VALUE trans, VALUE n, VAL
   };
 
   // Allocate the C version of the pivot index array
+  // TODO: Allow for an NVector here also, maybe?
   int* ipiv_;
   if (TYPE(ipiv) != T_ARRAY) {
     rb_raise(rb_eArgError, "ipiv must be of type Array");
@@ -1533,6 +1493,7 @@ static VALUE nm_clapack_getri(VALUE self, VALUE order, VALUE n, VALUE a, VALUE l
   };
 
   // Allocate the C version of the pivot index array
+  // TODO: Allow for an NVector here also, maybe?
   int* ipiv_;
   if (TYPE(ipiv) != T_ARRAY) {
     rb_raise(rb_eArgError, "ipiv must be of type Array");
@@ -1629,6 +1590,7 @@ static VALUE nm_clapack_laswp(VALUE self, VALUE n, VALUE a, VALUE lda, VALUE k1,
   };
 
   // Allocate the C version of the pivot index array
+  // TODO: Allow for an NVector here also, maybe?
   int* ipiv_;
   if (TYPE(ipiv) != T_ARRAY) {
     rb_raise(rb_eArgError, "ipiv must be of type Array");

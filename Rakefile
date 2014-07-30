@@ -3,9 +3,6 @@
 require 'rubygems'
 require 'rubygems/package_task'
 require 'bundler'
-
-Bundler::GemHelper.install_tasks
-
 begin
   Bundler.setup(:default, :development)
 rescue Bundler::BundlerError => e
@@ -17,15 +14,20 @@ end
 require 'rake'
 require "rake/extensiontask"
 Rake::ExtensionTask.new do |ext|
-    ext.name = 'nmatrix'
-    ext.ext_dir = 'ext/nmatrix'
-    ext.lib_dir = 'lib/'
-    ext.source_pattern = "**/*.{c,cpp, h}"
+    ext.name = 'nmatrix'          
+    ext.ext_dir = 'ext/nmatrix' 
+    ext.lib_dir = 'lib/'             
+    ext.source_pattern = "**/*.{c,cpp, h}" 
 end
 
 gemspec = eval(IO.read("nmatrix.gemspec"))
 
 Gem::PackageTask.new(gemspec).define
+
+desc "install the gem locally"
+task :install => [:package] do
+  sh %{gem install pkg/nmatrix-#{NMatrix::VERSION}.gem}
+end
 
 require 'rspec/core/rake_task'
 require 'rspec/core'
@@ -63,6 +65,8 @@ VALGRIND_MEMORYFILL_OPTIONS = [
 
 GDB_OPTIONS = []
 
+
+RSpec::Core::RakeTask.new(:spec)
 
 task :console do |task|
   cmd = [ 'irb', "-r './lib/nmatrix.rb'" ]

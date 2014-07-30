@@ -22,7 +22,7 @@ which improve the portability of this project.
 
 Also required is ATLAS. Most Linux distributions and Mac
 versions include ATLAS, but you may wish to compile it
-yourself. The Ubuntu/Debian apt package for ATLAS WILL
+yourself. The Ubuntu/Debian apt package for ATLAS WILL 
 NOT WORK with NMatrix if LAPACK is also installed.
 
 More explicit instructions for NMatrix and SciRuby should
@@ -34,21 +34,20 @@ Thanks for trying out NMatrix! Happy coding!
 
 ***********************************************************
 EOF
-
   gem.files         = `git ls-files`.split("\n")
-  gem.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
-  gem.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
-  gem.extensions = ['ext/nmatrix/extconf.rb']
-  gem.require_paths = ["lib"]
+   gem.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
+   gem.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
+   gem.extensions = ['ext/nmatrix/extconf.rb']
+   gem.require_paths = ["lib"]
 
-  gem.required_ruby_version = '>= 1.9'
+   gem.required_ruby_version = '>= 1.9'
 
-  gem.add_dependency 'rdoc', '~>4.0', '>=4.0.1'
-  gem.add_development_dependency 'rake', '~>10.3'
-  gem.add_development_dependency 'bundler', '~>1.6'
-  gem.add_development_dependency 'rspec', '~>2.14'
-  gem.add_development_dependency 'rspec-longrun', '~>1.0'
-  gem.add_development_dependency 'pry', '~>0.10'
-  gem.add_development_dependency 'rake-compiler', '~>0.8'
+   gem.add_dependency 'rdoc', '~>4.0', '>=4.0.1'
+   gem.add_development_dependency 'rake', '~>10.3'
+   gem.add_development_dependency 'bundler', '~>1.6'
+   gem.add_development_dependency 'rspec', '~>2.14'
+   gem.add_development_dependency 'rspec-longrun', '~>1.0'
+   gem.add_development_dependency 'pry', '~>0.10'
+   gem.add_development_dependency 'rake-compiler', '~>0.8'
 end
 

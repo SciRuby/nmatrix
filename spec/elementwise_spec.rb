@@ -25,9 +25,14 @@
 # Element-wise operation tests.
 #
 
-require 'spec_helper'
+# Can we use require_relative here instead?
+require File.join(File.dirname(__FILE__), "spec_helper.rb")
 
 describe NMatrix do
+  #after :each do
+  #  GC.start
+  #end
+
   context "yale" do
     before :each do
       @n = NMatrix.new(3, stype: :yale, dtype: :int64)

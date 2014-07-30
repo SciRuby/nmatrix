@@ -26,7 +26,7 @@
 // Macros for memory allocation and freeing
 
 /**
- * We define these macros, which just call the ruby ones, as this makes
+ * We define these macros, which just call the ruby ones, as this makes 
  * debugging memory issues (particularly those involving interaction with
  * the ruby GC) easier, as it's posssible to add debugging code temporarily.
  */

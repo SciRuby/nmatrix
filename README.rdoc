@@ -4,13 +4,10 @@ Fast Numerical Linear Algebra Library for Ruby
 
 * {sciruby.com}[http://sciruby.com]
 * {Google+}[https://plus.google.com/109304769076178160953/posts]
-* {Google Group - Mailing List}[https://groups.google.com/forum/#!forum/sciruby-dev]
 * {NMatrix Installation wiki}[https://github.com/SciRuby/nmatrix/wiki/Installation]
 * {SciRuby Installation guide}[http://sciruby.com/docs#installation]
 
 {<img src=https://travis-ci.org/SciRuby/nmatrix.png>}[https://travis-ci.org/SciRuby/nmatrix]
-
-{<img src="https://codeclimate.com/github/SciRuby/nmatrix.png" />}[https://codeclimate.com/github/SciRuby/nmatrix]
 
 == Description
 
@@ -23,7 +20,7 @@ NMatrix was inspired by {NArray}[http://narray.rubyforge.org], by Masahiro Tanak
 
 To install the latest stable version:
 
-    gem install nmatrix --pre
+    gem install nmatrix
 
 However, you will need to install {ATLAS}[http://math-atlas.sourceforge.net/] with CBLAS (C interface to
 {BLAS}[http://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms]) first. Detailed directions can be found
@@ -31,7 +28,7 @@ However, you will need to install {ATLAS}[http://math-atlas.sourceforge.net/] wi
 
 * ATLAS, preferably with CLAPACK ({see here for details}[https://github.com/SciRuby/nmatrix/wiki/Installation])
 * a version of GCC or clang which supports C++0x or C++11
-* Ruby 1.9.2+
+* Ruby 1.9.3+
 * {packable}[http://github.com/marcandre/packable] 1.3.5 (used for I/O)
 
 If you want to obtain the latest (development) code, you should generally do:
@@ -41,7 +38,7 @@ If you want to obtain the latest (development) code, you should generally do:
     bundle install
     bundle exec rake compile
     bundle exec rake repackage
-    gem install pkg/nmatrix-0.1.0.rc5.gem
+    gem install pkg/nmatrix-0.1.0-rc1.gem
 
 Detailed instructions are available for {Mac}[https://github.com/SciRuby/nmatrix/wiki/Installation#mac-os-x] and {Linux}[https://github.com/SciRuby/nmatrix/wiki/Installation#linux].
 We are currently working on Mavericks (Mac OS X) installation instructions, but in general, you'll need Homebrew and should
@@ -49,13 +46,16 @@ probably use +brew install gcc48+ instead of using the install script.
 
 == Documentation
 
-If you have a suggestion or want to add documentation for any class or method in NMatrix, please open an issue or send a pull request with the changes.
+Carlos Agarie (@agarie) is currently working to improve the documentation. The best way to get help is by posting
+{issues}[https://github.com/SciRuby/nmatrix/issues] or sending e-mails to our
+{mailing list}[https://groups.google.com/forum/?fromgroups#!forum/sciruby-dev]. You may also email @agarie, or look for
+`agarie` on #sciruby at chat.freenode.net if you want to ask questions or offer suggestions.
 
 You can find the complete API documentation {on our website}[http://sciruby.com/nmatrix/docs/].
 
 == Examples
 
-Create a new NMatrix from a ruby Array:
+Create a new NMatrix from a ruby Array: 
 
     >> require 'nmatrix'
     >> NMatrix.new([2, 3], [0, 1, 2, 3, 4, 5], dtype: :int64)
@@ -101,13 +101,10 @@ The following features exist in the current version of NMatrix (0.1.0.rc1):
 * Matrix slicing by copy and reference (for dense, yale, and list)
 * Native reading and writing of dense and yale matrices
   * Optional compression for dense matrices with symmetry or triangularity: symmetric, skew, hermitian, upper, lower
-* Input/output:
-  * Matlab .MAT v5 file input
-  * MatrixMarket file input/output
-  * Point Cloud Library PCD file input
+* Matlab .MAT v5 file input
 * C and C++ API
 * BLAS internal implementations (no library) and ATLAS (with library) access:
-  * Level 1: xROT, xROTG (BLAS dtypes only), xASUM, xNRM2, IxAMAX
+  * Level 1: xROT, xROTG (BLAS dtypes only), xASUM, xNRM2
   * Level 2: xGEMV
   * Level 3: xGEMM, xTRSM
 * LAPACK ATLAS access:
@@ -125,13 +122,13 @@ The following features exist in the current version of NMatrix (0.1.0.rc1):
 * Matrix inversions (requires LAPACK; BLAS dtypes only)
 * Determinant calculation for BLAS dtypes
 * Vector 2-norms
-* Ruby/GSL interoperability (requires {SciRuby's fork of rb-gsl}[http://github.com/SciRuby/rb-gsl])
+* Ruby/GSL interoperability (requires {SciRuby's fork of rb-gsl}(http://github.com/SciRuby/rb-gsl))
 * slice assignments, e.g.,
     x[1..3,0..4] = some_other_matrix
 
 === Planned Features (Short-to-Medium Term)
 
-We are nearing the release of NMatrix 0.1.0, our first beta.
+We are nearly the release of NMatrix 0.1.0, our first beta.
 
 These are features planned for NMatrix 0.2.0:
 

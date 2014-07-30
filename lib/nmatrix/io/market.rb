@@ -210,7 +210,7 @@ module NMatrix::IO::Market
         line.lstrip!
         line, comment = line.split('%', 2) # ignore comments
         if line.size > 4
-          shape0, shape1 = line.split
+          shape0, shape1, nz = line.split
           mat = NMatrix.new(:list, [shape0.to_i, shape1.to_i], 0, dtype)
           break
         end

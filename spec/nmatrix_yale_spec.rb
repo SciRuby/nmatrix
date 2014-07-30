@@ -24,10 +24,13 @@
 #
 # Basic tests for NMatrix's Yale storage type.
 #
-require 'spec_helper'
 require "./lib/nmatrix"
 
 describe NMatrix do
+  #after :each do
+  #  GC.start
+  #end
+
   context :yale do
 
     it "compares two empty matrices" do

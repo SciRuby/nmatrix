@@ -21,21 +21,20 @@
 //
 // * https://github.com/SciRuby/sciruby/wiki/Contributor-Agreement
 //
-// == scal.h
+// == idamax.h
 //
-// LAPACK scal function in native C.
+// LAPACK idamax function in native C.
 //
 
-#ifndef SCAL_H
-#define SCAL_H
+#ifndef IDAMAX_H
+#define IDAMAX_H
 
 namespace nm { namespace math {
 
 /*  Purpose */
 /*  ======= */
 
-/*     DSCAL scales a vector by a constant. */
-/*     uses unrolled loops for increment equal to one. */
+/*     IDAMAX finds the index of element having max. absolute value. */
 
 /*  Further Details */
 /*  =============== */
@@ -47,27 +46,41 @@ namespace nm { namespace math {
 /*  ===================================================================== */
 
 template <typename DType>
-inline void scal(const int n, const DType da, DType* dx,	const int incx) {
+inline int idamax(size_t n, DType *dx, int incx) {
 
-  // This used to have unrolled loops, like dswap. They were in the way.
+  /* Function Body */
+  if (n < 1 || incx <= 0) return -1;
+  if (n == 1)             return 0;
 
-  if (n <= 0 || incx <= 0) return;
+  DType dmax;
+  size_t imax = 0;
 
-  for (int i = 0; incx < 0 ? i > n*incx : i < n*incx; i += incx) {
-    dx[i] = da * dx[i];
+  if (incx == 1) { // if incrementing by 1
+
+    dmax = abs(dx[0]);
+
+    for (size_t i = 1; i < n; ++i) {
+      if (std::abs(dx[i]) > dmax) {
+        imax = i;
+        dmax = std::abs(dx[i]);
+      }
+    }
+
+  } else { // if incrementing by more than 1
+
+    dmax = std::abs(dx[0]);
+
+    for (size_t i = 1, ix = incx; i < n; ++i, ix += incx) {
+      if (std::abs(dx[ix]) > dmax) {
+        imax = i;
+        dmax = std::abs(dx[ix]);
+      }
+    }
   }
-} /* scal */
+  return imax;
+} /* idamax_ */
 
-
-/*
- * Function signature conversion for LAPACK's scal function.
- */
-template <typename DType>
-inline void clapack_scal(const int n, const void* da, void* dx, const int incx) {
-  // FIXME: See if we can call the clapack version instead of our C++ version.
-  scal<DType>(n, *reinterpret_cast<const DType*>(da), reinterpret_cast<DType*>(dx), incx);
-}
-
-}} // end of nm::math
+}} // end of namespace nm::math
 
 #endif
+

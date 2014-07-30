@@ -25,21 +25,29 @@
 # Enumerator tests for NMatrix. These should load early, as they
 # test functionality essential to matrix printing.
 #
-require 'spec_helper'
+
+require File.dirname(__FILE__) + "/spec_helper.rb"
 
 describe "NMatrix enumeration for" do
   [:dense, :yale, :list].each do |stype|
     context stype do
-      let(:n) { create_rectangular_matrix(stype) }
-      let(:m) { n[1..4,1..3] }
+
+      before :each do
+        @n = create_rectangular_matrix(stype)
+        @m = @n[1..4,1..3]
+      end
+
+      #after :each do
+      #  GC.start
+      #end
 
       if stype == :yale
         it "should iterate properly along each row of a slice" do
           vv = []
           ii = []
           jj = []
-          m.extend NMatrix::YaleFunctions
-          m.each_row do |row|
+          @m.extend NMatrix::YaleFunctions
+          @m.each_row do |row|
             row.each_with_indices do |v,i,j|
               vv << v
               ii << i
@@ -56,7 +64,7 @@ describe "NMatrix enumeration for" do
           vv = []
           ii = []
           jj = []
-          n.send :__yale_stored_diagonal_each_with_indices__ do |v,i,j|
+          @n.send :__yale_stored_diagonal_each_with_indices__ do |v,i,j|
             vv << v
             ii << i
             jj << j
@@ -70,7 +78,7 @@ describe "NMatrix enumeration for" do
           vv = []
           ii = []
           jj = []
-          n.send :__yale_stored_nondiagonal_each_with_indices__ do |v,i,j|
+          @n.send :__yale_stored_nondiagonal_each_with_indices__ do |v,i,j|
             vv << v
             ii << i
             jj << j
@@ -82,11 +90,11 @@ describe "NMatrix enumeration for" do
         end
 
         it "should iterate along a sliced diagonal portion of an A array" do
-          m = n[0..3,1..3]
+          @m = @n[0..3,1..3]
           vv = []
           ii = []
           jj = []
-          m.send :__yale_stored_diagonal_each_with_indices__ do |v,i,j|
+          @m.send :__yale_stored_diagonal_each_with_indices__ do |v,i,j|
             vv << v
             ii << i
             jj << j
@@ -100,9 +108,9 @@ describe "NMatrix enumeration for" do
           vv = []
           ii = []
           jj = []
-          n.extend NMatrix::YaleFunctions
-          m.extend NMatrix::YaleFunctions
-          m.send :__yale_stored_nondiagonal_each_with_indices__ do |v,i,j|
+          @n.extend NMatrix::YaleFunctions
+          @m.extend NMatrix::YaleFunctions
+          @m.send :__yale_stored_nondiagonal_each_with_indices__ do |v,i,j|
             vv << v
             ii << i
             jj << j
@@ -117,7 +125,7 @@ describe "NMatrix enumeration for" do
           vv = []
           ii = []
           jj = []
-          n.each_ordered_stored_with_indices do |v,i,j|
+          @n.each_ordered_stored_with_indices do |v,i,j|
             vv << v
             ii << i
             jj << j
@@ -133,7 +141,7 @@ describe "NMatrix enumeration for" do
           vv = []
           ii = []
           jj = []
-          m.each_ordered_stored_with_indices do |v,i,j|
+          @m.each_ordered_stored_with_indices do |v,i,j|
             vv << v
             ii << i
             jj << j
@@ -148,7 +156,7 @@ describe "NMatrix enumeration for" do
         vv = []
         ii = []
         jj = []
-        n.each_with_indices do |v,i,j|
+        @n.each_with_indices do |v,i,j|
           vv << v
           ii << i
           jj << j
@@ -163,7 +171,7 @@ describe "NMatrix enumeration for" do
         vv = []
         ii = []
         jj = []
-        m.each_with_indices do |v,i,j|
+        @m.each_with_indices do |v,i,j|
           vv << v
           ii << i
           jj << j
@@ -175,7 +183,7 @@ describe "NMatrix enumeration for" do
       end
 
       if stype == :list or stype == :dense then
-        it "should correctly map to a matrix with a single element" do
+        it "should correctly map to a matrix with a single element" do 
           nm = N.new([1], [2.0], stype: stype)
           expect(nm.map { |e| e**2 }).to eq N.new([1], [4.0], stype: stype)
         end

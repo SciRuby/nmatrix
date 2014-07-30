@@ -53,9 +53,7 @@
 	#endif
 #endif
 
-#ifdef __cplusplus
-  #include "nm_memory.h"
-#endif
+#include "nm_memory.h"
 
 /*
  * Macros
@@ -181,7 +179,7 @@
     size_t*     shape;              \
     size_t*     offset;             \
 	  int			    count;              \
-	  STORAGE*		src;
+	  STORAGE*		src;              
   #define NM_DEF_STORAGE_CHILD_STRUCT_PRE(name)  typedef struct NM_ ## name { \
                                                     NM_DEF_STORAGE_ELEMENTS;
 
@@ -250,8 +248,8 @@ NM_DEF_STORAGE_STRUCT;
 
 /* Dense Storage */
 NM_DEF_STORAGE_CHILD_STRUCT_PRE(DENSE_STORAGE); // struct DENSE_STORAGE : STORAGE {
-	void*		elements; // should go first to align with void* a in yale and NODE* first in list.
-  size_t*	stride;
+	size_t*	stride;
+	void*		elements;
 NM_DEF_STORAGE_STRUCT_POST(DENSE_STORAGE);     // };
 
 /* Yale Storage */
@@ -290,15 +288,15 @@ NM_DEF_STRUCT_POST(NMATRIX);  // };
 
 /* Structs for dealing with VALUEs in use so that they don't get GC'd */
 
-NM_DEF_STRUCT_PRE(NM_GC_LL_NODE);       // struct NM_GC_LL_NODE {
-  VALUE* val;                           //   VALUE* val;
-  size_t n;                             //   size_t n;
-  NM_DECL_STRUCT(NM_GC_LL_NODE*, next); //   NM_GC_LL_NODE* next;
-NM_DEF_STRUCT_POST(NM_GC_LL_NODE);      // };
+typedef struct __NM_GC_LL_NODE {
+  VALUE* val;
+  size_t n;
+  __NM_GC_LL_NODE* next;
+} nm_gc_ll_node;
 
-NM_DEF_STRUCT_PRE(NM_GC_HOLDER);        // struct NM_GC_HOLDER {
-  NM_DECL_STRUCT(NM_GC_LL_NODE*, start); //  NM_GC_LL_NODE* start;
-NM_DEF_STRUCT_POST(NM_GC_HOLDER);       // };
+typedef struct __NM_GC_HOLDER {
+  __NM_GC_LL_NODE* start;
+} nm_gc_holder;
 
 #define NM_MAX_RANK 15
 
@@ -330,7 +328,7 @@ NM_DEF_STRUCT_POST(NM_GC_HOLDER);       // };
 #define NM_DENSE_ELEMENTS(val)  (NM_STORAGE_DENSE(val)->elements)
 #define NM_SIZEOF_DTYPE(val)    (DTYPE_SIZES[NM_DTYPE(val)])
 #define NM_REF(val,slice)      (RefFuncs[NM_STYPE(val)]( NM_STORAGE(val), slice, NM_SIZEOF_DTYPE(val) ))
-
+    
 #define NM_MAX(a,b) (((a)>(b))?(a):(b))
 #define NM_MIN(a,b) (((a)>(b))?(b):(a))
 #define NM_SWAP(a,b,tmp) {(tmp)=(a);(a)=(b);(b)=(tmp);}
@@ -384,17 +382,16 @@ extern "C" {
 	void     nm_delete(NMATRIX* mat);
 	void     nm_delete_ref(NMATRIX* mat);
   void     nm_register_values(VALUE* vals, size_t n);
-  void     nm_register_value(VALUE* val);
-  void     nm_unregister_value(VALUE* val);
   void     nm_unregister_values(VALUE* vals, size_t n);
-  void     nm_register_storage(NM_DECL_ENUM(stype_t, stype), const STORAGE* storage);
-  void     nm_unregister_storage(NM_DECL_ENUM(stype_t, stype), const STORAGE* storage);
+  void     nm_register_value(VALUE& val);
+  void     nm_unregister_value(VALUE& val);
+  void     nm_register_storage(nm::stype_t stype, const STORAGE* storage);
+  void     nm_unregister_storage(nm::stype_t stype, const STORAGE* storage);
   void     nm_register_nmatrix(NMATRIX* nmatrix);
   void     nm_unregister_nmatrix(NMATRIX* nmatrix);
-  void	   nm_completely_unregister_value(VALUE* val);
+  void	   nm_completely_unregister_value(VALUE& val);
 #ifdef __cplusplus
 }
-
 #endif
 
 #endif // NMATRIX_H
