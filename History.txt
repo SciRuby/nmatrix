@@ -623,7 +623,11 @@
     transformation matrices for rotations and translations in three
     dimensions
 
-* 1 bug fix:
+* 3 bug fixes:
+
+  * Fixed rake install (by @duggiefresh)
 
   * Fixed API problems which prevented NMatrix from working with
     the SciRuby rb-gsl fork
+
+  * Fixed Yale #inject behavior (by @yoongkang)

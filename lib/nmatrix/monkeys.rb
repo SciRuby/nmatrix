@@ -38,19 +38,55 @@ class Array
   # You must provide a shape for the matrix as the first argument.
   #
   # == Arguments:
-  # <tt>shape</tt> :: Array describing matrix dimensions (or Fixnum for square) -- REQUIRED!
-  # <tt>dtype</tt> :: Override data type (e.g., to store a Float as :float32 instead of :float64) -- optional.
+  # <tt>shape</tt> :: Array describing matrix dimensions (or Fixnum for square). 
+  #   If not provided, will be intuited through #shape.
+  # <tt>dtype</tt> :: Override data type (e.g., to store a Float as :float32 
+  #   instead of :float64) -- optional.
   # <tt>stype</tt> :: Optional storage type (defaults to :dense)
-  def to_nm(shape, dtype = nil, stype = :dense)
-    dtype ||=
-      case self[0]
-      when Fixnum		then :int64
-      when Float		then :float64
-      when Rational	then :rational128
-      when Complex	then :complex128
-      end
+  def to_nm(shape = nil, dtype = nil, stype = :dense)
+    elements = self
 
-    matrix = NMatrix.new(:dense, shape, self, dtype)
+    guess_dtype = ->(type) {
+      case type
+      when Fixnum   then :int64
+      when Float    then :float64
+      when Rational then :rational128
+      when Complex  then :complex128
+      end
+    }
+
+    guess_shape = lambda { |shapey; shape|
+      # Get the size of the current dimension
+      shape = [shapey.size]
+      shape << shapey.map {|s|
+        if s.respond_to?(:size) && s.respond_to?(:map)
+          guess_shape.call(s)
+        else
+          nil
+        end
+      }
+      if shape.last.any? {|s| (s != shape.last.first) || s.nil?}
+        shape.pop
+      end
+      if (shape.first != shape.last) && shape.last.all? {|s| s == shape.last.first}
+        shape[-1] = shape.last.first
+      end
+      shape.flatten
+    }
+
+    unless shape
+      shape = guess_shape.call(self)
+      elements.flatten!(shape.size - 1)
+      if elements.flatten != elements
+        dtype = :object
+      else
+        dtype ||= guess_dtype[elements[0]]
+      end
+    end
+
+    dtype ||= guess_dtype[self[0]]
+
+    matrix = NMatrix.new(:dense, shape, elements, dtype)
 
     if stype != :dense then matrix.cast(stype, dtype) else matrix end
   end
@@ -82,3 +118,23 @@ module Math
   end
 end
 
+class String
+  def underscore
+    self.gsub(/::/, '/').
+    gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
+    gsub(/([a-z\d])([A-Z])/,'\1_\2').
+    tr("-", "_").
+    downcase
+  end
+end
+
+# Since `autoload` will most likely be deprecated (due to multi-threading concerns),
+# we'll use `const_missing`. See: https://www.ruby-forum.com/topic/3036681 for more info.
+module AutoloadPatch #:nodoc
+  def const_missing(name)
+    file = name.to_s.underscore
+    require "nmatrix/io/#{file}"
+    klass = const_get(name)
+    return klass if klass
+  end
+end

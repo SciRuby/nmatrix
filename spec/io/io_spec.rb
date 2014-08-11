@@ -50,7 +50,7 @@ describe NMatrix::IO do
 
   it "reads MATLAB .mat file containing a single square sparse matrix" do
     # Note: same matrix as above
-    n = NMatrix::IO::Matlab.load_mat("spec/4x4_sparse.mat")
+    n = NMatrix::IO::Matlab.load_mat("spec/io/test_files/4x4_sparse.mat")
     expect(n[0,0]).to eq(2)
     expect(n[1,1]).to eq(3)
     expect(n[1,3]).to eq(5)
@@ -60,26 +60,26 @@ describe NMatrix::IO do
   end
 
   it "reads MATLAB .mat file containing a single dense integer matrix" do
-    n = NMatrix::IO::Matlab.load_mat("spec/4x5_dense.mat")
+    n = NMatrix::IO::Matlab.load_mat("spec/io/test_files/4x5_dense.mat")
     m = NMatrix.new([4,5], [16,17,18,19,20,15,14,13,12,11,6,7,8,9,10,5,4,3,2,1])
     expect(n).to eq(m)
   end
 
   it "reads MATLAB .mat file containing a single dense double matrix" do
-    n = NMatrix::IO::Matlab.load_mat("spec/2x2_dense_double.mat")
+    n = NMatrix::IO::Matlab.load_mat("spec/io/test_files/2x2_dense_double.mat")
     m = NMatrix.new(2, [1.1, 2.0, 3.0, 4.0], dtype: :float64)
     expect(n).to eq(m)
   end
 
   it "loads and saves MatrixMarket .mtx file containing a single large sparse double matrix" do
     pending "spec disabled because it's so slow"
-    n = NMatrix::IO::Market.load("spec/utm5940.mtx")
-    NMatrix::IO::Market.save(n, "spec/utm5940.saved.mtx")
+    n = NMatrix::IO::Market.load("spec/io/test_files/utm5940.mtx")
+    NMatrix::IO::Market.save(n, "spec/io/test_files/utm5940.saved.mtx")
     expect(`wc -l spec/utm5940.mtx`.split[0]).to eq(`wc -l spec/utm5940.saved.mtx`.split[0])
   end
 
   it "loads a Point Cloud Library PCD file" do
-    n = NMatrix::IO::PointCloud.load("spec/test.pcd")
+    n = NMatrix::IO::PointCloud.load("spec/io/test_files/test.pcd")
     expect(n.column(0).sort.uniq.size).to eq(1)
     expect(n.column(0).sort.uniq.first).to eq(207.008)
     expect(n[0,3]).to eq(0)

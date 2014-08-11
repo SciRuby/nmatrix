@@ -30,27 +30,23 @@
 
 require_relative './lapack.rb'
 require_relative './yale_functions.rb'
+require_relative './monkeys'
+
 
 class NMatrix
-
-  # Read and write extensions for NMatrix. These are only loaded when needed.
-  #
   module IO
+    extend AutoloadPatch
+
     module Matlab
+      extend AutoloadPatch
+
       class << self
         def load_mat file_path
           NMatrix::IO::Matlab::Mat5Reader.new(File.open(file_path, "rb+")).to_ruby
         end
         alias :load :load_mat
       end
-
-      # FIXME: Remove autoloads
-      autoload :MatReader, 'nmatrix/io/mat_reader'
-      autoload :Mat5Reader, 'nmatrix/io/mat5_reader'
     end
-
-    autoload :Market, 'nmatrix/io/market.rb'
-    autoload :PointCloud, 'nmatrix/io/point_cloud.rb'
   end
 
   class << self
@@ -950,3 +946,4 @@ end
 require_relative './shortcuts.rb'
 require_relative './math.rb'
 require_relative './enumerate.rb'
+require_relative './interpolation/one_dimensional.rb'
