@@ -57,32 +57,32 @@ describe NMatrix::IO::FortranFormat do
   end
 
   it "parses exponential FORTRAN formats" do
-	  exp_fmt = NMatrix::IO::FortranFormat::Reader.new('(2E8.3E3)').parse
+    exp_fmt = NMatrix::IO::FortranFormat::Reader.new('(2E8.3E3)').parse
 
-	  expect(exp_fmt[:format_code])       .to eq "EXP_ID"
-	  expect(exp_fmt[:repeat])            .to eq 2
-	  expect(exp_fmt[:field_width])       .to eq 8
-	  expect(exp_fmt[:post_decimal_width]).to eq 3
-	  expect(exp_fmt[:exponent_width])    .to eq 3
+    expect(exp_fmt[:format_code])       .to eq "EXP_ID"
+    expect(exp_fmt[:repeat])            .to eq 2
+    expect(exp_fmt[:field_width])       .to eq 8
+    expect(exp_fmt[:post_decimal_width]).to eq 3
+    expect(exp_fmt[:exponent_width])    .to eq 3
 
-	  exp_fmt = NMatrix::IO::FortranFormat::Reader.new('(3E3.6)').parse
+    exp_fmt = NMatrix::IO::FortranFormat::Reader.new('(3E3.6)').parse
 
-	  expect(exp_fmt[:format_code])       .to eq "EXP_ID"
-	  expect(exp_fmt[:repeat])            .to eq 3
-	  expect(exp_fmt[:field_width])       .to eq 3
-	  expect(exp_fmt[:post_decimal_width]).to eq 6
+    expect(exp_fmt[:format_code])       .to eq "EXP_ID"
+    expect(exp_fmt[:repeat])            .to eq 3
+    expect(exp_fmt[:field_width])       .to eq 3
+    expect(exp_fmt[:post_decimal_width]).to eq 6
 
-	  exp_fmt = NMatrix::IO::FortranFormat::Reader.new('(E4.5)').parse
-	  expect(exp_fmt[:format_code])				.to eq "EXP_ID"
-	  expect(exp_fmt[:field_width])				.to eq 4
-	  expect(exp_fmt[:post_decimal_width]).to eq 5
+    exp_fmt = NMatrix::IO::FortranFormat::Reader.new('(E4.5)').parse
+    expect(exp_fmt[:format_code])       .to eq "EXP_ID"
+    expect(exp_fmt[:field_width])       .to eq 4
+    expect(exp_fmt[:post_decimal_width]).to eq 5
   end
 
   ['I3', '(F4)', '(E3.', '(E4.E5)'].each do |bad_format|
-	  it "doesn't let bad input through : #{bad_format}" do
-		  expect {
-			  NMatrix::IO::FortranFormat::Reader.new(bad_format).parse
-		  }.to raise_error(IOError)
+    it "doesn't let bad input through : #{bad_format}" do
+      expect {
+        NMatrix::IO::FortranFormat::Reader.new(bad_format).parse
+      }.to raise_error(IOError)
     end
   end
 end

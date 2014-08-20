@@ -32,10 +32,10 @@
 require_relative './fortran_format.rb'
 
 class NMatrix
-	module IO
-		module HarwellBoeing
+  module IO
+    module HarwellBoeing
 
-			class << self
+      class << self
         def load file_path, opts={}
           hb_obj = NMatrix::IO::HarwellBoeing::Reader.new(file_path)
 
@@ -45,61 +45,61 @@ class NMatrix
         end
       end
 
-			class Reader
-				def initialize file_name
-					raise(IOError, "Unsupported file format. Specify file as \
-						file_name.rua.") if !file_name.match(/.*\.[rR][uU][aA]/)
+      class Reader
+        def initialize file_name
+          raise(IOError, "Unsupported file format. Specify file as \
+            file_name.rua.") if !file_name.match(/.*\.[rR][uU][aA]/)
 
-					@file_name   = file_name
-					@header      = {}
-					@body        = nil
-				end
+          @file_name   = file_name
+          @header      = {}
+          @body        = nil
+        end
 
         def header
-        	return @header if !@header.empty?
-        	@file = File.open @file_name, "r"
+          return @header if !@header.empty?
+          @file = File.open @file_name, "r"
 
-        	line = @file.gets
+          line = @file.gets
 
-        	@header[:title] = line[0...72].strip
-        	@header[:key]   = line[72...80].strip
+          @header[:title] = line[0...72].strip
+          @header[:key]   = line[72...80].strip
 
-        	line = @file.gets
+          line = @file.gets
 
-        	@header[:totcrd] = line[0...14] .strip.to_i
-        	@header[:ptrcrd] = line[14...28].strip.to_i
-        	@header[:indcrd] = line[28...42].strip.to_i
-        	@header[:valcrd] = line[42...56].strip.to_i
-        	@header[:rhscrd] = line[56...70].strip.to_i
+          @header[:totcrd] = line[0...14] .strip.to_i
+          @header[:ptrcrd] = line[14...28].strip.to_i
+          @header[:indcrd] = line[28...42].strip.to_i
+          @header[:valcrd] = line[42...56].strip.to_i
+          @header[:rhscrd] = line[56...70].strip.to_i
 
-        	raise(IOError, "Right hand sides not supported.") if @header[:rhscrd] > 0
+          raise(IOError, "Right hand sides not supported.") if @header[:rhscrd] > 0
 
-        	line = @file.gets
+          line = @file.gets
 
-        	@header[:mxtype] = line[0...3]
+          @header[:mxtype] = line[0...3]
 
-        	raise(IOError, "Currently supports only real, assembled, unsymmetric \
-        		matrices.") if !@header[:mxtype].match(/RUA/)
+          raise(IOError, "Currently supports only real, assembled, unsymmetric \
+            matrices.") if !@header[:mxtype].match(/RUA/)
 
-        	@header[:nrow]   = line[13...28].strip.to_i
-        	@header[:ncol]   = line[28...42].strip.to_i
-        	@header[:nnzero] = line[42...56].strip.to_i
-        	@header[:neltvl] = line[56...70].strip.to_i
+          @header[:nrow]   = line[13...28].strip.to_i
+          @header[:ncol]   = line[28...42].strip.to_i
+          @header[:nnzero] = line[42...56].strip.to_i
+          @header[:neltvl] = line[56...70].strip.to_i
 
-        	line = @file.gets
+          line = @file.gets
 
-        	fortran_reader = NMatrix::IO::FortranFormat::Reader
+          fortran_reader = NMatrix::IO::FortranFormat::Reader
 
-        	@header[:ptrfmt] = fortran_reader.new(line[0...16].strip) .parse
-        	@header[:indfmt] = fortran_reader.new(line[16...32].strip).parse
-        	@header[:valfmt] = fortran_reader.new(line[32...52].strip).parse
-        	@header[:rhsfmt] = fortran_reader.new(line[52...72].strip).parse
+          @header[:ptrfmt] = fortran_reader.new(line[0...16].strip) .parse
+          @header[:indfmt] = fortran_reader.new(line[16...32].strip).parse
+          @header[:valfmt] = fortran_reader.new(line[32...52].strip).parse
+          @header[:rhsfmt] = fortran_reader.new(line[52...72].strip).parse
 
-        	@header
+          @header
         end
 
         def values
-        	@header      = header if @header.empty?
+          @header      = header if @header.empty?
           @file.lineno = 5      if @file.lineno != 5
           @matrix      = NMatrix.new([ @header[:nrow], @header[:ncol] ], 
                                       0, dtype: :float64)
@@ -182,8 +182,8 @@ class NMatrix
             col += 1
           end
         end
-			end
+      end
 
-		end
-	end
+    end
+  end
 end
