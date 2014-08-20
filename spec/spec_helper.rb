@@ -92,8 +92,9 @@ def create_rectangular_matrix(stype) #:nodoc:
   m
 end
 
-def create_vector(stype) #:nodoc:
-  m = stype == :yale ? NVector.new(stype, 10, :int32) : NVector.new(stype, 10, 0, :int32)
+def create_vector(stype,dtype=:int32) #:nodoc:
+  m = stype == :yale ? NMatrix.new([10,1], stype: stype, dtype: dtype) \
+   : NMatrix.new([10,1], 0, stype: stype, dtype: dtype)
 
   m[0] = 1
   m[1] = 2

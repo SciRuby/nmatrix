@@ -24,11 +24,10 @@
 #
 # Basic tests for NMatrix::IO::HarwelBoeing.
 
-# TODO : After the fortran format thing is done
 require 'spec_helper'
 require "./lib/nmatrix"
 
-describe NMatrix::IO::HarwellBoeing , :focus => true do
+describe NMatrix::IO::HarwellBoeing do
   def check_file_header header
     expect(header[:title])    .to eq("Title")
     expect(header[:key])      .to eq("Key")
