@@ -24,6 +24,7 @@
 # == io/matlab/harwell_boeing.rb
 #
 # Class for implementing all functions concerning 1 D interpolation
+# TODO : Write proper documentation!!
 #++
 
 require_relative 'base.rb'
@@ -31,6 +32,16 @@ require_relative 'base.rb'
 class NMatrix
   module Interpolation
     class OneDimensional < Interpolation::Base
+      def initialize x, y, opts={}
+        super(x,y)
+
+        case opts[:kind]
+        when :linear
+        else
+          raise(NotImplementedError, "#{opts[:kind]} 1 D interpolation is \
+            not supported.")
+        end
+      end
     end
   end
 end

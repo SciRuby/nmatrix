@@ -31,5 +31,6 @@ describe NMatrix::Interpolation::OneDimensional , :focus => true do
 
   it "tests if linear interpolation returns correct results" do
     x = create_vector :dense
+    y = x.exp
   end
 end

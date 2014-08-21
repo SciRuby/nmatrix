@@ -29,6 +29,9 @@
 class NMatrix
   module Interpolation
     class Base
+      def initialize x, y
+        
+      end
     end
   end
 end
