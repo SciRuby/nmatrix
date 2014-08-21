@@ -23,12 +23,12 @@
 #
 # == io/matlab/harwell_boeing.rb
 #
-# Class for implementing all functions concerning 1 D interpolation
+# Base class for all interpolation functions. 
 #++
 
-require_relative 'interpolate.rb'
-
 class NMatrix
-  class Interp1D < NMatrix::Interpolate
+  module Interpolation
+    class Base
+    end
   end
 end

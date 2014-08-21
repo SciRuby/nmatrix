@@ -27,7 +27,7 @@
 require 'spec_helper'
 require './lib/nmatrix'
 
-describe NMatrix::Interp1D , :focus => true do
+describe NMatrix::Interpolation::OneDimensional , :focus => true do
 
   it "tests if linear interpolation returns correct results" do
     x = create_vector :dense
