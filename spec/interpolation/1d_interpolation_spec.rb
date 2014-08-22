@@ -29,8 +29,41 @@ require './lib/nmatrix'
 
 describe NMatrix::Interpolation::OneDimensional , :focus => true do
 
-  it "tests if linear interpolation returns correct results" do
+  it "tests for linear interpolation for 1-dimensional y values" do
     x = create_vector :dense
     y = x.exp
+
+    f = NMatrix::Interpolation::OneDimensional.new(x, y, {kind: :linear})
+
+    expect(f.interpolate(2.5))              .to eq 13.737
+    expect(f.interpolate([2.5,6.7,0.3,8.6])).to eq [13.7373, 888.6718, 
+      1.5155, 6054.2336]
+      # TODO : Should be able to interpolate with NMatrix object too
+  end
+
+  it "tests linear interpolation for N-dimensional y values" do
+    x = create_vector :dense
+    y = NMatrix.new [10,3]
+
+    3.times { |col| y[0..9,col] = x.exp }
+
+    f = NMatrix::Interpolation::OneDimensional.new(x,y, {kind: :linear})
+
+    expect(f.interpolate(2.5))              .to eq [13.737,13.737,13.737]
+    expect(f.interpolate([2.5,6.7,0.3,8.6])).to eq 
+      [ [13.737  ,13.737  , 13.737 ],
+        [888.671 ,888.671 ,888.671 ],
+        [1.515   ,1.515   ,1.515   ],
+        [6054.233,6054.233,6054.233] ]
+
+    # TODO : Should be able to interpolate with NMatrix object too
+
+   f = NMatrix::Interpolation::OneDimensional.new(x, y, {kind: :linear, axis: 1})
+   
+   expect(f.interpolate(3.5))              .to eq 37.342
+   expect(f.interpolate([2.5,6.7,0.3,8.6])).to eq [13.7373, 888.6718, 
+      1.5155, 6054.2336]
+
+  # TODO : Interpolate with NMatrix object too
   end
 end
