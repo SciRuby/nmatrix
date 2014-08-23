@@ -627,7 +627,6 @@ protected
     self.__dense_map__ { |l| -l }.cast(stype, dtype)
   end
 
-  # These are for calculating the floor or ceil of matrix
   def dtype_for_floor_or_ceil
     if self.integer_dtype? or [:complex64, :complex128, :object].include?(self.dtype)
       return_dtype = dtype
@@ -638,6 +637,7 @@ protected
     return_dtype
   end
 
+  # These are for calculating element wise floor and ceil of a matrix.
   [:floor, :ceil].each do |meth|  
     define_method("__list_unary_#{meth}__") do
       return_dtype = dtype_for_floor_or_ceil

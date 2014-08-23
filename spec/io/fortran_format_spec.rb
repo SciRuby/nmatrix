@@ -83,6 +83,6 @@ describe NMatrix::IO::FortranFormat do
       expect {
         NMatrix::IO::FortranFormat::Reader.new(bad_format).parse
       }.to raise_error(IOError)
+    end
   end
-end
 end

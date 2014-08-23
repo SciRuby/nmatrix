@@ -24,11 +24,10 @@
 #
 # Basic tests for NMatrix::IO::HarwelBoeing.
 
-# TODO : After the fortran format thing is done
 require 'spec_helper'
 require "./lib/nmatrix"
 
-describe NMatrix::IO::HarwellBoeing , :focus => true do
+describe NMatrix::IO::HarwellBoeing do
   def check_file_header header
     expect(header[:title])    .to eq("Title")
     expect(header[:key])      .to eq("Key")
@@ -70,7 +69,7 @@ describe NMatrix::IO::HarwellBoeing , :focus => true do
   end
 
   it "loads a Harwell Boeing file values and header (currently real only)" do
-    n, h = NMatrix::IO::HarwellBoeing.load("spec/io/test.rua")
+    n, h = NMatrix::IO::HarwellBoeing.load("spec/io/test_files/test.rua")
 
     expect(n.is_a? NMatrix).to eq(true)
     expect(n.cols)         .to eq(5)
@@ -84,7 +83,7 @@ describe NMatrix::IO::HarwellBoeing , :focus => true do
   end
 
   it "loads only the header of the file when specified" do
-    h = NMatrix::IO::HarwellBoeing.load("spec/io/test.rua", header: true)
+    h = NMatrix::IO::HarwellBoeing.load("spec/io/test_files/test.rua", header: true)
 
     expect(h.is_a? Hash).to eq(true)
     check_file_header(h)
@@ -92,7 +91,7 @@ describe NMatrix::IO::HarwellBoeing , :focus => true do
 
   it "raises error for wrong Harwell Boeing file name" do
     expect{
-      NMatrix::IO::HarwellBoeing.load("spec/io/wrong.afx")
+      NMatrix::IO::HarwellBoeing.load("spec/io/test_files/wrong.afx")
     }.to raise_error(IOError)
   end
 end

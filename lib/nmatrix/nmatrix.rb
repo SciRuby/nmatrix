@@ -946,3 +946,4 @@ end
 require_relative './shortcuts.rb'
 require_relative './math.rb'
 require_relative './enumerate.rb'
+require_relative './interpolation/one_dimensional.rb'
