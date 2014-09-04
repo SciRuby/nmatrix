@@ -48,7 +48,7 @@ describe NMatrix::IO do
     expect(n[3,3]).to eq(0)
   end
 
-  it "reads MATLAB .mat file containing a single square sparse matrix" do
+  it "reads MATLAB .mat file containing a single square sparse matrix", :focus => true do
     # Note: same matrix as above
     n = NMatrix::IO::Matlab.load_mat("spec/4x4_sparse.mat")
     expect(n[0,0]).to eq(2)

@@ -153,7 +153,7 @@ module NMatrix::IO::Matlab
     # * *Raises* :
     #   - +ArgumentError+ -> First argument must be IO.
     #
-    def initialize(stream, options = {})
+    def initialize(stream, options={})
       raise ArgumentError, 'First arg must be IO.' unless stream.is_a?(::IO)
 
       @stream     = stream

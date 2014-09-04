@@ -347,9 +347,9 @@ class NMatrix
   # Returns the rank (e.g., row, column, or layer) specified, using slicing by copy as default.
   #
   # See @row (dimension = 0), @column (dimension = 1)
+  
   def rank(shape_idx, rank_idx, meth = :copy)
-    
-    if shape_idx > (self.dim-1)
+    if self.dim != 1 and shape_idx > (self.dim-1)
       raise(RangeError, "#rank call was out of bounds")
     end
 
@@ -946,3 +946,4 @@ end
 require_relative './shortcuts.rb'
 require_relative './math.rb'
 require_relative './enumerate.rb'
+require_relative './interpolation/one_dimensional.rb'

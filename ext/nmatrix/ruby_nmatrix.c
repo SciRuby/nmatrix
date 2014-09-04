@@ -1126,6 +1126,11 @@ static VALUE nm_init_new_version(int argc, VALUE* argv, VALUE self) {
       hash        = Qnil;
     }
   }
+  else if (argc == 1) {
+    rb_scan_args(argc, argv, "11", &shape_ary);
+    initial_ary = Qnil;
+    hash        = Qnil;
+  }
 #endif
   NM_CONSERVATIVE(nm_register_value(&shape_ary));
   NM_CONSERVATIVE(nm_register_value(&initial_ary));
@@ -1366,6 +1371,7 @@ static VALUE nm_init(int argc, VALUE* argv, VALUE nm) {
 
   // 1: Array or Fixnum
   size_t dim;
+  
   size_t* shape = interpret_shape(argv[offset], &dim);
 
   // 2-3: dtype

@@ -310,13 +310,11 @@ describe NMatrix do
   it "should return an enumerator when each is called without a block" do
     a = NMatrix.new(2, 1)
     b = NMatrix.new(2, [-1,0,1,0])
+
     enums = [a.each, b.each]
 
-    begin
-      atans = []
-      atans << Math.atan2(*enums.map(&:next)) while true
-    rescue StopIteration
-    end
+    expect(enums[0].is_a?(Enumerator)).to eq true
+    expect(enums[1].is_a?(Enumerator)).to eq true
   end
 
   context "dense" do
