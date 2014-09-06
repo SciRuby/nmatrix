@@ -31,11 +31,44 @@ class NMatrix
   module IO
     module FortranFormat
 
+      # Class for reading strings in FORTRAN format for specifying attributes
+      # of numerical data in a file. Supports F (float), E (exponential) and 
+      # R (real).
+      # 
+      # == Usage
+      # 
+      #   p = NMatrix::IO::FortranFormat::Reader.new("(16I5)")
+      #   v = p.parse
+      #   puts v #=> { :format_code => "INT_ID", 
+      #          #=>   :repeat      =>       16,
+      #          #=>   :field_width =>        5 }
       class Reader
+
+        # Accepts a string in FORTRAN format and initializes the 
+        # NMatrix::IO::FortranFormat::Reader object for further parsing of the 
+        # data.
+        # 
+        # == Arguments
+        # 
+        # * +string+ - FORTRAN format string to be parsed.
         def initialize string
           @string = string
         end
 
+        # Parses the FORTRAN format string passed in initialize and returns
+        # a hash of the results.
+        # 
+        # == Result Hash Format
+        # 
+        # Take note that some of the below parameters may be absent in the hash
+        # depending on the type of string being parsed.
+        # 
+        # * +:format_code+ - A string containing the format code of the read data. 
+        #                    Can be "INT_ID", "FP_ID" or "EXP_ID" 
+        # * +:repeat+      - Number of times this format will repeat in a line.
+        # * +:field_width+ - Width of the numerical part of the number.
+        # * +:post_decimal_width+ - Width of the numerals after the decimal point.
+        # * +:exponent_width+ - Width of exponent part of the number.
         def parse
           raise(IOError, "Left or right parentheses missing") if parentheses_missing? # change tests to handle 'raise' not return
 

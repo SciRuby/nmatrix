@@ -36,6 +36,37 @@ class NMatrix
     module HarwellBoeing
 
       class << self
+        # Loads the contents of a valid Harwell Boeing format file and 
+        # returns an NMatrix object with the values of the file and optionally
+        # only the header info.
+        # 
+        # Supports only assembled, non-symmetric, real matrices. File name must
+        # have matrix type as extension.
+        # 
+        # Example - test_file.rua
+        # 
+        # == Arguments
+        # 
+        # * +file_path+ - Path of the Harwell Boeing file  to load.
+        # * +opts+      - Options for specifying whether you want the values and 
+        #                 header or only the header.
+        # 
+        # == Options
+        # 
+        # * +:header+ - If specified as *true*, will return only the header of the HB file.
+        #               Will return the NMatrix object and header as an array if 
+        #               left blank.
+        # 
+        # == Usage
+        # 
+        #   mat, head = NMatrix::IO::HarwellBoeing.load("test_file.rua")
+        # 
+        #   head = NMatrix::IO::HarwellBoeing.load("test_file.rua", {header: true})
+        # 
+        # == Alternate Usage
+        # 
+        # You can specify the file using NMatrix::IO::Reader.new("path/to/file") and
+        # then call *header* or *values* on the resulting object.
         def load file_path, opts={}
           hb_obj = NMatrix::IO::HarwellBoeing::Reader.new(file_path)
 
