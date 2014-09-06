@@ -349,7 +349,7 @@ class NMatrix
   # See @row (dimension = 0), @column (dimension = 1)
   def rank(shape_idx, rank_idx, meth = :copy)
     
-    if shape_idx > (self.dim-1)
+    if shape_idx >= (self.dim)
       raise(RangeError, "#rank call was out of bounds")
     end
 
@@ -383,6 +383,8 @@ class NMatrix
   #                     14
   #
   def column(column_number, get_by = :copy)
+    return self if column_number == 0 and self.vector?
+
     rank(1, column_number, get_by)
   end
 
