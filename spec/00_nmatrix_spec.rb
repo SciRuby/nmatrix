@@ -41,6 +41,12 @@ describe NMatrix do
     expect { n[0] }.to raise_error(ArgumentError)
   end
 
+  it "returns the zeroth column of a 1D NMatrix" do
+    n = NMatrix.new([5], [1,2,3,4,5])
+
+    expect(n.column(0)[1]).to eq(2)    
+  end
+
   it "calculates exact determinants on small square matrices" do
     expect(NMatrix.new(2, [1,2,3,4], stype: :dense, dtype: :int64).det_exact).to eq(-2)
   end
