@@ -72,7 +72,7 @@ describe NMatrix::IO do
   end
 
   it "loads and saves MatrixMarket .mtx file containing a single large sparse double matrix" do
-    pending "spec disabled because it's so slow"
+    skip "spec disabled because it's so slow"
     n = NMatrix::IO::Market.load("spec/utm5940.mtx")
     NMatrix::IO::Market.save(n, "spec/utm5940.saved.mtx")
     expect(`wc -l spec/utm5940.mtx`.split[0]).to eq(`wc -l spec/utm5940.saved.mtx`.split[0])

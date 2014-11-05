@@ -108,7 +108,7 @@ describe NMatrix::BLAS do
     context dtype do
 
       it "exposes cblas rotg" do
-        pending("broken for :object") if dtype == :object
+        skip("broken for :object") if dtype == :object
 
         ab = NMatrix.new([2,1], [6,-8], dtype: dtype)
         c,s = NMatrix::BLAS::rotg(ab)
@@ -118,7 +118,7 @@ describe NMatrix::BLAS do
           expect(ab[1]).to be_within(1e-6).of(-5.quo(3))
           expect(c).to be_within(1e-6).of(-3.quo(5))
         else
-          pending "need correct test cases"
+          skip "need correct test cases"
           expect(ab[0]).to be_within(1e-6).of(10)
           expect(ab[1]).to be_within(1e-6).of(5.quo(3))
           expect(c).to be_within(1e-6).of(3.quo(5))

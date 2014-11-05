@@ -102,14 +102,14 @@ describe "math" do
               [:asin, :acos, :atan, :atanh].each do |atf|
 
                 it "should correctly apply elementwise #{atf}" do
-                  expect(@m.send(atf)).to eq N.new(@size, 
+                  expect(@m.send(atf)).to eq N.new(@size,
                                                @a.map{ |e| Math.send(atf, e) },
                                                dtype: :float64, stype: stype)
                 end
               end
 
               it "should correctly apply elementtwise atan2" do
-                expect(@m.atan2(@m*0+1)).to eq N.new(@size, 
+                expect(@m.atan2(@m*0+1)).to eq N.new(@size,
                   @a.map { |e| Math.send(:atan2, e, 1) }, dtype: :float64, stype: stype)
               end
 
@@ -123,8 +123,8 @@ describe "math" do
             end
           end
         end
-          
-        context "Floor and ceil for #{stype}" do  
+
+        context "Floor and ceil for #{stype}" do
 
           [:floor, :ceil].each do |meth|
             ALL_DTYPES.each do |dtype|
@@ -137,7 +137,7 @@ describe "math" do
 
                 if dtype.to_s.match(/int/) or [:byte, :object].include?(dtype)
                   it "should return #{dtype} for #{dtype}" do
-                    
+
                     expect(@m.send(meth)).to eq N.new(@size, @a.map { |e| e.send(meth) }, dtype: dtype, stype: stype)
 
                     if dtype == :object
@@ -146,14 +146,14 @@ describe "math" do
                       expect(@m.send(meth).integer_dtype?).to eq true
                     end
                   end
-                elsif dtype.to_s.match(/float/) or dtype.to_s.match(/rational/) 
+                elsif dtype.to_s.match(/float/) or dtype.to_s.match(/rational/)
                   it "should return dtype int64 for #{dtype}" do
 
                     expect(@m.send(meth)).to eq N.new(@size, @a.map { |e| e.send(meth) }, dtype: dtype, stype: stype)
-                    
+
                     expect(@m.send(meth).dtype).to eq :int64
                   end
-                elsif dtype.to_s.match(/complex/) 
+                elsif dtype.to_s.match(/complex/)
                   it "should properly calculate #{meth} for #{dtype}" do
 
                     expect(@m.send(meth)).to eq N.new(@size, @a.map { |e| e = Complex(e.real.send(meth), e.imag.send(meth)) }, dtype: dtype, stype: stype)
@@ -172,25 +172,25 @@ describe "math" do
             context dtype do
               before :each do
                 @size = [2,2]
-                @mat  = NMatrix.new @size, [1.33334, 0.9998, 1.9999, -8.9999], 
+                @mat  = NMatrix.new @size, [1.33334, 0.9998, 1.9999, -8.9999],
                   dtype: dtype, stype: stype
                 @ans  = @mat.to_a.flatten
               end
 
               it "rounds #{dtype} for #{stype}" do
-                expect(@mat.round).to eq(N.new(@size, @ans.map { |a| a.round}, 
+                expect(@mat.round).to eq(N.new(@size, @ans.map { |a| a.round},
                   dtype: dtype, stype: stype))
               end unless(/complex/ =~ dtype)
 
               it "rounds complex dtype #{dtype} for #{stype}" do
-                
-                expect(@mat.round).to eq(N.new [2,2], @ans.map {|a| 
+
+                expect(@mat.round).to eq(N.new [2,2], @ans.map {|a|
                   Complex(a.real.round, a.imag.round)},dtype: dtype, stype: stype)
               end if(/complex/ =~ dtype)
             end
           end
         end
-        
+
       end
     end
   end
@@ -218,9 +218,9 @@ describe "math" do
           a.invert!
         rescue NotImplementedError => e
           if dtype.to_s =~ /rational/
-            pending "getri needs rational implementation"
+            skip "getri needs rational implementation"
           else
-            pending e.to_s
+            skip e.to_s
           end
         end
         expect(a.round).to eq(b)
@@ -228,9 +228,9 @@ describe "math" do
 
       unless NMatrix.has_clapack?
         it "should correctly invert a matrix in place" do
-          a = NMatrix.new(:dense, 5, [1, 8,-9, 7, 5, 
-                                      0, 1, 0, 4, 4, 
-                                      0, 0, 1, 2, 5, 
+          a = NMatrix.new(:dense, 5, [1, 8,-9, 7, 5,
+                                      0, 1, 0, 4, 4,
+                                      0, 0, 1, 2, 5,
                                       0, 0, 0, 1,-5,
                                       0, 0, 0, 0, 1 ], dtype)
           b = NMatrix.new(:dense, 5, [1,-8, 9, 7, 17,

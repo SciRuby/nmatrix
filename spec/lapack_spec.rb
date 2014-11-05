@@ -103,7 +103,7 @@ describe NMatrix::LAPACK do
           b = NMatrix.new(:dense, 3, [5,3,-1, 0,3,1, 0,0,3], dtype)
           expect(a).to eq(b)
         rescue NotImplementedError => e
-          pending e.to_s
+          skip e.to_s
         end
 
         # then do lower
@@ -136,7 +136,7 @@ describe NMatrix::LAPACK do
           b = NMatrix.new(:dense, 3, [-5,0,-2,-4,1,-1,1.5,0,0.5], dtype)
           expect(a).to eq(b)
         rescue NotImplementedError => e
-          pending e.to_s
+          skip e.to_s
         end
       end
 
@@ -173,9 +173,9 @@ describe NMatrix::LAPACK do
           ldvt= 6
         elsif [:complex64, :complex128].include? dtype
           #http://software.intel.com/sites/products/documentation/doclib/mkl_sa/11/mkl_lapack_examples/cgesvd_ex.c.htm
-          pending "Example may be wrong"
+          skip "Example may be wrong"
         else
-          pending "Not implemented for non-LAPACK dtypes"
+          skip "Not implemented for non-LAPACK dtypes"
           a = NMatrix.new([4,3], dtype: dtype)
         end
         err = case dtype
@@ -192,7 +192,7 @@ describe NMatrix::LAPACK do
           info = NMatrix::LAPACK::lapack_gesdd(:a, a.shape[0], a.shape[1], a, a.shape[0], s, u, ldu, vt, ldvt, 500)
 
         rescue NotImplementedError => e
-          pending e.to_s
+          skip e.to_s
         end
 
         expect(u).to be_within(err).of(left_true)
@@ -236,7 +236,7 @@ describe NMatrix::LAPACK do
           ldvt= 6
         elsif [:complex64, :complex128].include? dtype
           #http://software.intel.com/sites/products/documentation/doclib/mkl_sa/11/mkl_lapack_examples/cgesvd_ex.c.htm
-          pending "Example may be wrong"
+          skip "Example may be wrong"
           a = NMatrix.new([4,3], [[  5.91, -5.69], [  7.09,  2.72], [  7.78, -4.06], [ -0.79, -7.21], [ -3.15, -4.08], [ -1.89,  3.27], [  4.57, -2.07], [ -3.88, -3.30], [ -4.89,  4.20], [  4.10, -6.70], [  3.28, -3.84], [  3.84,  1.19]].map {|e| Complex(*e) } , dtype: dtype)
           s_true = NMatrix.new([3,1], [17.63, 11.61, 6.78], dtype: dtype)
           left_true = NMatrix.new([4,4], [[-0.86, 0.0], [0.4, 0.0], [0.32, 0.0], [-0.35, 0.13], [-0.24, -0.21], [-0.63, 0.6], [0.15, 0.32], [0.61, 0.61], [-0.36, 0.1]].map {|e| Complex(*e)}, dtype: dtype)
@@ -247,7 +247,7 @@ describe NMatrix::LAPACK do
           ldu = 4
           vt  = NMatrix.new([3,3], 0, dtype: dtype)
           ldvt= 3
-        else 
+        else
           a = NMatrix.new([4,3], dtype: dtype)
         end
         err = case dtype
@@ -264,7 +264,7 @@ describe NMatrix::LAPACK do
           info = NMatrix::LAPACK::lapack_gesvd(:a, :a, a.shape[0], a.shape[1], a, a.shape[0], s, u, ldu, vt, ldvt, 500)
 
         rescue NotImplementedError => e
-          pending e.to_s
+          skip e.to_s
         end
 
         expect(u).to be_within(err).of(left_true)
@@ -273,7 +273,7 @@ describe NMatrix::LAPACK do
         expect(s.transpose).to be_within(err).of(s_true.row(0))
 
       end
- 
+
       it "exposes the convenience gesvd method" do
         # http://software.intel.com/sites/products/documentation/doclib/mkl_sa/11/mkl_lapack_examples/dgesvd_ex.c.htm
         if [:float32, :float64].include? dtype
@@ -308,7 +308,7 @@ describe NMatrix::LAPACK do
           ldvt= 6
         elsif [:complex64, :complex128].include? dtype
           #http://software.intel.com/sites/products/documentation/doclib/mkl_sa/11/mkl_lapack_examples/cgesvd_ex.c.htm
-          pending "Example may be wrong"
+          skip "Example may be wrong"
           a = NMatrix.new([4,3], [[  5.91, -5.69], [  7.09,  2.72], [  7.78, -4.06], [ -0.79, -7.21], [ -3.15, -4.08], [ -1.89,  3.27], [  4.57, -2.07], [ -3.88, -3.30], [ -4.89,  4.20], [  4.10, -6.70], [  3.28, -3.84], [  3.84,  1.19]].map {|e| Complex(*e) } , dtype: dtype)
           s_true = NMatrix.new([3,1], [17.63, 11.61, 6.78], dtype: dtype)
           left_true = NMatrix.new([4,4], [[-0.86, 0.0], [0.4, 0.0], [0.32, 0.0], [-0.35, 0.13], [-0.24, -0.21], [-0.63, 0.6], [0.15, 0.32], [0.61, 0.61], [-0.36, 0.1]].map {|e| Complex(*e)}, dtype: dtype)
@@ -319,7 +319,7 @@ describe NMatrix::LAPACK do
           ldu = 4
           vt  = NMatrix.new([3,3], 0, dtype: dtype)
           ldvt= 3
-        else 
+        else
           a = NMatrix.new([4,3], dtype: dtype)
         end
         err = case dtype
@@ -334,7 +334,7 @@ describe NMatrix::LAPACK do
         begin
           u, s, vt = a.gesvd
         rescue NotImplementedError => e
-          pending e.to_s
+          skip e.to_s
         end
         expect(u).to be_within(err).of(left_true)
         #FIXME: Is the next line correct?
@@ -360,7 +360,7 @@ describe NMatrix::LAPACK do
           ldvt= 6
         elsif [:complex64, :complex128].include? dtype
           #http://software.intel.com/sites/products/documentation/doclib/mkl_sa/11/mkl_lapack_examples/cgesvd_ex.c.htm
-          pending "Example may be wrong"
+          skip "Example may be wrong"
           a = NMatrix.new([4,3], [[  5.91, -5.69], [  7.09,  2.72], [  7.78, -4.06], [ -0.79, -7.21], [ -3.15, -4.08], [ -1.89,  3.27], [  4.57, -2.07], [ -3.88, -3.30], [ -4.89,  4.20], [  4.10, -6.70], [  3.28, -3.84], [  3.84,  1.19]].map {|e| Complex(*e) } , dtype: dtype)
           s_true = NMatrix.new([3,1], [17.63, 11.61, 6.78], dtype: dtype)
           left_true = NMatrix.new([4,4], [[-0.86, 0.0], [0.4, 0.0], [0.32, 0.0], [-0.35, 0.13], [-0.24, -0.21], [-0.63, 0.6], [0.15, 0.32], [0.61, 0.61], [-0.36, 0.1]].map {|e| Complex(*e)}, dtype: dtype)
@@ -371,7 +371,7 @@ describe NMatrix::LAPACK do
           ldu = 4
           vt  = NMatrix.new([3,3], 0, dtype: dtype)
           ldvt= 3
-        else 
+        else
           a = NMatrix.new([4,3], dtype: dtype)
         end
         s   = NMatrix.new([5,1], 0, dtype: dtype)
@@ -393,7 +393,7 @@ describe NMatrix::LAPACK do
           u, s, vt = a.gesdd(500)
 
         rescue NotImplementedError => e
-          pending e.to_s
+          skip e.to_s
         end
         expect(u).to be_within(err).of(left_true)
         #FIXME: Is the next line correct?
@@ -403,7 +403,7 @@ describe NMatrix::LAPACK do
 
 
       it "exposes geev" do
-        pending("needs rational implementation") if dtype.to_s =~ /rational/
+        skip("needs rational implementation") if dtype.to_s =~ /rational/
         ary = %w|-1.01 0.86 -4.60 3.31 -4.81
                      3.98 0.53 -7.04 5.29 3.55
                      3.30 8.26 -3.89 8.20 -1.51
@@ -431,7 +431,7 @@ describe NMatrix::LAPACK do
         vr = vr.transpose
         vl = vl.transpose
 
-        pending("Need complex example") if dtype.to_s =~ /complex/
+        skip("Need complex example") if dtype.to_s =~ /complex/
         vl_true = NMatrix.new(:dense, 5, [0.04,  0.29,  0.13,  0.33, -0.04,
                                           0.62,  0.0,  -0.69,  0.0,  -0.56,
                                          -0.04, -0.58,  0.39,  0.07,  0.13,
