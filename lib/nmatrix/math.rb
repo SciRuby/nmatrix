@@ -180,18 +180,20 @@ class NMatrix
   # call-seq:
   #     factorize_lu -> ...
   #
-  # LU factorization of a matrix.
+  # LU factorization of a matrix. Returns the LU factorized matrix and the pivot 
+  # array if an argument ':pivot' is passed.
   #
   # FIXME: For some reason, getrf seems to require that the matrix be transposed first -- and then you have to transpose the
   # FIXME: result again. Ideally, this would be an in-place factorize instead, and would be called nm_factorize_lu_bang.
   #
-  def factorize_lu
+  def factorize_lu with=:no_pivot
     raise(NotImplementedError, "only implemented for dense storage") unless self.stype == :dense
     raise(NotImplementedError, "matrix is not 2-dimensional") unless self.dimensions == 2
 
-    t = self.transpose
-    NMatrix::LAPACK::clapack_getrf(:row, t.shape[0], t.shape[1], t, t.shape[1])
-    t.transpose
+    t     = self.transpose
+    pivot = NMatrix::LAPACK::clapack_getrf(:row, t.shape[0], t.shape[1], t, t.shape[1])
+    return t.transpose          if with == :no_pivot
+    return [t.transpose, pivot] if with == :pivot
   end
 
   #
