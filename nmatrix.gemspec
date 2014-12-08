@@ -44,6 +44,7 @@ EOF
   gem.required_ruby_version = '>= 1.9'
 
   gem.add_dependency 'rdoc', '~>4.0', '>=4.0.1'
+  gem.add_dependency 'packable', '>=1.3.5'
   gem.add_development_dependency 'rake', '~>10.3'
   gem.add_development_dependency 'bundler', '~>1.6'
   gem.add_development_dependency 'rspec', '~>2.14'

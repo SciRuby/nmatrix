@@ -151,6 +151,10 @@ describe NMatrix::BLAS do
         expect(NMatrix::BLAS.asum(x)).to eq(10.0)
       end
 
+      it "exposes asum for single element" do
+        x = NMatrix.new([1], [-1], dtype: :float64)
+        expect(x.asum).to eq(1.0)
+      end
 
       it "exposes nrm2" do
         x = NMatrix.new([4,1], [2,-4,3,5], dtype: :float64)
