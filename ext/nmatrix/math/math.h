@@ -103,6 +103,7 @@ extern "C" {
   /*
    * C accessors.
    */
+  void nm_math_solve(VALUE LU, VALUE B, VALUE x, VALUE ipiv);
   void nm_math_det_exact(const int M, const void* elements, const int lda, nm::dtype_t dtype, void* result);
   void nm_math_inverse(const int M, void* A_elements, nm::dtype_t dtype);
   void nm_math_inverse_exact(const int M, const void* A_elements, const int lda, void* B_elements, const int ldb, nm::dtype_t dtype);

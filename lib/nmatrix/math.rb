@@ -192,6 +192,19 @@ class NMatrix
     t = self.transpose
     NMatrix::LAPACK::clapack_getrf(:row, t.shape[0], t.shape[1], t, t.shape[1])
     t.transpose
+  def solve b
+    raise ArgumentError, "b must be a column vector" if b.shape[1] != 1
+    raise ArgumentError, "number of rows of b must equal number of cols of self" if 
+      self.shape[1] != b.shape[0]
+    raise ArgumentError, "only works with dense matrices" if self.stype != :dense
+
+    x     = b.clone_structure
+    clone = self.clone
+    t     = clone.transpose # transpose because of the getrf anomaly described above.
+    pivot = t.lu_decomposition!
+    t     = t.transpose
+
+    __solve__(t, b, x, permutation_array_for(pivot))
   end
 
   #
