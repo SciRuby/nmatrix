@@ -155,6 +155,7 @@ static VALUE matrix_multiply_scalar(NMATRIX* left, VALUE scalar);
 static VALUE matrix_multiply(NMATRIX* left, NMATRIX* right);
 static VALUE nm_multiply(VALUE left_v, VALUE right_v);
 static VALUE nm_det_exact(VALUE self);
+static VALUE nm_solve(VALUE self, VALUE lu, VALUE b, VALUE x, VALUE ipiv);
 static VALUE nm_inverse(VALUE self, VALUE inverse, VALUE bang);
 static VALUE nm_inverse_exact(VALUE self, VALUE inverse, VALUE lda, VALUE ldb);
 static VALUE nm_complex_conjugate_bang(VALUE self);
@@ -263,6 +264,7 @@ void Init_nmatrix() {
 	rb_define_method(cNMatrix, "supershape", (METHOD)nm_supershape, 0);
 	rb_define_method(cNMatrix, "offset", (METHOD)nm_offset, 0);
 	rb_define_method(cNMatrix, "det_exact", (METHOD)nm_det_exact, 0);
+  rb_define_private_method(cNMatrix, "__solve__", (METHOD)nm_solve, 4);
 	rb_define_protected_method(cNMatrix, "__inverse__", (METHOD)nm_inverse, 2);
   rb_define_protected_method(cNMatrix, "__inverse_exact__", (METHOD)nm_inverse_exact, 3);
 	rb_define_method(cNMatrix, "complex_conjugate!", (METHOD)nm_complex_conjugate_bang, 0);
@@ -2937,7 +2939,19 @@ static VALUE matrix_multiply(NMATRIX* left, NMATRIX* right) {
   return to_return;
 }
 
+/*
+ * Solve the system of linear equations when passed the LU factorized matrix
+ * of the matrix of co-effcients and the column-matrix of right hand sides.
+ * Does no error checking of its own. Expects it all to be done in Ruby. See
+ * #solve in math.rb for details. Modifies x.
+ * 
+ * LAPACK free.
+*/
+static VALUE nm_solve(VALUE self, VALUE lu, VALUE b, VALUE x, VALUE ipiv) {
+  nm_math_solve(lu, b, x, ipiv);
 
+  return x;
+}
 /*
  * Calculate the inverse of a matrix with in-place Gauss-Jordan elimination.
  * Inverse will fail if the largest element in any column in zero. 

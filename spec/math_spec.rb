@@ -31,6 +31,8 @@ require 'spec_helper'
 ALL_DTYPES = [:byte,:int8,:int16,:int32,:int64, :float32,:float64, :object,
   :rational32,:rational64,:rational128, :complex64, :complex128]
 
+NON_INTEGER_DTYPES = [:float32, :float64, :complex64, :complex128, :rational32, :rational64, :rational128, :object]
+
 describe "math" do
   context "elementwise math functions" do
 
@@ -195,11 +197,15 @@ describe "math" do
     end
   end
 
-  [:float32, :float64, :complex64, :complex128, :rational32, :rational64, :rational128].each do |dtype|
+  NON_INTEGER_DTYPES.each do |dtype|
+    next if dtype == :object
     context dtype do
+      before do
+        @m = NMatrix.new(:dense, 3, [4,9,2,3,5,7,8,1,6], dtype)
+      end
+
       it "should correctly factorize a matrix" do
-        m = NMatrix.new(:dense, 3, [4,9,2,3,5,7,8,1,6], dtype)
-        a = m.factorize_lu
+        a = @m.factorize_lu
         expect(a[0,0]).to eq(8)
         expect(a[0,1]).to eq(1)
         expect(a[0,2]).to eq(6)
@@ -207,6 +213,23 @@ describe "math" do
         expect(a[1,1]).to eq(8.5)
         expect(a[1,2]).to eq(-1)
         expect(a[2,0]).to eq(0.375)
+      end
+
+      it "also returns the permutation matrix" do
+        a, p = @m.factorize_lu perm_matrix: true
+
+        expect(a[0,0]).to eq(8)
+        expect(a[0,1]).to eq(1)
+        expect(a[0,2]).to eq(6)
+        expect(a[1,0]).to eq(0.5)
+        expect(a[1,1]).to eq(8.5)
+        expect(a[1,2]).to eq(-1)
+        expect(a[2,0]).to eq(0.375)
+
+        puts p
+        expect(p[1,0]).to eq(1)
+        expect(p[2,1]).to eq(1)
+        expect(p[0,2]).to eq(1)
       end
     end
 
@@ -340,6 +363,18 @@ describe "math" do
         expect(r[3,0]).to eq(31)
 
         #r.dtype.should == :float64 unless left_dtype == :float32 && right_dtype == :float32
+      end
+    end
+  end
+
+  context "#solve" do
+    NON_INTEGER_DTYPES.each do |dtype|
+      next if dtype == :object # LU factorization doesnt work for :object yet
+      it "solves linear equation for dtype #{dtype}" do
+        a = NMatrix.new [2,2], [3,1,1,2], dtype: dtype
+        b = NMatrix.new [2,1], [9,8], dtype: dtype
+
+        expect(a.solve(b)).to eq(NMatrix.new [2,1], [2,3], dtype: dtype)
       end
     end
   end

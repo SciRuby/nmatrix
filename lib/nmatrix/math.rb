@@ -36,6 +36,29 @@ class NMatrix
       :asinh, :atanh, :exp, :log2, :log10, :sqrt, :cbrt, :erf, :erfc, :gamma, :-@]
   end
 
+  # Methods for generating permutation matrix from LU factorization results.
+  module FactorizeLUMethods
+    class << self
+      def permutation_matrix_from pivot_array
+        perm_arry = permutation_array_for pivot_array
+        n         = NMatrix.zeros perm_arry.size, dtype: :byte
+
+        perm_arry.each_with_index { |e, i| n[i,e] = 1 }
+
+        n
+      end
+
+      def permutation_array_for pivot_array
+        perm_arry = Array.new(pivot_array.size) { |i| i }
+        perm_arry.each_index do |i|
+          perm_arry[i], perm_arry[pivot_array[i]] = perm_arry[pivot_array[i]], perm_arry[i]
+        end
+
+        perm_arry
+      end
+    end
+  end
+
   #
   # call-seq:
   #     invert! -> NMatrix
@@ -120,6 +143,7 @@ class NMatrix
     NMatrix::LAPACK::clapack_getrf(:row, self.shape[0], self.shape[1], self, self.shape[1])
   end
 
+  alias :lu_decomposition! :getrf!
 
   #
   # call-seq:
@@ -180,18 +204,55 @@ class NMatrix
   # call-seq:
   #     factorize_lu -> ...
   #
-  # LU factorization of a matrix.
-  #
+  # LU factorization of a matrix. Optionally return the permutation matrix.
+  #   Note that computing the permutation matrix will introduce a slight memory
+  #   and time overhead. 
+  # 
+  # == Arguments
+  # 
+  # +with_permutation_matrix+ - If set to *true* will return the permutation 
+  #   matrix alongwith the LU factorization as a second return value.
+  # 
   # FIXME: For some reason, getrf seems to require that the matrix be transposed first -- and then you have to transpose the
   # FIXME: result again. Ideally, this would be an in-place factorize instead, and would be called nm_factorize_lu_bang.
   #
-  def factorize_lu
+  def factorize_lu with_permutation_matrix=nil
     raise(NotImplementedError, "only implemented for dense storage") unless self.stype == :dense
     raise(NotImplementedError, "matrix is not 2-dimensional") unless self.dimensions == 2
 
-    t = self.transpose
-    NMatrix::LAPACK::clapack_getrf(:row, t.shape[0], t.shape[1], t, t.shape[1])
-    t.transpose
+    t     = self.transpose
+    pivot = NMatrix::LAPACK::clapack_getrf(:row, t.shape[0], t.shape[1], t, t.shape[1])
+    return t.transpose unless with_permutation_matrix
+
+    [t.transpose, FactorizeLUMethods.permutation_matrix_from(pivot)]
+  end
+
+  # Solve a system of linear equations where *self* is the matrix of co-efficients
+  #   and *b* is the vertical vector of right hand sides. Only works with dense
+  #   matrices and non-integer data types.
+  # 
+  # == Arguments
+  # 
+  # +b+ - Vector of Right Hand Sides.
+  # 
+  # == Usage
+  # 
+  #   a = NMatrix.new [2,2], [3,1,1,2], dtype: dtype
+  #   b = NMatrix.new [2,1], [9,8], dtype: dtype
+  #   a.solve(b)
+  def solve b
+    raise ArgumentError, "b must be a column vector" if b.shape[1] != 1
+    raise ArgumentError, "number of rows of b must equal number of cols of self" if 
+      self.shape[1] != b.shape[0]
+    raise ArgumentError, "only works with dense matrices" if self.stype != :dense
+
+    x     = b.clone_structure
+    clone = self.clone
+    t     = clone.transpose # transpose because of the getrf anomaly described above.
+    pivot = t.lu_decomposition!
+    t     = t.transpose
+
+    __solve__(t, b, x, FactorizeLUMethods.permutation_array_for(pivot))
   end
 
   #
