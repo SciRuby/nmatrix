@@ -127,9 +127,9 @@ describe "Slice operation" do
       it "should have #is_ref? method" do
         a = stype_matrix[0..1, 0..1]
         b = stype_matrix.slice(0..1, 0..1)
-        expect(stype_matrix.is_ref?).to be_false
-        expect(a.is_ref?).to be_true
-        expect(b.is_ref?).to be_false
+        expect(stype_matrix.is_ref?).to be_falsey
+        expect(a.is_ref?).to be_truthy
+        expect(b.is_ref?).to be_falsey
       end
 
       it "reference should compare with non-reference" do
@@ -141,7 +141,7 @@ describe "Slice operation" do
       context "with copying" do
         it 'should return an NMatrix' do
           n = stype_matrix.slice(0..1,0..1)
-          expect(nm_eql(n, NMatrix.new([2,2], [0,1,3,4], dtype: :int32))).to be_true
+          expect(nm_eql(n, NMatrix.new([2,2], [0,1,3,4], dtype: :int32))).to be_truthy
         end
 
         it 'should return a copy of 2x2 matrix to self elements' do
@@ -183,19 +183,19 @@ describe "Slice operation" do
 
         [:dense, :list, :yale].each do |cast_type|
           it "should cast copied slice from #{stype.upcase} to #{cast_type.upcase}" do
-            expect(nm_eql(stype_matrix.slice(1..2, 1..2).cast(cast_type, :int32), stype_matrix.slice(1..2,1..2))).to be_true
-            expect(nm_eql(stype_matrix.slice(0..1, 1..2).cast(cast_type, :int32), stype_matrix.slice(0..1,1..2))).to be_true
-            expect(nm_eql(stype_matrix.slice(1..2, 0..1).cast(cast_type, :int32), stype_matrix.slice(1..2,0..1))).to be_true
-            expect(nm_eql(stype_matrix.slice(0..1, 0..1).cast(cast_type, :int32), stype_matrix.slice(0..1,0..1))).to be_true
+            expect(nm_eql(stype_matrix.slice(1..2, 1..2).cast(cast_type, :int32), stype_matrix.slice(1..2,1..2))).to be_truthy
+            expect(nm_eql(stype_matrix.slice(0..1, 1..2).cast(cast_type, :int32), stype_matrix.slice(0..1,1..2))).to be_truthy
+            expect(nm_eql(stype_matrix.slice(1..2, 0..1).cast(cast_type, :int32), stype_matrix.slice(1..2,0..1))).to be_truthy
+            expect(nm_eql(stype_matrix.slice(0..1, 0..1).cast(cast_type, :int32), stype_matrix.slice(0..1,0..1))).to be_truthy
 
             # Non square
-            expect(nm_eql(stype_matrix.slice(0..2, 1..2).cast(cast_type, :int32), stype_matrix.slice(0..2,1..2))).to be_true
+            expect(nm_eql(stype_matrix.slice(0..2, 1..2).cast(cast_type, :int32), stype_matrix.slice(0..2,1..2))).to be_truthy
             #require 'pry'
             #binding.pry if cast_type == :yale
-            expect(nm_eql(stype_matrix.slice(1..2, 0..2).cast(cast_type, :int32), stype_matrix.slice(1..2,0..2))).to be_true
+            expect(nm_eql(stype_matrix.slice(1..2, 0..2).cast(cast_type, :int32), stype_matrix.slice(1..2,0..2))).to be_truthy
 
             # Full
-            expect(nm_eql(stype_matrix.slice(0..2, 0..2).cast(cast_type, :int32), stype_matrix)).to be_true
+            expect(nm_eql(stype_matrix.slice(0..2, 0..2).cast(cast_type, :int32), stype_matrix)).to be_truthy
           end
         end
       end
@@ -214,7 +214,7 @@ describe "Slice operation" do
       context "by reference" do
         it 'should return an NMatrix' do
           n = stype_matrix[0..1,0..1]
-          expect(nm_eql(n, NMatrix.new([2,2], [0,1,3,4], dtype: :int32))).to be_true
+          expect(nm_eql(n, NMatrix.new([2,2], [0,1,3,4], dtype: :int32))).to be_truthy
         end
 
         it 'should return a 2x2 matrix with refs to self elements' do
@@ -246,7 +246,7 @@ describe "Slice operation" do
 
         it 'should slice again' do
           n = stype_matrix[1..2, 1..2]
-          expect(nm_eql(n[1,0..1], NVector.new(2, [7,8], dtype: :int32).transpose)).to be_true
+          expect(nm_eql(n[1,0..1], NVector.new(2, [7,8], dtype: :int32).transpose)).to be_truthy
         end
 
         it 'should be correct slice for range 0..2 and 0...3' do
@@ -324,7 +324,7 @@ describe "Slice operation" do
             end
 
             it "compares slices to scalars" do
-              (stype_matrix[1, 0..2] > 2).each { |e| expect(e != 0).to be_true }
+              (stype_matrix[1, 0..2] > 2).each { |e| expect(e != 0).to be_truthy }
             end
 
             it "iterates only over elements in the slice" do
@@ -371,20 +371,20 @@ describe "Slice operation" do
 
         [:dense, :list, :yale].each do |cast_type|
           it "should cast a square reference-slice from #{stype.upcase} to #{cast_type.upcase}" do
-            expect(nm_eql(stype_matrix[1..2, 1..2].cast(cast_type), stype_matrix[1..2,1..2])).to be_true
-            expect(nm_eql(stype_matrix[0..1, 1..2].cast(cast_type), stype_matrix[0..1,1..2])).to be_true
-            expect(nm_eql(stype_matrix[1..2, 0..1].cast(cast_type), stype_matrix[1..2,0..1])).to be_true
-            expect(nm_eql(stype_matrix[0..1, 0..1].cast(cast_type), stype_matrix[0..1,0..1])).to be_true
+            expect(nm_eql(stype_matrix[1..2, 1..2].cast(cast_type), stype_matrix[1..2,1..2])).to be_truthy
+            expect(nm_eql(stype_matrix[0..1, 1..2].cast(cast_type), stype_matrix[0..1,1..2])).to be_truthy
+            expect(nm_eql(stype_matrix[1..2, 0..1].cast(cast_type), stype_matrix[1..2,0..1])).to be_truthy
+            expect(nm_eql(stype_matrix[0..1, 0..1].cast(cast_type), stype_matrix[0..1,0..1])).to be_truthy
           end
 
           it "should cast a rectangular reference-slice from #{stype.upcase} to #{cast_type.upcase}" do
             # Non square
-            expect(nm_eql(stype_matrix[0..2, 1..2].cast(cast_type), stype_matrix[0..2,1..2])).to be_true # FIXME: memory problem.
-            expect(nm_eql(stype_matrix[1..2, 0..2].cast(cast_type), stype_matrix[1..2,0..2])).to be_true # this one is fine
+            expect(nm_eql(stype_matrix[0..2, 1..2].cast(cast_type), stype_matrix[0..2,1..2])).to be_truthy # FIXME: memory problem.
+            expect(nm_eql(stype_matrix[1..2, 0..2].cast(cast_type), stype_matrix[1..2,0..2])).to be_truthy # this one is fine
           end
 
           it "should cast a square full-matrix reference-slice from #{stype.upcase} to #{cast_type.upcase}" do
-            expect(nm_eql(stype_matrix[0..2, 0..2].cast(cast_type), stype_matrix)).to be_true
+            expect(nm_eql(stype_matrix[0..2, 0..2].cast(cast_type), stype_matrix)).to be_truthy
           end
         end
       end
