@@ -218,7 +218,7 @@ describe "math" do
     end
 
     context dtype do
-      it "should correctly invert a matrix in place (bang)", :focus => true do
+      it "should correctly invert a matrix in place (bang)" do
         a = NMatrix.new(:dense, 3, [1,2,3,0,1,4,5,6,0], dtype)
         b = NMatrix.new(:dense, 3, [-24,18,5,20,-15,-4,-5,4,1], dtype)
         begin
@@ -352,7 +352,6 @@ describe "math" do
   end
 
   ALL_DTYPES.each do |dtype|
-    next if rational_dtype?(dtype) or integer_dtype?(dtype)
     context "#cov dtype #{dtype}" do
       before do 
         @n = NMatrix.new( [5,3], [4.0,2.0,0.60,
@@ -376,6 +375,49 @@ describe "math" do
                    6.0000e-03, 5.6000e-03, 1.0800e-03,
                    1.4000e-03, 1.0800e-03, 3.4400e-04], dtype: dtype)
                 )
+      end
+    end unless rational_dtype?(dtype) or integer_dtype?(dtype)
+
+    [:dense, :yale].each do |stype|
+      context "#pow #{dtype} #{stype}" do
+        before do 
+          @n = NMatrix.new [4,4], [0, 2, 0, 1,
+                                  2, 2, 3, 2,
+                                  4,-3, 0, 1,
+                                  6, 1,-6,-5], dtype: dtype, stype: stype
+        end
+
+        it "raises a square matrix to even power" do
+          expect(@n.pow(4)).to eq(NMatrix.new([4,4], [292, 28,-63, -42, 
+                                                     360, 96, 51, -14,
+                                                     448,-231,-24,-87,
+                                                   -1168, 595,234, 523], 
+                                                   dtype: dtype, stype: stype))
+        end
+
+        it "raises a square matrix to odd power" do
+          expect(@n.pow(9)).to eq(NMatrix.new([4,4],[-275128,  279917, 176127, 237451,
+                                                    -260104,  394759, 166893,  296081,
+                                                    -704824,  285700, 186411,  262002,
+                                                    3209256,-1070870,-918741,-1318584],
+                                                    dtype: dtype, stype: stype))
+        end
+
+        it "raises a sqaure matrix to negative power" do
+          expect(@n.pow(-3)).to be_within(0.00001).of (NMatrix.new([4,4],
+            [1.0647e-02, 4.2239e-04,-6.2281e-05, 2.7680e-03,
+            -1.6415e-02, 2.1296e-02, 1.0718e-02, 4.8589e-03,   
+             8.6956e-03,-8.6569e-03, 2.8993e-02, 7.2015e-03,
+             5.0034e-02,-1.7500e-02,-3.6777e-02,-1.2128e-02], dtype: dtype, stype: stype)) 
+        end unless stype =~ /yale/ or dtype =~ /(rational|object|int|byte)/
+
+        it "raises a square matrix to zero" do
+          expect(@n.pow(0)).to eq(NMatrix.ones([4,4], dtype: dtype, stype: stype))
+        end
+
+        it "raises a square matrix to one" do
+          expect(@n.pow(1)).to eq(@n)
+        end
       end
     end
   end

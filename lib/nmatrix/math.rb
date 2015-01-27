@@ -364,6 +364,51 @@ class NMatrix
     deviation_scores.transpose.dot(deviation_scores) / denominator
   end
 
+  # Raise a square matrix to a power. Be careful of numeric overflows!
+  # In case *n* is 0, a matrix of ones of the same dimension is returned. In case
+  # of negative *n*, the matrix is inverted and the absolute value of *n* taken 
+  # for computing the power.
+  # 
+  # == Arguments
+  # 
+  # * +n+ - Integer to which self is to be raised.
+  # 
+  # == References
+  # 
+  # * R.G Dromey - How to Solve it by Computer. Link - 
+  #     http://www.amazon.com/Solve-Computer-Prentice-Hall-International-Science/dp/0134340019/ref=sr_1_1?ie=UTF8&qid=1422605572&sr=8-1&keywords=how+to+solve+it+by+computer
+  def pow n
+    raise ShapeError, "Only works with 2D square matrices." if 
+      shape[0] != shape[1] or shape.size != 2
+    raise TypeError, "Only works with integer powers" unless n.is_a?(Integer)
+
+    [:byte, :int8, :int16, :int32].map { |dtype| NMatrix.upcast(dtype, :int64) } if 
+      integer_dtype?
+
+    product = NMatrix.diag [1]*shape[0], dtype: dtype, stype: stype 
+    sequence = self.clone
+
+    if n == 0
+      return NMatrix.ones(shape, dtype: dtype, stype: stype)
+    elsif n == 1
+      return self
+    elsif n < 0
+      raise TypeError, "dtype must be floating point or complex." unless 
+        float_dtype? or complex_dtype?
+      n = n.abs
+      sequence.invert!
+    end
+
+    # Decompose n to reduce the number of multiplications.
+    while n > 0
+      product = product.dot(sequence) if n % 2 == 1
+      n = n / 2
+      sequence = sequence.dot(sequence)
+    end
+
+    product
+  end
+
   #
   # call-seq:
   #     conjugate_transpose -> NMatrix
