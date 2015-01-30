@@ -278,6 +278,16 @@ class NMatrix
     [:byte, :int8, :int16, :int32, :int64].include?(self.dtype)
   end
 
+  # call-seq:
+  #   integer_dtype?() -> Boolean
+  #
+  # Checks if dtype is a floating point type
+  #
+  def float_dtype?
+    [:float32, :float64].include?(dtype)
+  end
+
+
   ##
   # call-seq:
   #   complex_dtype?() -> Boolean
