@@ -181,19 +181,19 @@
     size_t*     shape;              \
     size_t*     offset;             \
 	  int			    count;              \
-	  STORAGE*		src;
+	  struct STORAGE*		src;
   #define NM_DEF_STORAGE_CHILD_STRUCT_PRE(name)  typedef struct NM_ ## name { \
                                                     NM_DEF_STORAGE_ELEMENTS;
 
   #define NM_DEF_STORAGE_STRUCT_POST(name)       } NM_ ## name;
 
   #define NM_DEF_STORAGE_STRUCT      \
-  typedef struct NM_STORAGE {        \
+  typedef struct STORAGE {        \
     NM_DEF_STORAGE_ELEMENTS;         \
-  } NM_STORAGE;
+  } STORAGE;
 
-  #define NM_DEF_STRUCT_PRE(name)                typedef struct NM_ ## name {
-  #define NM_DEF_STRUCT_POST(name)               } NM_ ## name;
+  #define NM_DEF_STRUCT_PRE(name)                typedef struct name {
+  #define NM_DEF_STRUCT_POST(name)               } name;
 
   #define NM_DEF_ENUM(name, ...)     \
     typedef enum nm_ ## name {       \
