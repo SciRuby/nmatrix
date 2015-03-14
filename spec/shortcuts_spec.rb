@@ -118,7 +118,7 @@ describe NMatrix do
       expect { m = NMatrix.randomortho(2, dtype: :rational128) }.to raise_error
     end
 
-    it "only accepts an integer or an array of length 2 as dimension" do
+    it "only accepts an integer or an array of length at most 2 as dimension" do
       m = NMatrix.randomortho([2, 2])
 
       expect(m.stype).to eq(:dense)
