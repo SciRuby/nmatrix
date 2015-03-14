@@ -100,6 +100,36 @@ describe NMatrix do
     end
   end
 
+  context "::randomortho" do
+    it "create a random orthogonal matrix and check its orthogonality" do
+      m = NMatrix.randomortho(3)
+
+      expect(m.stype).to eq(:dense)
+      expect(m.dtype).to eq(:float64)
+
+      mtm = m.transpose.dot m
+      mmt = m.dot m.transpose
+
+      expect(mtm).to be_within(1e-6).of(NMatrix.identity(3, dtype: :float64))
+      expect(mmt).to be_within(1e-6).of(NMatrix.identity(3, dtype: :float64))
+    end
+
+    it "forbids generation of a rational matrix" do
+      expect { m = NMatrix.randomortho(2, dtype: :rational128) }.to raise_error
+    end
+
+    it "only accepts an integer or an array of length 2 as dimension" do
+      m = NMatrix.randomortho([2, 2])
+
+      expect(m.stype).to eq(:dense)
+      expect(m.dtype).to eq(:float64)
+
+      expect { NMatrix.randomortho(2.0) }.to raise_error
+      expect { NMatrix.randomrotho([2,2,2]) }.to raise_error
+      expect { NMatrix.randomortho("not an array or integer") }.to raise_error
+    end
+  end
+
   it "seq() creates a matrix of integers, sequentially" do
     m = NMatrix.seq(2) # 2x2 matrix.
     value = 0
