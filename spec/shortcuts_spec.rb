@@ -109,9 +109,24 @@ describe NMatrix do
 
       mtm = m.transpose.dot m
       mmt = m.dot m.transpose
+      identity3 = NMatrix.new([3, 3], [1, 0, 0, 0, 1, 0, 0, 0, 1])
 
-      expect(mtm).to be_within(1e-6).of(NMatrix.identity(3, dtype: :float64))
-      expect(mmt).to be_within(1e-6).of(NMatrix.identity(3, dtype: :float64))
+      expect(mtm).to be_within(1e-6).of(identity3)
+      expect(mmt).to be_within(1e-6).of(identity3)
+    end
+
+    it "create an int valued random orthogonal matrix and check orthogonality" do
+      m = NMatrix.randomortho(3, dtype: :int8)
+
+      expect(m.stype).to eq(:dense)
+      expect(m.dtype).to eq(:int8)
+
+      mtm = m.transpose.dot m
+      mmt = m.dot m.transpose
+      identity3 = NMatrix.new([3, 3], [1, 0, 0, 0, 1, 0, 0, 0, 1])
+
+      expect(mtm).to eq(identity3)
+      expect(mmt).to eq(identity3)
     end
 
     it "forbids generation of a rational matrix" do

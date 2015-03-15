@@ -357,21 +357,29 @@ class NMatrix
       if shape.class == Fixnum 
         n = shape 
       elsif shape.class == Array
-        raise(ShapeError, "Expected 2D matrix") if shape.length > 2
+        raise(ShapeError, "Expected 2D matrix") unless shape.length == 2
         raise(ShapeError, "Expected square matrix") unless (shape[0] == shape[1])
         n = shape[0] 
       else
         raise(ShapeError, "Expected 2D matrix")
       end
 
-      rand_vals = n.times.map { Random.rand } 
-      rand_vals = NMatrix.new( [n, 1], rand_vals, dtype: :float64)
-      c = NMatrix.zeros( [n, 1], dtype: :float64)
-      c[0] = rand_vals.nrm2
-      u = rand_vals + c  
-      u = u / u.nrm2
-      ident = NMatrix.identity(n, dtype: :float64)
-      q = ident - (u.dot u.transpose * 2)
+      if opts[:dtype].to_s =~ /^int/ || opts[:dtype] == :byte
+        d = n.times.map { [-1,1].sample }
+        q = NMatrix.diagonal(d)
+        rand_order = (0..(n-1)).to_a.sample(n)
+        q.permute_columns!(rand_order)
+        q = q.abs if opts[:dtype] == :byte
+      else
+        rand_vals = n.times.map { Random.rand } 
+        rand_vals = NMatrix.new( [n, 1], rand_vals, dtype: :float64)
+        c = NMatrix.zeros( [n, 1], dtype: :float64)
+        c[0] = rand_vals.nrm2
+        u = rand_vals + c  
+        u = u / u.nrm2
+        ident = NMatrix.identity(n, dtype: :float64)
+        q = ident - (u.dot u.transpose * 2)
+      end
 
       NMatrix.new(n, q.to_flat_a, {:dtype => :float64, :stype => :dense}.merge(opts))
     end
