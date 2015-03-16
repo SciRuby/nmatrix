@@ -115,6 +115,20 @@ describe NMatrix do
       expect(mmt).to be_within(1e-6).of(identity3)
     end
 
+    it "create a random unitary complex matrix and check that it's unitary" do
+      m = NMatrix.randomortho(3, dtype: :complex128)
+
+      expect(m.stype).to eq(:dense)
+      expect(m.dtype).to eq(:complex128)
+
+      mhm = m.conjugate_transpose.dot m
+      mmh = m.dot m.conjugate_transpose
+      identity3 = NMatrix.new([3, 3], [1, 0, 0, 0, 1, 0, 0, 0, 1])
+
+      expect(mhm).to be_within(1e-6).of(identity3)
+      expect(mmh).to be_within(1e-6).of(identity3)
+    end
+
     it "create an int valued random orthogonal matrix and check orthogonality" do
       m = NMatrix.randomortho(3, dtype: :int8)
 
