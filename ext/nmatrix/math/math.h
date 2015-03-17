@@ -102,8 +102,14 @@ extern "C" {
   void nm_math_solve(VALUE lu, VALUE b, VALUE x, VALUE ipiv);
   void nm_math_inverse(const int M, void* A_elements, nm::dtype_t dtype);
   void nm_math_hessenberg(VALUE a);
-  void nm_math_det_exact(const int M, const void* elements, const int lda, nm::dtype_t dtype, void* result);
-  void nm_math_inverse_exact(const int M, const void* A_elements, const int lda, void* B_elements, const int ldb, nm::dtype_t dtype);
+  void nm_math_det_exact_from_dense(const int M, const void* elements, 
+      const int lda, nm::dtype_t dtype, void* result);
+  void nm_math_det_exact_from_yale(const int M, const YALE_STORAGE* storage, 
+      const int lda, nm::dtype_t dtype, void* result);
+  void nm_math_inverse_exact_from_dense(const int M, const void* A_elements, 
+      const int lda, void* B_elements, const int ldb, nm::dtype_t dtype);
+  void nm_math_inverse_exact_from_yale(const int M, const YALE_STORAGE* storage, 
+      const int lda, YALE_STORAGE* inverse, const int ldb, nm::dtype_t dtype);
 }
 
 

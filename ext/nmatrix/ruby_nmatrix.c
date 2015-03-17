@@ -1456,7 +1456,8 @@ static VALUE nm_init(int argc, VALUE* argv, VALUE nm) {
 
 
 /*
- * Helper for nm_cast which uses the C types instead of the Ruby objects. Called by nm_cast.
+ * Helper for nm_cast_with_types which uses the C types instead of the Ruby objects. 
+ * Called by nm_cast_with_types.
  */
 NMATRIX* nm_cast_with_ctype_args(NMATRIX* self, nm::stype_t new_stype, nm::dtype_t new_dtype, void* init_ptr) {
 
@@ -1474,6 +1475,23 @@ NMATRIX* nm_cast_with_ctype_args(NMATRIX* self, nm::stype_t new_stype, nm::dtype
   return lhs;
 }
 
+/*
+ * Cast NMatrix with given new_stype and new_dtype. Called by nm_cast.
+ */
+VALUE nm_cast_with_types(VALUE self, nm::stype_t new_stype, nm::dtype_t new_dtype, 
+        void* init_ptr) {
+  NMATRIX *rhs;
+
+  UnwrapNMatrix( self, rhs );
+
+  NMATRIX* m = nm_cast_with_ctype_args(rhs, new_stype, new_dtype, init_ptr);
+  nm_register_nmatrix(m);
+
+  VALUE to_return = Data_Wrap_Struct(CLASS_OF(self), nm_mark, nm_delete, m);
+
+  nm_unregister_nmatrix(m);
+  return to_return;
+}
 
 /*
  * call-seq:
@@ -1490,19 +1508,11 @@ VALUE nm_cast(VALUE self, VALUE new_stype_symbol, VALUE new_dtype_symbol, VALUE 
   nm::stype_t new_stype = nm_stype_from_rbsymbol(new_stype_symbol);
 
   CheckNMatrixType(self);
-  NMATRIX *rhs;
-
-  UnwrapNMatrix( self, rhs );
-
   void* init_ptr = NM_ALLOCA_N(char, DTYPE_SIZES[new_dtype]);
   rubyval_to_cval(init, new_dtype, init_ptr);
 
-  NMATRIX* m = nm_cast_with_ctype_args(rhs, new_stype, new_dtype, init_ptr);
-  nm_register_nmatrix(m);
+  VALUE to_return = nm_cast_with_types(self, new_stype, new_dtype, init_ptr);
 
-  VALUE to_return = Data_Wrap_Struct(CLASS_OF(self), nm_mark, nm_delete, m);
-
-  nm_unregister_nmatrix(m);
   NM_CONSERVATIVE(nm_unregister_value(&self));
   NM_CONSERVATIVE(nm_unregister_value(&init));
   return to_return;
@@ -2946,21 +2956,38 @@ static VALUE nm_inverse(VALUE self, VALUE inverse, VALUE bang) {
  * Does not test for invertibility!
  */
 static VALUE nm_inverse_exact(VALUE self, VALUE inverse, VALUE lda, VALUE ldb) {
-
-  if (NM_STYPE(self) != nm::DENSE_STORE) {
-    rb_raise(rb_eNotImpError, "needs exact determinant implementation for this matrix stype");
-    return Qnil;
-  }
-
   if (NM_DIM(self) != 2 || NM_SHAPE0(self) != NM_SHAPE1(self)) {
     rb_raise(nm_eShapeError, "matrices must be square to have an inverse defined");
     return Qnil;
   }
 
-  nm_math_inverse_exact(NM_SHAPE0(self), 
-    NM_STORAGE_DENSE(self)->elements, FIX2INT(lda), 
-    NM_STORAGE_DENSE(inverse)->elements, FIX2INT(ldb), NM_DTYPE(self));
+  nm::dtype_t dtype = NM_DTYPE(self);
+  void* result = NM_ALLOCA_N(char, DTYPE_SIZES[dtype]);
+  if (dtype == nm::RUBYOBJ) {
+    nm_register_values(reinterpret_cast<VALUE*>(result), 1);
+  }
+  nm::stype_t old_stype = NM_STYPE(self);
+  if (old_stype == nm::LIST_STORE) {
+    self = nm_cast_with_types(self, nm::YALE_STORE, dtype, result);
+    inverse = nm_cast_with_types(inverse, nm::YALE_STORE, dtype, result);
+  }
 
+  if (NM_STYPE(self) == nm::DENSE_STORE) {
+    nm_math_inverse_exact_from_dense(NM_SHAPE0(self), 
+      NM_STORAGE_DENSE(self)->elements, FIX2INT(lda), 
+      NM_STORAGE_DENSE(inverse)->elements, FIX2INT(ldb), dtype);
+  } else {
+    nm_math_inverse_exact_from_yale(NM_SHAPE0(self), 
+      NM_STORAGE_YALE(self), FIX2INT(lda), 
+      NM_STORAGE_YALE(inverse), FIX2INT(ldb), dtype);
+  }
+
+  if (old_stype == nm::LIST_STORE) {
+    inverse = nm_cast_with_types(inverse, nm::LIST_STORE, dtype, result);
+  }
+  if (dtype == nm::RUBYOBJ) {
+    nm_unregister_values(reinterpret_cast<VALUE*>(result), 1);
+  }
   return inverse;
 }
 
@@ -2973,21 +3000,27 @@ static VALUE nm_inverse_exact(VALUE self, VALUE inverse, VALUE lda, VALUE ldb) {
  */
 static VALUE nm_det_exact(VALUE self) {
 
-  if (NM_STYPE(self) != nm::DENSE_STORE) {
-    rb_raise(rb_eNotImpError, "can only calculate exact determinant for dense matrices");
-    return Qnil;
-  }
   if (NM_DIM(self) != 2 || NM_SHAPE0(self) != NM_SHAPE1(self)) {
     rb_raise(nm_eShapeError, "matrices must be square to have a determinant defined");
     return Qnil;
   }
 
+  nm::dtype_t dtype = NM_DTYPE(self);
+  void* result = NM_ALLOCA_N(char, DTYPE_SIZES[dtype]);
+  if (NM_STYPE(self) == nm::LIST_STORE) {
+    self = nm_cast_with_types(self, nm::YALE_STORE, dtype, result);
+  }
+
   NM_CONSERVATIVE(nm_register_value(&self));
 
   // Calculate the determinant and then assign it to the return value
-  void* result = NM_ALLOCA_N(char, DTYPE_SIZES[NM_DTYPE(self)]);
-  nm::dtype_t dtype = NM_DTYPE(self);
-  nm_math_det_exact(NM_SHAPE0(self), NM_STORAGE_DENSE(self)->elements, NM_SHAPE0(self), NM_DTYPE(self), result);
+  if (NM_STYPE(self) == nm::DENSE_STORE) {
+    nm_math_det_exact_from_dense(NM_SHAPE0(self), NM_STORAGE_DENSE(self)->elements, 
+          NM_SHAPE0(self), NM_DTYPE(self), result);
+  } else {
+    nm_math_det_exact_from_yale(NM_SHAPE0(self), NM_STORAGE_YALE(self), 
+          NM_SHAPE0(self), NM_DTYPE(self), result);
+  }
 
   VALUE to_return;
   if (dtype == nm::RUBYOBJ) {
