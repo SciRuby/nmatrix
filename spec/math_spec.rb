@@ -270,10 +270,9 @@ describe "math" do
         end
       end
 
-      it "should correctly invert a matrix out-of-place" do
+      it "should correctly invert a dense matrix out-of-place" do
         a = NMatrix.new(:dense, 3, [1,2,3,0,1,4,5,6,0], dtype)
         b = NMatrix.new(:dense, 3, [-24,18,5,20,-15,-4,-5,4,1], dtype)
-
         expect(a.invert(3,3)).to eq(b)
       end
     end
