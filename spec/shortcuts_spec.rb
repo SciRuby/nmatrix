@@ -100,6 +100,65 @@ describe NMatrix do
     end
   end
 
+  context "::random_ortho" do
+    it "create a random orthogonal matrix and check its orthogonality" do
+      m = NMatrix.random_ortho(3)
+
+      expect(m.stype).to eq(:dense)
+      expect(m.dtype).to eq(:float64)
+
+      mtm = m.transpose.dot m
+      mmt = m.dot m.transpose
+      identity3 = NMatrix.new([3, 3], [1, 0, 0, 0, 1, 0, 0, 0, 1])
+
+      expect(mtm).to be_within(1e-6).of(identity3)
+      expect(mmt).to be_within(1e-6).of(identity3)
+    end
+
+    it "create a random unitary complex matrix and check that it's unitary" do
+      m = NMatrix.random_ortho(3, dtype: :complex128)
+
+      expect(m.stype).to eq(:dense)
+      expect(m.dtype).to eq(:complex128)
+
+      mhm = m.conjugate_transpose.dot m
+      mmh = m.dot m.conjugate_transpose
+      identity3 = NMatrix.new([3, 3], [1, 0, 0, 0, 1, 0, 0, 0, 1])
+
+      expect(mhm).to be_within(1e-6).of(identity3)
+      expect(mmh).to be_within(1e-6).of(identity3)
+    end
+
+    it "create an int valued random orthogonal matrix and check orthogonality" do
+      m = NMatrix.random_ortho(3, dtype: :int8)
+
+      expect(m.stype).to eq(:dense)
+      expect(m.dtype).to eq(:int8)
+
+      mtm = m.transpose.dot m
+      mmt = m.dot m.transpose
+      identity3 = NMatrix.new([3, 3], [1, 0, 0, 0, 1, 0, 0, 0, 1])
+
+      expect(mtm).to eq(identity3)
+      expect(mmt).to eq(identity3)
+    end
+
+    it "forbids generation of a rational matrix" do
+      expect { m = NMatrix.random_ortho(2, dtype: :rational128) }.to raise_error
+    end
+
+    it "only accepts an integer or an array of length at most 2 as dimension" do
+      m = NMatrix.random_ortho([2, 2])
+
+      expect(m.stype).to eq(:dense)
+      expect(m.dtype).to eq(:float64)
+
+      expect { NMatrix.random_ortho(2.0) }.to raise_error
+      expect { NMatrix.random_ortho([2,2,2]) }.to raise_error
+      expect { NMatrix.random_ortho("not an array or integer") }.to raise_error
+    end
+  end
+
   it "seq() creates a matrix of integers, sequentially" do
     m = NMatrix.seq(2) # 2x2 matrix.
     value = 0
