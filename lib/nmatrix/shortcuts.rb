@@ -353,11 +353,11 @@ class NMatrix
     #   with an Application to Condition Estimators"
     #
     def random_ortho(shape, opts={})
-      raise(NotImplementedError, "does not support rational random number generation") if opts[:dtype].to_s =~ /^rational/
+      raise(NotImplementedError, "does not support rational random number generation") if [:rational64, :rational128].include? opts[:dtype]
 
-      if shape.class == Fixnum 
+      if shape.is_a?(Fixnum)
         n = shape 
-      elsif shape.class == Array
+      elsif shape.is_a?(Array)
         raise(ShapeError, "Expected 2D matrix") unless shape.length == 2
         raise(ShapeError, "Expected square matrix") unless (shape[0] == shape[1])
         n = shape[0] 
@@ -366,7 +366,7 @@ class NMatrix
       end
 
       # integer valued orthogonal
-      if opts[:dtype].to_s =~ /^int/ || opts[:dtype] == :byte
+      if [:byte, :int8, :int16, :int32, :int64].include? opts[:dtype]
         d = n.times.map { [-1,1].sample }
         q = NMatrix.diagonal(d)
         rand_order = (0...n).to_a.sample(n)
@@ -382,7 +382,7 @@ class NMatrix
         u = NMatrix.new( [n, 1], rand_vals)
         u = u / u.nrm2
         ident = NMatrix.identity(n)
-        q = ident - (u.dot u.conjugate_transpose * 2)
+        q = ident - (u.dot(u.conjugate_transpose) * 2)
       end
 
       NMatrix.new(n, q.to_flat_a, {:dtype => :float64, :stype => :dense}.merge(opts))
