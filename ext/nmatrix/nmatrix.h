@@ -347,6 +347,10 @@ NM_DEF_STRUCT_POST(NM_GC_HOLDER);       // };
 #define NM_IsNVector(obj) \
   (rb_obj_is_kind_of(obj, cNVector) == Qtrue)
 
+#define NM_IsVector(nmatrix) \
+  ((rb_obj_is_kind_of(nmatrix, cNMatrix) == Qtrue) && \
+   (rb_funcall(nmatrix, rb_intern("vector?"), 0, NULL) == Qtrue))
+
 #define RB_P(OBJ) \
   rb_funcall(rb_stderr, rb_intern("print"), 1, rb_funcall(OBJ, rb_intern("object_id"), 0)); \
   rb_funcall(rb_stderr, rb_intern("puts"), 1, rb_funcall(OBJ, rb_intern("inspect"), 0));
