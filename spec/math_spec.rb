@@ -594,4 +594,18 @@ describe "math" do
       end
     end
   end
+
+  context ".solve_tridiagonal" do
+    NON_INTEGER_DTYPES.each do |dtype|
+      next if dtype == :object
+      it "solves from column vectors of co-efficients for #{dtype}" do
+        a = NMatrix.new([4,1], [0,-1,-1,-1], dtype: dtype)
+        b = NMatrix.new([4,1], [4, 4, 4, 4], dtype: dtype)
+        c = NMatrix.new([4,1], [-1,-1,-1,0], dtype: dtype)
+        r = NMatrix.new([4,1], [5,5,10,23] , dtype: dtype)
+
+        expect(NMatrix.solve_tridiagonal(a,b,c,r)).to eq(NMatrix.new([4,1], [2,3,5,7], dtype: dtype))
+      end
+    end
+  end
 end

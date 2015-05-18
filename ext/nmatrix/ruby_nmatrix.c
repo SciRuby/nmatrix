@@ -170,6 +170,7 @@ static nm::stype_t	interpret_stype(VALUE arg);
 
 /* Singleton methods */
 static VALUE nm_upcast(VALUE self, VALUE t1, VALUE t2);
+static VALUE nm_solve_tridiagonal(VALUE self, VALUE A, VALUE B, VALUE C, VALUE R, VALUE u);
 
 
 #ifdef BENCHMARK
@@ -231,6 +232,7 @@ void Init_nmatrix() {
 	rb_define_singleton_method(cNMatrix, "upcast", (METHOD)nm_upcast, 2); /* in ext/nmatrix/nmatrix.cpp */
 	rb_define_singleton_method(cNMatrix, "guess_dtype", (METHOD)nm_guess_dtype, 1);
 	rb_define_singleton_method(cNMatrix, "min_dtype", (METHOD)nm_min_dtype, 1);
+  rb_define_singleton_method(cNMatrix, "__solve_tridiagonal__", (METHOD)nm_solve_tridiagonal, 5);
 
 	//////////////////////
 	// Instance Methods //
@@ -2994,6 +2996,18 @@ static VALUE nm_solve(VALUE self, VALUE lu, VALUE b, VALUE x, VALUE ipiv) {
   nm_math_solve(lu, b, x, ipiv);
 
   return x;
+}
+
+/*
+ * Solve a tridiagonal system of linear equations given a,b,c and r. All error
+ * checking done in Ruby. Check .solve_tridiagonal in math.rb for details.
+ * 
+ * LAPACK free.
+ */
+static VALUE nm_solve_tridiagonal(VALUE self, VALUE a, VALUE b, VALUE c, VALUE r, VALUE u) {
+  nm_math_solve_tridiagonal(NM_SHAPE0(a),a,b,c,r,u);
+
+  return u;
 }
 
 /*

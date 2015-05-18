@@ -59,6 +59,96 @@ class NMatrix
     end
   end
 
+  module SolveTridagMethods
+    class << self
+      def tridiagonal_vectors_of size, dtype, context
+        a = NMatrix.zeros [size,1], dtype: dtype
+        b = a.dup
+        c = a.dup
+
+        a[0] = 0
+        b[0] = context[0,0]
+        c[0] = context[0,1]
+
+        1.upto(size-2) do |i|
+          a[i] = context[i,i-1]
+          b[i] = context[i,i]
+          c[i] = context[i-1,i]
+        end
+
+        a[size-1] = context[size-1,size-2]
+        b[size-1] = context[size-1,size-1]
+        c[size-1] = 0
+
+        [a,b,c]
+      end
+    end    
+  end
+
+  class << self
+
+    # Solve a tridiagonal system of linear equations. For generic linear equations
+    # see #solve. All arguments must have equal length. See #solve_tridiagonal
+    # to call this function on self.
+    # 
+    # == Description
+    # 
+    # The special case of a system of linear equations that is tridiagonal, that 
+    # is, has nonzero elements only on the diagonal plus or minus one column, is 
+    # one that occurs frequently. Also common are systems that are band diagonal, 
+    # with nonzero elements only along a few diagonal lines adjacent to the main 
+    # diagonal (above and below).
+    # 
+    # For tridiagonal sets, the procedures of LU decomposition, forward- and 
+    # backsubstitution each take only O(N) operations, and the whole solution 
+    # can be encoded very concisely.
+    # 
+    # There is no pivoting in this method. It is for this reason that it can fail even
+    # when the underlying matrix is nonsingular - A zero pivot can be encountered even for
+    # a nonsingular matrix
+    # 
+    # == References
+    # 
+    # * http://www.aip.de/groups/soe/local/numres/bookcpdf/c2-4.pdf.
+    #
+    # == Arguments
+    # 
+    # +a+ - A column-vector of the values of co-efficient 'a'. a[0] is assumed 0.
+    # 
+    # +b+ - A column-vector of the values of co-efficient 'b'. b[0] should NOT be 0.
+    # 
+    # +c+ - A column-vector of the values of co-efficient 'c'. c[N-1] is assumed 0.
+    # 
+    # +r+ - A column-vector of the right-hand sides of each equation.
+    # 
+    # == Usage
+    # 
+    #   a = NMatrix.new([4,1], [0,-1,-1,-1], dtype: :float32)
+    #   b = NMatrix.new([4,1], [4, 4, 4, 4], dtype: :float32)
+    #   c = NMatrix.new([4,1], [-1,-1,-1,0], dtype: :float32)
+    #   r = NMatrix.new([4,1], [5,5,10,23] , dtype: :float32)
+    # 
+    #   NMatrix.solve_tridiagonal(a,b,c,r)
+    def solve_tridiagonal a, b, c, r
+      raise ArgumentError, "a, b, c and r must have equal size" if [a.size, b.size, 
+        c.size, r.size].uniq.length != 1
+
+      raise NotImplementedError, "works only for dense matrices" if [a.stype, b.stype, 
+        c.stype, r.stype].uniq.first != :dense
+
+      raise NotImplementedError, "works only for non-integer, non-object data types" unless
+        [:float32,:float64, :rational32,:rational64, :rational128, :complex64, 
+        :complex128].include?([a.dtype, b.dtype, c.dtype, r.dtype].uniq.first)
+        
+      raise ZeroDivideError, "b[0] cannot be 0!" if b[0] == 0
+
+      u = NMatrix.zeros [r.size,1], dtype: r.dtype
+      __solve_tridiagonal__(a,b,c,r,u)
+
+      u
+    end
+  end
+
   #
   # call-seq:
   #     invert! -> NMatrix
@@ -279,6 +369,35 @@ class NMatrix
     
     __solve__(t, b, x, pivot)
     x
+  end
+
+  # Solves a system of linear equations expressed in tridiagonal form. The 
+  #   tridiagonal vectors are extracted from self. To get rid of this overhead
+  #   use NMatrix.solve_tridiagonal class method directly. self must be in 
+  #   tridiagonal form for this function to work properly.
+  # 
+  # For solving generic linear equations see #solve.
+  # 
+  # == Arguments
+  # 
+  # +r+ - The right hand side vector.
+  # 
+  # == Usage
+  # 
+  #   my_tridag_matrix = NMatrix.new([4,4], [ 4,-1, 0, 0,
+  #                                          -1, 4,-1, 0,
+  #                                           0,-1, 4,-1,
+  #                                           0, 0,-1, 4], dtype: float32)
+  #   r = NMatrix.new([4,1], [5,5,10,23], dtype: float32)
+  #   my_tridag_matrix.solve_tridiagonal(r)
+  def solve_tridiagonal r
+    raise ArgumentError, "works with square matrices only" if rows != cols
+    raise ArgumentError, "size of r must match self" if r.size != cols
+    size = r.size
+
+    a,b,c = SolveTridagMethods.tridiagonal_vectors_of size, r.dtype, self
+
+    NMatrix.solve_tridiagonal(a,b,c,r)
   end
 
   #

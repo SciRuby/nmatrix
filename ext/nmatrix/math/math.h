@@ -108,6 +108,10 @@ extern "C" {
    * C accessors.
    */
 
+  void nm_math_solve_tridiagonal(const int m, VALUE a, VALUE b, VALUE c, VALUE r, VALUE u);
+  void nm_math_det_exact(const int M, const void* elements, const int lda, nm::dtype_t dtype, void* result);
+  void nm_math_inverse(const int M, void* A_elements, nm::dtype_t dtype);
+  void nm_math_inverse_exact(const int M, const void* A_elements, const int lda, void* B_elements, const int ldb, nm::dtype_t dtype);
   void nm_math_transpose_generic(const size_t M, const size_t N, const void* A, const int lda, void* B, const int ldb, size_t element_size);
   void nm_math_init_blas(void);
 

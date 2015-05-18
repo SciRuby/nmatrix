@@ -279,6 +279,55 @@ namespace nm {
     }
 
     /*
+     * Calculates the solution of a tridiagonal system of linear equations and
+     * and stores in u.
+     *
+     * == Notes
+     * 
+     * a_elements - A column-vector of the values of co-efficient 'a'. a[0] is assumed 0.
+     *     
+     * b_elements - A column-vector of the values of co-efficient 'b'. b[0] should NOT be 0.
+     *     
+     * c_elements - A column-vector of the values of co-efficient 'c'. c[N-1] is assumed 0.
+     *     
+     * r_elements - A column-vector of the right-hand sides of each equation.
+     *
+     * Works only for non-integer, non-object data types.
+     */
+    template <typename DType>
+    void solve_tridiagonal(const int m, 
+      const void* a_elements, const void* b_elements, const void* c_elements, 
+      const void* r_elements, void* u_elements) 
+    {
+      const DType* a = reinterpret_cast<const DType*>(a_elements);
+      const DType* b = reinterpret_cast<const DType*>(b_elements);
+      const DType* c = reinterpret_cast<const DType*>(c_elements);
+      const DType* r = reinterpret_cast<const DType*>(r_elements);
+      DType* u = reinterpret_cast<DType*>(u_elements);
+      DType* workspace = new DType[m];
+
+      DType bet = b[0];
+
+      u[0] = r[0] / bet;
+
+      for (int i = 1; i < m; ++i) { // forward substitution loop
+        workspace[i] = c[i-1]/bet;
+        bet          = b[i] - a[i] * workspace[i];
+        if (bet == 0.0) {
+          rb_raise(rb_eZeroDivError, "Error in tridiagonal solve. Write \
+            equations with u1 trivially eliminated.");
+        }
+        u[i] = (r[i] - a[i] * u[i-1]) / bet;
+      }
+
+      for (int i = m-2; i >= 0; --i) { // back substitution loop
+        u[i] = u[i] - workspace[i+1] * u[i+1];
+      }
+
+      delete[] workspace;
+    }
+
+    /*
      * Calculates in-place inverse of A_elements. Uses Gauss-Jordan elimination technique.
      * In-place inversion of the matrix saves on memory and time.
      *
@@ -592,7 +641,7 @@ extern "C" {
 ///////////////////
 
 void nm_math_init_blas() {
-	cNMatrix_LAPACK = rb_define_module_under(cNMatrix, "LAPACK");
+  cNMatrix_LAPACK = rb_define_module_under(cNMatrix, "LAPACK");
 
   rb_define_singleton_method(cNMatrix, "has_clapack?", (METHOD)nm_has_clapack, 0);
 
@@ -620,12 +669,12 @@ void nm_math_init_blas() {
   rb_define_singleton_method(cNMatrix_BLAS, "cblas_rotg", (METHOD)nm_cblas_rotg, 1);
   rb_define_singleton_method(cNMatrix_BLAS, "cblas_imax", (METHOD)nm_cblas_imax, 3);
 
-	rb_define_singleton_method(cNMatrix_BLAS, "cblas_gemm", (METHOD)nm_cblas_gemm, 14);
-	rb_define_singleton_method(cNMatrix_BLAS, "cblas_gemv", (METHOD)nm_cblas_gemv, 11);
-	rb_define_singleton_method(cNMatrix_BLAS, "cblas_trsm", (METHOD)nm_cblas_trsm, 12);
-	rb_define_singleton_method(cNMatrix_BLAS, "cblas_trmm", (METHOD)nm_cblas_trmm, 12);
-	rb_define_singleton_method(cNMatrix_BLAS, "cblas_syrk", (METHOD)nm_cblas_syrk, 11);
-	rb_define_singleton_method(cNMatrix_BLAS, "cblas_herk", (METHOD)nm_cblas_herk, 11);
+  rb_define_singleton_method(cNMatrix_BLAS, "cblas_gemm", (METHOD)nm_cblas_gemm, 14);
+  rb_define_singleton_method(cNMatrix_BLAS, "cblas_gemv", (METHOD)nm_cblas_gemv, 11);
+  rb_define_singleton_method(cNMatrix_BLAS, "cblas_trsm", (METHOD)nm_cblas_trsm, 12);
+  rb_define_singleton_method(cNMatrix_BLAS, "cblas_trmm", (METHOD)nm_cblas_trmm, 12);
+  rb_define_singleton_method(cNMatrix_BLAS, "cblas_syrk", (METHOD)nm_cblas_syrk, 11);
+  rb_define_singleton_method(cNMatrix_BLAS, "cblas_herk", (METHOD)nm_cblas_herk, 11);
 }
 
 /*
@@ -1874,6 +1923,20 @@ static VALUE nm_clapack_laswp(VALUE self, VALUE n, VALUE a, VALUE lda, VALUE k1,
   return a;
 }
 
+/*
+ * C accessor for solving a tridiagonal system of linear equations.
+ */
+void nm_math_solve_tridiagonal(const int m, VALUE a, VALUE b, VALUE c, VALUE r, VALUE u) {
+  NAMED_DTYPE_TEMPLATE_TABLE(ttable, nm::math::solve_tridiagonal, void, const int, 
+    const void*, const void*, const void*, const void*, void*);
+
+  ttable[NM_DTYPE(u)](m, 
+    NM_STORAGE_DENSE(a)->elements, 
+    NM_STORAGE_DENSE(b)->elements,
+    NM_STORAGE_DENSE(c)->elements, 
+    NM_STORAGE_DENSE(r)->elements, 
+    NM_STORAGE_DENSE(u)->elements);
+}
 
 /*
  * C accessor for calculating an exact determinant.
