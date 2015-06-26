@@ -233,17 +233,17 @@ DENSE_STORAGE* nm_dense_storage_create(nm::dtype_t dtype, size_t* shape, size_t 
     nm_register_values(reinterpret_cast<VALUE*>(elements), elements_length);
 
   DENSE_STORAGE* s = nm_dense_storage_create_dummy(dtype, shape, dim);
-  size_t count  = nm_storage_count_max_elements(s);
+  size_t storage_element_count  = nm_storage_count_max_elements(s);
 
-  if (elements_length == count) {
+  if (elements_length == storage_element_count) {
     s->elements = elements;
-    
+
     if (dtype == nm::RUBYOBJ)
       nm_unregister_values(reinterpret_cast<VALUE*>(elements), elements_length);
 
   } else {
 
-    s->elements = NM_ALLOC_N(char, DTYPE_SIZES[dtype]*count);
+    s->elements = NM_ALLOC_N(char, DTYPE_SIZES[dtype]*storage_element_count);
 
     if (dtype == nm::RUBYOBJ)
       nm_unregister_values(reinterpret_cast<VALUE*>(elements), elements_length);
@@ -252,10 +252,10 @@ DENSE_STORAGE* nm_dense_storage_create(nm::dtype_t dtype, size_t* shape, size_t 
 
     if (elements_length > 0) {
       // Repeat elements over and over again until the end of the matrix.
-      for (size_t i = 0; i < count; i += elements_length) {
+      for (size_t i = 0; i < storage_element_count; i += elements_length) {
 
-        if (i + elements_length > count) {
-        	copy_length = count - i;
+        if (i + elements_length > storage_element_count) {
+          copy_length = storage_element_count - i;
         }
 
         memcpy((char*)(s->elements)+i*DTYPE_SIZES[dtype], (char*)(elements)+(i % elements_length)*DTYPE_SIZES[dtype], copy_length*DTYPE_SIZES[dtype]);
