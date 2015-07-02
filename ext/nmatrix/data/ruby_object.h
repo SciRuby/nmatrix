@@ -139,6 +139,7 @@ class RubyObject {
    */
 	inline RubyObject inverse() const {
 	  rb_raise(rb_eNotImpError, "RubyObject#inverse needs to be implemented");
+	  return Qnil; //not reached
 	}
 
 	/*
@@ -312,6 +313,7 @@ class RubyObject {
 			
 		} else {
 			rb_raise(rb_eTypeError, "Invalid conversion to Complex type.");
+			return nm::RUBYOBJ; //not reached
 		}
 	}
 	
@@ -328,6 +330,7 @@ class RubyObject {
 			
 		} else {
 			rb_raise(rb_eTypeError, "Invalid conversion to Rational type.");
+			return nm::RUBYOBJ; //not reached
 		}
 	}
 

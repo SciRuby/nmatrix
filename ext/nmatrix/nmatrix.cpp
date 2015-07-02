@@ -110,6 +110,7 @@ namespace nm {
   template <typename DType>
   size_t write_padded_dense_elements_herm(std::ofstream& f, DENSE_STORAGE* storage, symm_t symm) {
     rb_raise(rb_eArgError, "cannot write a non-complex matrix as hermitian");
+    return 0; // not reached
   }
 
   template <>

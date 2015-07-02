@@ -110,6 +110,7 @@ nm::dtype_t nm_dtype_from_rbstring(VALUE str) {
   }
 
   rb_raise(rb_eArgError, "invalid data type string (%s) specified", RSTRING_PTR(str));
+  return nm::RUBYOBJ; //not reached
 }
 
 
@@ -127,6 +128,7 @@ nm::dtype_t nm_dtype_from_rbsymbol(VALUE sym) {
 
   VALUE str = rb_any_to_s(sym);
   rb_raise(rb_eArgError, "invalid data type symbol (:%s) specified", RSTRING_PTR(str));
+  return nm::RUBYOBJ; //not reached
 }
 
 
@@ -174,6 +176,7 @@ static nm::io::matlab_dtype_t matlab_dtype_from_rbsymbol(VALUE sym) {
   }
 
   rb_raise(rb_eArgError, "Invalid matlab type specified.");
+  return nm::io::matlab_dtype_t::miINT8; //not reached
 }
 
 

@@ -766,10 +766,11 @@ extern const nm::dtype_t Upcast[nm::NUM_DTYPES][nm::NUM_DTYPES];
 
 void*	    			rubyobj_to_cval(VALUE val, nm::dtype_t dtype);
 void  		  		rubyval_to_cval(VALUE val, nm::dtype_t dtype, void* loc);
-nm::RubyObject	rubyobj_from_cval(void* val, nm::dtype_t dtype);
 
 void nm_init_data();
 
 } // end of extern "C" block
+
+nm::RubyObject	rubyobj_from_cval(void* val, nm::dtype_t dtype);
 
 #endif // DATA_H

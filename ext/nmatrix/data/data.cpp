@@ -219,6 +219,36 @@ void rubyval_to_cval(VALUE val, nm::dtype_t dtype, void* loc) {
 	}
 }
 
+
+
+/*
+ * Allocate and return a piece of data of the correct dtype, converted from a
+ * given RubyObject.
+ */
+void* rubyobj_to_cval(VALUE val, nm::dtype_t dtype) {
+  size_t size =  DTYPE_SIZES[dtype];
+  NM_CONSERVATIVE(nm_register_value(&val));
+  void* ret_val = NM_ALLOC_N(char, size);
+
+  rubyval_to_cval(val, dtype, ret_val);
+  NM_CONSERVATIVE(nm_unregister_value(&val));
+  return ret_val;
+}
+
+
+void nm_init_data() {
+  volatile VALUE t = INT2FIX(1);
+  volatile nm::RubyObject obj(t);
+  volatile nm::Rational32 x(const_cast<nm::RubyObject&>(obj));
+  volatile nm::Rational64 y(const_cast<nm::RubyObject&>(obj));
+  volatile nm::Rational128 z(const_cast<nm::RubyObject&>(obj));
+  volatile nm::Complex64 a(const_cast<nm::RubyObject&>(obj));
+  volatile nm::Complex128 b(const_cast<nm::RubyObject&>(obj));
+}
+
+
+} // end of extern "C" block
+
 /*
  * Create a RubyObject from a regular C value (given a dtype). Does not return a VALUE! To get a VALUE, you need to
  * look at the rval property of what this function returns.
@@ -274,33 +304,3 @@ nm::RubyObject rubyobj_from_cval(void* val, nm::dtype_t dtype) {
 	}
 	return Qnil;
 }
-
-
-
-/*
- * Allocate and return a piece of data of the correct dtype, converted from a
- * given RubyObject.
- */
-void* rubyobj_to_cval(VALUE val, nm::dtype_t dtype) {
-  size_t size =  DTYPE_SIZES[dtype];
-  NM_CONSERVATIVE(nm_register_value(&val));
-  void* ret_val = NM_ALLOC_N(char, size);
-
-  rubyval_to_cval(val, dtype, ret_val);
-  NM_CONSERVATIVE(nm_unregister_value(&val));
-  return ret_val;
-}
-
-
-void nm_init_data() {
-  volatile VALUE t = INT2FIX(1);
-  volatile nm::RubyObject obj(t);
-  volatile nm::Rational32 x(const_cast<nm::RubyObject&>(obj));
-  volatile nm::Rational64 y(const_cast<nm::RubyObject&>(obj));
-  volatile nm::Rational128 z(const_cast<nm::RubyObject&>(obj));
-  volatile nm::Complex64 a(const_cast<nm::RubyObject&>(obj));
-  volatile nm::Complex128 b(const_cast<nm::RubyObject&>(obj));
-}
-
-
-} // end of extern "C" block

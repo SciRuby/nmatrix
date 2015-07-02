@@ -172,7 +172,14 @@ end
 # (substituting in the path of your cblas.h and clapack.h for the path I used). -- JW 8/27/12
 
 idefaults = {lapack: ["/usr/include/atlas"],
-             cblas: ["/usr/local/atlas/include", "/usr/include/atlas"],
+             cblas: ["/usr/local/atlas/include", "/usr/include/atlas",
+                     "/System/Library/Frameworks/Accelerate.framework/Versions/Current/Frameworks/vecLib.framework/Versions/Current/Headers",
+                     "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/include",
+                     "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/System/Library/Frameworks/Accelerate.framework/Versions/Current/Frameworks/vecLib.framework/Versions/Current/Headers/",
+                     "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/include",
+                     "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/System/Library/Frameworks/Accelerate.framework/Versions/Current/Frameworks/vecLib.framework/Versions/Current/Headers/",
+                     "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include",
+                     "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/System/Library/Frameworks/Accelerate.framework/Versions/Current/Frameworks/vecLib.framework/Versions/Current/Headers/"],
              atlas: ["/usr/local/atlas/include", "/usr/include/atlas"]}
 
 # For some reason, if we try to look for /usr/lib64/atlas on a Mac OS X Mavericks system, and the directory does not
@@ -186,25 +193,33 @@ if have_library("clapack") # Usually only applies for Mac OS X
   $libs += " -lclapack "
 end
 
-unless have_library("lapack")
-  dir_config("lapack", idefaults[:lapack], ldefaults[:lapack])
-end
+# Order matters here: ATLAS has to go after LAPACK: http://mail.scipy.org/pipermail/scipy-user/2007-January/010717.html
+#$libs += " -llapack -lcblas -latlas "
+dir_config("atlas")
+find_library("atlas", nil, *ldefaults[:atlas])
 
-unless have_library("cblas")
-  dir_config("cblas", idefaults[:cblas], ldefaults[:cblas])
-end
+dir_config("cblas")
+find_library("cblas", nil, *ldefaults[:cblas])
 
-unless have_library("atlas")
-  dir_config("atlas", idefaults[:atlas], ldefaults[:atlas])
-end
+dir_config("lapack")
+find_library("lapack", nil, *ldefaults[:lapack])
 
 # If BLAS and LAPACK headers are in an atlas directory, prefer those. Otherwise,
 # we try our luck with the default location.
 if have_header("atlas/cblas.h")
   have_header("atlas/clapack.h")
 else
-  have_header("cblas.h")
-  have_header("clapack.h")
+  find_header("cblas.h", *idefaults[:cblas]) and have_header("cblas.h")
+  if find_header("clapack.h", *idefaults[:cblas])
+    # set HAVE_CLAPACK_H only if clapack.h provides clapack_dgetrf
+    try_compile(<<EOS) and have_header("clapack.h", "-Werror=implicit-function-declaration")
+#include <cblas.h>
+#include <clapack.h>
+int test(void){
+  return clapack_dgetrf(CblasRowMajor, CblasNoTrans, 0, 0, (double*)NULL, 0, (int*)NULL);
+}
+EOS
+  end
 end
 
 
@@ -223,8 +238,6 @@ have_func("cblas_dgemm", "cblas.h")
 #find_library("lapack", "clapack_dgetrf")
 #find_library("cblas", "cblas_dgemm")
 #find_library("atlas", "ATL_dgemmNN")
-# Order matters here: ATLAS has to go after LAPACK: http://mail.scipy.org/pipermail/scipy-user/2007-January/010717.html
-$libs += " -llapack -lcblas -latlas "
 #$libs += " -lprofiler "
 
 

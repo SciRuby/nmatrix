@@ -1118,11 +1118,14 @@ static VALUE nm_reshape_bang(VALUE self, VALUE arg){
       }
       return self;
      }
-     else
+     else {
        rb_raise(rb_eArgError, "reshape cannot resize; size of new and old matrices must match");
+       return Qnil; // not reached
+     }
   }
   else {
     rb_raise(rb_eNotImpError, "reshape in place only for dense stype");
+    return Qnil; // not reached
   }
 }
 
@@ -2666,6 +2669,7 @@ nm::dtype_t nm_dtype_guess(VALUE v) {
   default:
     RB_P(v);
     rb_raise(rb_eArgError, "Unable to guess a data type from provided parameters; data type must be specified manually.");
+    return nm::RUBYOBJ; // not reached
   }
 }
 
@@ -2803,7 +2807,7 @@ static nm::dtype_t interpret_dtype(int argc, VALUE* argv, nm::stype_t stype) {
 
   } else if (stype == nm::YALE_STORE) {
   	rb_raise(rb_eArgError, "Yale storage class requires a dtype.");
-
+  	return nm::RUBYOBJ; // not reached
   } else {
   	return nm_dtype_guess(argv[0]);
   }
@@ -2881,6 +2885,7 @@ static nm::stype_t interpret_stype(VALUE arg) {
 
   } else {
   	rb_raise(rb_eArgError, "Expected storage type");
+  	return nm::DENSE_STORE; // not reached
   }
 }
 
