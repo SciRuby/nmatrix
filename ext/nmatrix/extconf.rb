@@ -186,6 +186,8 @@ if have_library("clapack") # Usually only applies for Mac OS X
   $libs += " -lclapack "
 end
 
+have_library('lapack_atlas', 'clapack_dgetrf')
+
 unless have_library("lapack")
   dir_config("lapack", idefaults[:lapack], ldefaults[:lapack])
 end
