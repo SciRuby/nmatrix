@@ -2,14 +2,26 @@
 
 set -ev #fail at the first command that returns non-zero exit value
 
+if [ "$TRAVIS_OS_NAME" = "osx" ]
+then
+  export INSTALL_COMMAND="brew install -y"
+else
+  export INSTALL_COMMAND="sudo apt-get install -y"
+fi
+
 if [ "$1" = "before_install" ]
 then
   gem install bundler -v '~> 1.6'
-  sudo apt-get update -qq
+  if [ "$TRAVIS_OS_NAME" = "osx" ]
+  then
+    brew update
+  else
+    sudo apt-get update -qq
+  fi
 
   if [ -n "$USE_ATLAS" ]
   then
-    sudo apt-get install -y libatlas-base-dev
+      $INSTALL_COMMAND libatlas-base-dev
   fi
 
   # travis-ci runs on Ubuntu 12.04, where the openblas package doesn't
@@ -18,15 +30,15 @@ then
   # this will work.
   if [ -n "$USE_OPENBLAS" ]
   then
-    sudo apt-get install -y libopenblas-dev
+    $INSTALL_COMMAND libopenblas-dev
     # Since we install libopenblas first, liblapack won't try to install
     # libblas (the reference BLAS implementation).
-    sudo apt-get install -y liblapack-dev
+    $INSTALL_COMMAND liblapack-dev
   fi
 
   if [ -n "$USE_REF" ]
   then
-    sudo apt-get install -y liblapack-dev
+    $INSTALL_COMMAND liblapack-dev
   fi
 fi
 

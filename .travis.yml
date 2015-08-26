@@ -1,8 +1,13 @@
+os:
+  - linux
+  - osx
 language: ruby
 sudo: required
 cache: bundler
 env:
-  - USE_ATLAS=1 # This configuration installs ATLAS, builds and tests the nmatrix, nmatrix-atlas, and nmatrix-lapacke gems
+  os:
+    - linux: USE_ATLAS=1 # This configuration installs ATLAS, builds and tests the nmatrix, nmatrix-atlas, and nmatrix-lapacke gems
+    - osx: USE_REF=1
 rvm:
   - 1.9.3
   - 2.0
@@ -24,5 +29,7 @@ matrix:
       env: USE_REF=1 # Installs reference implementations of LAPACK and BLAS, builds and tests nmatrix, nmatrix-lapacke
     - rvm: 2.2
       env: NO_EXTERNAL_LIB=1 # No external libraries installed, only nmatrix
+  allow_failures:
+    - os: osx
 notifications:
   irc: "chat.freenode.net#sciruby"
