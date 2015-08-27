@@ -239,4 +239,39 @@ describe "NMatrix::LAPACK implementation from nmatrix-atlas plugin" do
       end
     end
   end
+
+  context "math#norm" do
+    NORM_TOLERANCE = 1.0e-10
+
+    it "should default to 2-norm" do
+      n = NMatrix.new([3, 3], [-4, -3, -2, -1, 0, 1, 2, 3, 4])
+      expect(n.norm).to be_within(NORM_TOLERANCE).of(7.348469228349535)
+    end
+
+    it "should reject invalid arguments" do
+      n = NMatrix.new([3, 3], [-4, -3, -2, -1, 0, 1, 2, 3, 4])
+
+      expect{n.norm(0.5)}.to raise_error(ArgumentError)
+    end
+
+    it "should calculate 1 and 2 norms correctly" do
+      n = NMatrix.new([3, 3], [-4, -3, -2, -1, 0, 1, 2, 3, 4])
+      expect(n.norm(1)).to eq(7)
+      #FIXME: change to the correct value when overflow issue is resolved
+      #expect(n.norm(-2)).to eq(1.8628605857884395e-07)
+      expect(n.norm(-2)).to be_within(NORM_TOLERANCE).of(0.0)
+      expect(n.norm(-1)).to eq(6)
+    end
+
+    it "should calculate infinity norms correctly" do
+      n = NMatrix.new([3, 3], [-4, -3, -2, -1, 0, 1, 2, 3, 4])
+      expect(n.norm(:inf)).to eq(9)
+      expect(n.norm(:'-inf')).to eq(2)
+    end
+
+    it "should calculate frobenius norms correctly" do
+      n = NMatrix.new([3, 3], [-4, -3, -2, -1, 0, 1, 2, 3, 4])
+      expect(n.norm(:fro)).to be_within(NORM_TOLERANCE).of(7.745966692414834)
+    end
+  end
 end

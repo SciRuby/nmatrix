@@ -65,8 +65,8 @@ class NMatrix
   # call-seq:
   #     invert! -> NMatrix
   #
-  # Use LAPACK to calculate the inverse of the matrix (in-place) if available. 
-  # Only works on dense matrices. Alternatively uses in-place Gauss-Jordan 
+  # Use LAPACK to calculate the inverse of the matrix (in-place) if available.
+  # Only works on dense matrices. Alternatively uses in-place Gauss-Jordan
   # elimination.
   #
   # * *Raises* :
@@ -214,13 +214,13 @@ class NMatrix
   #
   # LU factorization of a matrix. Optionally return the permutation matrix.
   #   Note that computing the permutation matrix will introduce a slight memory
-  #   and time overhead. 
-  # 
+  #   and time overhead.
+  #
   # == Arguments
-  # 
-  # +with_permutation_matrix+ - If set to *true* will return the permutation 
+  #
+  # +with_permutation_matrix+ - If set to *true* will return the permutation
   #   matrix alongwith the LU factorization as a second return value.
-  # 
+  #
   def factorize_lu with_permutation_matrix=nil
     raise(NotImplementedError, "only implemented for dense storage") unless self.stype == :dense
     raise(NotImplementedError, "matrix is not 2-dimensional") unless self.dimensions == 2
@@ -233,7 +233,7 @@ class NMatrix
   end
 
   # Reduce self to upper hessenberg form using householder transforms.
-  # 
+  #
   # == References
   #
   # * http://en.wikipedia.org/wiki/Hessenberg_matrix
@@ -244,12 +244,12 @@ class NMatrix
 
   # Destructive version of #hessenberg
   def hessenberg!
-    raise ShapeError, "Trying to reduce non 2D matrix to hessenberg form" if 
+    raise ShapeError, "Trying to reduce non 2D matrix to hessenberg form" if
       shape.size != 2
-    raise ShapeError, "Trying to reduce non-square matrix to hessenberg form" if 
+    raise ShapeError, "Trying to reduce non-square matrix to hessenberg form" if
       shape[0] != shape[1]
     raise StorageTypeError, "Matrix must be dense" if stype != :dense
-    raise TypeError, "Works with float matrices only" unless 
+    raise TypeError, "Works with float matrices only" unless
       [:float64,:float32].include?(dtype)
 
     __hessenberg__(self)
@@ -260,18 +260,18 @@ class NMatrix
   # argument, and X is returned. A must be a nxn square matrix, while B must be
   # nxm. Only works with dense
   # matrices and non-integer, non-object data types.
-  # 
+  #
   # == Usage
-  # 
+  #
   #   a = NMatrix.new [2,2], [3,1,1,2], dtype: dtype
   #   b = NMatrix.new [2,1], [9,8], dtype: dtype
   #   a.solve(b)
   def solve b
     raise(ShapeError, "Must be called on square matrix") unless self.dim == 2 && self.shape[0] == self.shape[1]
-    raise(ShapeError, "number of rows of b must equal number of cols of self") if 
+    raise(ShapeError, "number of rows of b must equal number of cols of self") if
       self.shape[1] != b.shape[0]
     raise ArgumentError, "only works with dense matrices" if self.stype != :dense
-    raise ArgumentError, "only works for non-integer, non-object dtypes" if 
+    raise ArgumentError, "only works for non-integer, non-object dtypes" if
       integer_dtype? or object_dtype? or b.integer_dtype? or b.object_dtype?
 
     x     = b.clone
@@ -357,28 +357,28 @@ class NMatrix
   #
   # In-place permute the columns of a dense matrix using LASWP according to the order given as an array +ary+.
   #
-  # If +:convention+ is +:lapack+, then +ary+ represents a sequence of pair-wise permutations which are 
-  # performed successively. That is, the i'th entry of +ary+ is the index of the column to swap 
-  # the i'th column with, having already applied all earlier swaps. 
+  # If +:convention+ is +:lapack+, then +ary+ represents a sequence of pair-wise permutations which are
+  # performed successively. That is, the i'th entry of +ary+ is the index of the column to swap
+  # the i'th column with, having already applied all earlier swaps.
   #
-  # If +:convention+ is +:intuitive+, then +ary+ represents the order of columns after the permutation. 
-  # That is, the i'th entry of +ary+ is the index of the column that will be in position i after the 
+  # If +:convention+ is +:intuitive+, then +ary+ represents the order of columns after the permutation.
+  # That is, the i'th entry of +ary+ is the index of the column that will be in position i after the
   # reordering (Matlab-like behaviour). This is the default.
   #
-  # Not yet implemented for yale or list. 
+  # Not yet implemented for yale or list.
   #
   # == Arguments
   #
   # * +ary+ - An Array specifying the order of the columns. See above for details.
-  # 
+  #
   # == Options
-  # 
+  #
   # * +:covention+ - Possible values are +:lapack+ and +:intuitive+. Default is +:intuitive+. See above for details.
   #
   def laswp!(ary, opts={})
     raise(StorageTypeError, "ATLAS functions only work on dense matrices") unless self.dense?
     opts = { convention: :intuitive }.merge(opts)
-    
+
     if opts[:convention] == :intuitive
       if ary.length != ary.uniq.length
         raise(ArgumentError, "No duplicated entries in the order array are allowed under convention :intuitive")
@@ -404,22 +404,22 @@ class NMatrix
   #
   # Permute the columns of a dense matrix using LASWP according to the order given in an array +ary+.
   #
-  # If +:convention+ is +:lapack+, then +ary+ represents a sequence of pair-wise permutations which are 
-  # performed successively. That is, the i'th entry of +ary+ is the index of the column to swap 
+  # If +:convention+ is +:lapack+, then +ary+ represents a sequence of pair-wise permutations which are
+  # performed successively. That is, the i'th entry of +ary+ is the index of the column to swap
   # the i'th column with, having already applied all earlier swaps. This is the default.
   #
-  # If +:convention+ is +:intuitive+, then +ary+ represents the order of columns after the permutation. 
-  # That is, the i'th entry of +ary+ is the index of the column that will be in position i after the 
-  # reordering (Matlab-like behaviour). 
+  # If +:convention+ is +:intuitive+, then +ary+ represents the order of columns after the permutation.
+  # That is, the i'th entry of +ary+ is the index of the column that will be in position i after the
+  # reordering (Matlab-like behaviour).
   #
-  # Not yet implemented for yale or list. 
+  # Not yet implemented for yale or list.
   #
   # == Arguments
   #
   # * +ary+ - An Array specifying the order of the columns. See above for details.
-  # 
+  #
   # == Options
-  # 
+  #
   # * +:covention+ - Possible values are +:lapack+ and +:intuitive+. Default is +:lapack+. See above for details.
   #
   def laswp(ary, opts={})
@@ -498,23 +498,23 @@ class NMatrix
   end
 
   # Calculate the variance co-variance matrix
-  # 
+  #
   # == Options
-  # 
+  #
   # * +:for_sample_data+ - Default true. If set to false will consider the denominator for
   #   population data (i.e. N, as opposed to N-1 for sample data).
-  # 
+  #
   # == References
-  # 
+  #
   # * http://stattrek.com/matrix-algebra/covariance-matrix.aspx
   def cov(opts={})
     raise TypeError, "Only works for non-integer dtypes" if integer_dtype?
      opts = {
       for_sample_data: true
     }.merge(opts)
-    
+
     denominator      = opts[:for_sample_data] ? rows - 1 : rows
-    ones             = NMatrix.ones [rows,1] 
+    ones             = NMatrix.ones [rows,1]
     deviation_scores = self - ones.dot(ones.transpose).dot(self) / rows
     deviation_scores.transpose.dot(deviation_scores) / denominator
   end
@@ -528,24 +528,24 @@ class NMatrix
 
   # Raise a square matrix to a power. Be careful of numeric overflows!
   # In case *n* is 0, an identity matrix of the same dimension is returned. In case
-  # of negative *n*, the matrix is inverted and the absolute value of *n* taken 
+  # of negative *n*, the matrix is inverted and the absolute value of *n* taken
   # for computing the power.
-  # 
+  #
   # == Arguments
-  # 
+  #
   # * +n+ - Integer to which self is to be raised.
-  # 
+  #
   # == References
-  # 
-  # * R.G Dromey - How to Solve it by Computer. Link - 
+  #
+  # * R.G Dromey - How to Solve it by Computer. Link -
   #     http://www.amazon.com/Solve-Computer-Prentice-Hall-International-Science/dp/0134340019/ref=sr_1_1?ie=UTF8&qid=1422605572&sr=8-1&keywords=how+to+solve+it+by+computer
   def pow n
-    raise ShapeError, "Only works with 2D square matrices." if 
+    raise ShapeError, "Only works with 2D square matrices." if
       shape[0] != shape[1] or shape.size != 2
     raise TypeError, "Only works with integer powers" unless n.is_a?(Integer)
 
     sequence = (integer_dtype? ? self.cast(dtype: :int64) : self).clone
-    product  = NMatrix.eye shape[0], dtype: sequence.dtype, stype: sequence.stype 
+    product  = NMatrix.eye shape[0], dtype: sequence.dtype, stype: sequence.stype
 
     if n == 0
       return NMatrix.eye(shape, dtype: dtype, stype: stype)
@@ -573,8 +573,8 @@ class NMatrix
   #
   #   * +mat+ - A 2D NMatrix object
   #
-  # === Usage 
-  #  
+  # === Usage
+  #
   #  a = NMatrix.new([2,2],[1,2,
   #                         3,4])
   #  b = NMatrix.new([2,3],[1,1,1,
@@ -583,7 +583,7 @@ class NMatrix
   #                        [1.0, 1.0, 1.0, 2.0, 2.0, 2.0]
   #                        [3.0, 3.0, 3.0, 4.0, 4.0, 4.0]
   #                        [3.0, 3.0, 3.0, 4.0, 4.0, 4.0] ]
-  #    
+  #
   def kron_prod(mat)
     unless self.dimensions==2 and mat.dimensions==2
       raise ShapeError, "Implemented for 2D NMatrix objects only."
@@ -608,7 +608,7 @@ class NMatrix
       end
     end
 
-    NMatrix.new([n,m], kron_prod_array) 
+    NMatrix.new([n,m], kron_prod_array)
   end
 
   #
@@ -790,6 +790,47 @@ class NMatrix
     else
       self.__yale_map_stored__ { |v| v.abs }
     end.cast(self.stype, abs_dtype)
+  end
+
+
+  #
+  # call-seq:
+  #   norm -> Numeric
+  #
+  #  Calculates the selected norm (defaults to 2-norm) of a 2D matrix.
+  #
+  #  This should be used for small or medium sized matrices.
+  #  For greater matrices, there should be a separate implementation where
+  #  the norm is estimated rather than computed, for the sake of computation speed.
+  #
+  #  Currently implemented norms are 1-norm, 2-norm, Frobenius, Infinity.
+  #  A minus on the 1, 2 and inf norms returns the minimum instead of the maximum value.
+  #
+  #  Tested mainly with dense matrices. Further checks and modifications might
+  #  be necessary for sparse matrices.
+  #
+  # * *Returns* :
+  # - The selected norm of the matrix.
+  # * *Raises* :
+  # - +NotImplementedError+ -> norm can be calculated only for 2D matrices
+  # - +ArgumentError+ -> unrecognized norm
+  #
+  def norm type = 2
+    raise(NotImplementedError, "norm can be calculated only for 2D matrices") unless self.dim == 2
+    raise(NotImplementedError, "norm only implemented for dense storage") unless self.stype == :dense
+
+    case type
+    when nil, 2, -2
+      return self.two_norm (type == -2)
+    when 1, -1
+      return self.one_norm (type == -1)
+    when :frobenius, :fro
+      return self.fro_norm
+    when :infinity, :inf, :'-inf', :'-infinity'
+      return self.inf_norm  (type == :'-inf' || type == :'-infinity')
+    else
+      raise ArgumentError.new("argument must be a valid integer or symbol")
+    end
   end
 
 
@@ -1044,5 +1085,54 @@ protected
     define_method("__dense_scalar_#{ewop}__") do |rhs|
       self.__dense_map__ { |l| l.send(op,rhs) }
     end
+  end
+
+  # Norm calculation methods
+  # Frobenius norm: the Euclidean norm of the matrix, treated as if it were a vector
+  def fro_norm
+    #float64 has to be used in any case, since nrm2 will not yield correct result for float32
+    self_cast = self.cast(:dtype => :float64) unless self.dtype == :float64
+
+    column_vector = self_cast.reshape([self.size, 1])
+
+    return column_vector.nrm2
+  end
+
+  # 2-norm: the largest/smallest singular value of the matrix
+  def two_norm minus = false
+    #self.dtype == :int32 ? self_cast = self.cast(:dtype => :float32) : self_cast = self.cast(:dtype => :float64)
+    self_cast = self.cast(:dtype => :float64)
+
+    #TODO: confirm if this is the desired svd calculation
+    svd = self_cast.gesvd
+    return svd[1][0, 0] unless minus
+    return svd[1][svd[1].rows-1, svd[1].cols-1]
+  end
+
+  # 1-norm: the maximum/minimum absolute column sum of the matrix
+  def one_norm minus = false
+    #TODO: change traversing method for sparse matrices
+    number_of_columns = self.cols
+    col_sums = []
+
+    number_of_columns.times do |i|
+      col_sums << self.col(i).inject(0) { |sum, number| sum += number.abs}
+    end
+
+    return col_sums.sort!.last unless minus
+    return col_sums.sort!.first
+  end
+
+  # Infinity norm: the maximum/minimum absolute row sum of the matrix
+  def inf_norm minus = false
+    number_of_rows = self.rows
+    row_sums = []
+
+    number_of_rows.times do |i|
+      row_sums << self.row(i).inject(0) { |sum, number| sum += number.abs}
+    end
+
+    return row_sums.sort!.last unless minus
+    return row_sums.sort!.first
   end
 end
