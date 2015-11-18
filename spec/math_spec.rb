@@ -99,14 +99,14 @@ describe "math" do
               [:asin, :acos, :atan, :atanh].each do |atf|
 
                 it "should correctly apply elementwise #{atf}" do
-                  expect(@m.send(atf)).to eq N.new(@size, 
+                  expect(@m.send(atf)).to eq N.new(@size,
                                                @a.map{ |e| Math.send(atf, e) },
                                                dtype: :float64, stype: stype)
                 end
               end
 
               it "should correctly apply elementtwise atan2" do
-                expect(@m.atan2(@m*0+1)).to eq N.new(@size, 
+                expect(@m.atan2(@m*0+1)).to eq N.new(@size,
                   @a.map { |e| Math.send(:atan2, e, 1) }, dtype: :float64, stype: stype)
               end
 
@@ -120,8 +120,8 @@ describe "math" do
             end
           end
         end
-          
-        context "Floor and ceil for #{stype}" do  
+
+        context "Floor and ceil for #{stype}" do
 
           [:floor, :ceil].each do |meth|
             ALL_DTYPES.each do |dtype|
@@ -134,7 +134,7 @@ describe "math" do
 
                 if dtype.to_s.match(/int/) or [:byte, :object].include?(dtype)
                   it "should return #{dtype} for #{dtype}" do
-                    
+
                     expect(@m.send(meth)).to eq N.new(@size, @a.map { |e| e.send(meth) }, dtype: dtype, stype: stype)
 
                     if dtype == :object
@@ -147,10 +147,10 @@ describe "math" do
                   it "should return dtype int64 for #{dtype}" do
 
                     expect(@m.send(meth)).to eq N.new(@size, @a.map { |e| e.send(meth) }, dtype: dtype, stype: stype)
-                    
+
                     expect(@m.send(meth).dtype).to eq :int64
                   end
-                elsif dtype.to_s.match(/complex/) 
+                elsif dtype.to_s.match(/complex/)
                   it "should properly calculate #{meth} for #{dtype}" do
 
                     expect(@m.send(meth)).to eq N.new(@size, @a.map { |e| e = Complex(e.real.send(meth), e.imag.send(meth)) }, dtype: dtype, stype: stype)
@@ -169,35 +169,35 @@ describe "math" do
             context dtype do
               before :each do
                 @size = [2,2]
-                @mat  = NMatrix.new @size, [1.33334, 0.9998, 1.9999, -8.9999], 
+                @mat  = NMatrix.new @size, [1.33334, 0.9998, 1.9999, -8.9999],
                   dtype: dtype, stype: stype
                 @ans  = @mat.to_a.flatten
               end
 
               it "rounds" do
-                expect(@mat.round).to eq(N.new(@size, @ans.map { |a| a.round}, 
+                expect(@mat.round).to eq(N.new(@size, @ans.map { |a| a.round},
                   dtype: dtype, stype: stype))
               end unless(/complex/ =~ dtype)
 
               it "rounds with args" do
-                expect(@mat.round(2)).to eq(N.new(@size, @ans.map { |a| a.round(2)}, 
+                expect(@mat.round(2)).to eq(N.new(@size, @ans.map { |a| a.round(2)},
                   dtype: dtype, stype: stype))
               end unless(/complex/ =~ dtype)
 
               it "rounds complex with args" do
                 puts @mat.round(2)
-                expect(@mat.round(2)).to be_within(0.0001).of(N.new [2,2], @ans.map {|a| 
+                expect(@mat.round(2)).to be_within(0.0001).of(N.new [2,2], @ans.map {|a|
                   Complex(a.real.round(2), a.imag.round(2))},dtype: dtype, stype: stype)
               end if(/complex/ =~ dtype)
 
               it "rounds complex" do
-                expect(@mat.round).to eq(N.new [2,2], @ans.map {|a| 
+                expect(@mat.round).to eq(N.new [2,2], @ans.map {|a|
                   Complex(a.real.round, a.imag.round)},dtype: dtype, stype: stype)
               end if(/complex/ =~ dtype)
             end
           end
         end
-        
+
       end
     end
   end
@@ -298,9 +298,9 @@ describe "math" do
             end
 
       it "should correctly invert a matrix in place (bang)" do
-        a = NMatrix.new(:dense, 5, [1, 8,-9, 7, 5, 
-                                    0, 1, 0, 4, 4, 
-                                    0, 0, 1, 2, 5, 
+        a = NMatrix.new(:dense, 5, [1, 8,-9, 7, 5,
+                                    0, 1, 0, 4, 4,
+                                    0, 0, 1, 2, 5,
                                     0, 0, 0, 1,-5,
                                     0, 0, 0, 0, 1 ], dtype)
         b = NMatrix.new(:dense, 5, [1,-8, 9, 7, 17,
@@ -424,7 +424,7 @@ describe "math" do
   ALL_DTYPES.each do |dtype|
     next if integer_dtype?(dtype)
     context "#cov dtype #{dtype}" do
-      before do 
+      before do
         @n = NMatrix.new( [5,3], [4.0,2.0,0.60,
                                   4.2,2.1,0.59,
                                   3.9,2.0,0.58,
@@ -433,7 +433,7 @@ describe "math" do
       end
 
       it "calculates variance co-variance matrix (sample)" do
-        expect(@n.cov).to be_within(0.0001).of(NMatrix.new([3,3], 
+        expect(@n.cov).to be_within(0.0001).of(NMatrix.new([3,3],
           [0.025  , 0.0075, 0.00175,
            0.0075, 0.007 , 0.00135,
            0.00175, 0.00135 , 0.00043 ], dtype: dtype)
@@ -441,7 +441,7 @@ describe "math" do
       end
 
       it "calculates variance co-variance matrix (population)" do
-        expect(@n.cov(for_sample_data: false)).to be_within(0.0001).of(NMatrix.new([3,3], 
+        expect(@n.cov(for_sample_data: false)).to be_within(0.0001).of(NMatrix.new([3,3],
                   [2.0000e-02, 6.0000e-03, 1.4000e-03,
                    6.0000e-03, 5.6000e-03, 1.0800e-03,
                    1.4000e-03, 1.0800e-03, 3.4400e-04], dtype: dtype)
@@ -456,7 +456,7 @@ describe "math" do
                                 3.9,2.0,0.58,
                                 4.3,2.1,0.62,
                                 4.1,2.2,0.63], dtype: dtype)
-        expect(n.corr).to be_within(0.001).of(NMatrix.new([3,3], 
+        expect(n.corr).to be_within(0.001).of(NMatrix.new([3,3],
           [1.00000, 0.56695, 0.53374,
            0.56695, 1.00000, 0.77813,
            0.53374, 0.77813, 1.00000], dtype: dtype))
@@ -464,7 +464,7 @@ describe "math" do
     end
 
     context "#symmetric? for #{dtype}" do
-      it "should return true for symmetric matrix" do 
+      it "should return true for symmetric matrix" do
         n = NMatrix.new([3,3], [1.00000, 0.56695, 0.53374,
                                 0.56695, 1.00000, 0.77813,
                                 0.53374, 0.77813, 1.00000], dtype: dtype)
@@ -473,7 +473,7 @@ describe "math" do
     end
 
     context "#hermitian? for #{dtype}" do
-      it "should return true for complex hermitian or non-complex symmetric matrix" do 
+      it "should return true for complex hermitian or non-complex symmetric matrix" do
         n = NMatrix.new([3,3], [1.00000, 0.56695, 0.53374,
                                 0.56695, 1.00000, 0.77813,
                                 0.53374, 0.77813, 1.00000], dtype: dtype) unless dtype =~ /complex/
@@ -587,7 +587,7 @@ describe "math" do
     FLOAT_DTYPES.each do |dtype|
       context dtype do
         before do
-          @n = NMatrix.new [5,5], 
+          @n = NMatrix.new [5,5],
             [0, 2, 0, 1, 1,
              2, 2, 3, 2, 2,
              4,-3, 0, 1, 3,
@@ -596,7 +596,7 @@ describe "math" do
         end
 
         it "transforms a matrix to Hessenberg form" do
-          expect(@n.hessenberg).to be_within(0.0001).of(NMatrix.new([5,5],    
+          expect(@n.hessenberg).to be_within(0.0001).of(NMatrix.new([5,5],
             [0.00000,-1.66667, 0.79432,-0.45191,-1.54501,
             -9.00000, 2.95062,-6.89312, 3.22250,-0.19012,
              0.00000,-8.21682,-0.57379, 5.26966,-1.69976,
@@ -611,9 +611,9 @@ describe "math" do
     [:dense, :yale].each do |stype|
       answer_dtype = integer_dtype?(dtype) ? :int64 : dtype
       next if dtype == :byte
-      
+
       context "#pow #{dtype} #{stype}" do
-        before do 
+        before do
           @n = NMatrix.new [4,4], [0, 2, 0, 1,
                                   2, 2, 3, 2,
                                   4,-3, 0, 1,
@@ -621,11 +621,11 @@ describe "math" do
         end
 
         it "raises a square matrix to even power" do
-          expect(@n.pow(4)).to eq(NMatrix.new([4,4], [292, 28,-63, -42, 
+          expect(@n.pow(4)).to eq(NMatrix.new([4,4], [292, 28,-63, -42,
                                                      360, 96, 51, -14,
                                                      448,-231,-24,-87,
-                                                   -1168, 595,234, 523], 
-                                                   dtype: answer_dtype, 
+                                                   -1168, 595,234, 523],
+                                                   dtype: answer_dtype,
                                                    stype: stype))
         end
 
@@ -640,14 +640,14 @@ describe "math" do
         it "raises a sqaure matrix to negative power" do
           expect(@n.pow(-3)).to be_within(0.00001).of (NMatrix.new([4,4],
             [1.0647e-02, 4.2239e-04,-6.2281e-05, 2.7680e-03,
-            -1.6415e-02, 2.1296e-02, 1.0718e-02, 4.8589e-03,   
+            -1.6415e-02, 2.1296e-02, 1.0718e-02, 4.8589e-03,
              8.6956e-03,-8.6569e-03, 2.8993e-02, 7.2015e-03,
-             5.0034e-02,-1.7500e-02,-3.6777e-02,-1.2128e-02], dtype: answer_dtype, 
-             stype: stype)) 
+             5.0034e-02,-1.7500e-02,-3.6777e-02,-1.2128e-02], dtype: answer_dtype,
+             stype: stype))
         end unless stype =~ /yale/ or dtype == :object or ALL_DTYPES.grep(/int/).include? dtype
 
         it "raises a square matrix to zero" do
-          expect(@n.pow(0)).to eq(NMatrix.eye([4,4], dtype: answer_dtype, 
+          expect(@n.pow(0)).to eq(NMatrix.eye([4,4], dtype: answer_dtype,
             stype: stype))
         end
 
@@ -661,7 +661,7 @@ describe "math" do
   ALL_DTYPES.each do |dtype|
     [:dense, :yale].each do |stype|
       context "#kron_prod #{dtype} #{stype}" do
-        before do 
+        before do
           @a = NMatrix.new([2,2], [1,2,
                                    3,4], dtype: dtype, stype: stype)
           @b = NMatrix.new([2,3], [1,1,1,
@@ -669,7 +669,7 @@ describe "math" do
           @c = NMatrix.new([4,6], [1, 1, 1, 2, 2, 2,
                                    1, 1, 1, 2, 2, 2,
                                    3, 3, 3, 4, 4, 4,
-                                   3, 3, 3, 4, 4, 4], dtype: dtype, stype: stype) 
+                                   3, 3, 3, 4, 4, 4], dtype: dtype, stype: stype)
         end
         it "Compute the Kronecker product of two NMatrix" do
           expect(@a.kron_prod(@b)).to eq(@c)
