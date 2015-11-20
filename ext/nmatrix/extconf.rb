@@ -133,6 +133,8 @@ end
 
 if CONFIG['CXX'] == 'clang++'
   $CPP_STANDARD = 'c++11'
+elsif CONFIG['CXX'] == 'c++'
+  $CPP_STANDARD = 'c++11'
 
 else
   version = gplusplus_version

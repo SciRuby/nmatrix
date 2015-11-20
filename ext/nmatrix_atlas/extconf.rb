@@ -108,7 +108,7 @@ $objs = basenames.map { |b| "#{b}.o"   }
 $srcs = basenames.map { |b| "#{b}.cpp" }
 
 #CONFIG['CXX'] = 'clang++'
-CONFIG['CXX'] = 'g++'
+#CONFIG['CXX'] = 'g++'
 
 def find_newer_gplusplus #:nodoc:
   print "checking for apparent GNU g++ binary with C++0x/C++11 support... "
@@ -137,6 +137,8 @@ end
 
 
 if CONFIG['CXX'] == 'clang++'
+  $CPP_STANDARD = 'c++11'
+elsif CONFIG['CXX'] == 'c++'
   $CPP_STANDARD = 'c++11'
 
 else
