@@ -48,6 +48,7 @@ extern "C" {
 #include <ruby.h>
 #include <algorithm> // std::min
 #include <fstream>
+#include <float.h>   // FLOAT_EPSILON
 
 /*
  * Project Includes
