@@ -553,6 +553,7 @@ describe "math" do
   context "#solve" do
     NON_INTEGER_DTYPES.each do |dtype|
       next if dtype == :object # LU factorization doesnt work for :object yet
+
       it "solves linear equation for dtype #{dtype}" do
         a = NMatrix.new [2,2], [3,1,1,2], dtype: dtype
         b = NMatrix.new [2,1], [9,8], dtype: dtype
@@ -579,6 +580,82 @@ describe "math" do
         b = NMatrix.new [3,2], [1,0, 1,2, 4,2], dtype: dtype
 
         expect(a.solve(b)).to eq(NMatrix.new [3,2], [1,0, 0,0, 2,2], dtype: dtype)
+      end
+    end
+
+    FLOAT_DTYPES.each do |dtype|
+      context "when form: :lower_tri" do
+        let(:a) { NMatrix.new([3,3], [1, 0, 0, 2, 0.5, 0, 3, 3, 9], dtype: dtype) }
+
+        it "solves a lower triangular linear system A * x = b with vector b" do
+          b = NMatrix.new([3,1], [1,2,3], dtype: dtype)
+          x = a.solve(b, form: :lower_tri)
+          r = a.dot(x) - b
+          expect(r.abs.max).to be_within(1e-6).of(0.0)
+        end
+
+        it "solves a lower triangular linear system A * X = B with narrow B" do
+          b = NMatrix.new([3,2], [1,2,3,4,5,6], dtype: dtype)
+          x = a.solve(b, form: :lower_tri)
+          r = (a.dot(x) - b).abs.to_flat_a
+          expect(r.max).to be_within(1e-6).of(0.0)
+        end
+
+        it "solves a lower triangular linear system A * X = B with wide B" do
+          b = NMatrix.new([3,5], (1..15).to_a, dtype: dtype)
+          x = a.solve(b, form: :lower_tri)
+          r = (a.dot(x) - b).abs.to_flat_a
+          expect(r.max).to be_within(1e-6).of(0.0)
+        end
+      end
+
+      context "when form: :upper_tri" do
+        let(:a) { NMatrix.new([3,3], [3, 2, 1, 0, 2, 0.5, 0, 0, 9], dtype: dtype) }
+
+        it "solves an upper triangular linear system A * x = b with vector b" do
+          b = NMatrix.new([3,1], [1,2,3], dtype: dtype)
+          x = a.solve(b, form: :upper_tri)
+          r = a.dot(x) - b
+          expect(r.abs.max).to be_within(1e-6).of(0.0)
+        end
+
+        it "solves an upper triangular linear system A * X = B with narrow B" do
+          b = NMatrix.new([3,2], [1,2,3,4,5,6], dtype: dtype)
+          x = a.solve(b, form: :upper_tri)
+          r = (a.dot(x) - b).abs.to_flat_a
+          expect(r.max).to be_within(1e-6).of(0.0)
+        end
+
+        it "solves an upper triangular linear system A * X = B with a wide B" do
+          b = NMatrix.new([3,5], (1..15).to_a, dtype: dtype)
+          x = a.solve(b, form: :upper_tri)
+          r = (a.dot(x) - b).abs.to_flat_a
+          expect(r.max).to be_within(1e-6).of(0.0)
+        end
+      end
+
+      context "when form: :pos_def" do
+        let(:a) { NMatrix.new([3,3], [4, 1, 2, 1, 5, 3, 2, 3, 6], dtype: dtype) }
+
+        it "solves a linear system A * X = b with positive definite A and vector b" do
+          b = NMatrix.new([3,1], [6,4,8], dtype: dtype)
+          begin
+            x = a.solve(b, form: :pos_def)
+            expect(x).to be_within(1e-6).of(NMatrix.new([3,1], [1,0,1], dtype: dtype))
+          rescue NotImplementedError
+            "Suppressing a NotImplementedError when the lapacke or atlas plugin is not available"
+          end
+        end
+      
+        it "solves a linear system A * X = B with positive definite A and matrix B" do
+          b = NMatrix.new([3,2], [8,3,14,13,14,19], dtype: dtype)
+          begin
+            x = a.solve(b, form: :pos_def)
+            expect(x).to be_within(1e-6).of(NMatrix.new([3,2], [1,-1,2,1,1,3], dtype: dtype))
+          rescue NotImplementedError
+            "Suppressing a NotImplementedError when the lapacke or atlas plugin is not available"
+          end
+        end
       end
     end
   end

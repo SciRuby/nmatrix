@@ -258,36 +258,92 @@ class NMatrix
 
   # Solve the matrix equation AX = B, where A is +self+, B is the first
   # argument, and X is returned. A must be a nxn square matrix, while B must be
-  # nxm. Only works with dense
-  # matrices and non-integer, non-object data types.
+  # nxm. Only works with dense matrices and non-integer, non-object data types.
   # 
+  # == Arguments
+  #
+  # * +b+ - the right hand side
+  #
+  # == Options
+  #
+  # * +form+ - Signifies the form of the matrix A in the linear system AX=B.
+  #   If not set then it defaults to +:general+, which uses an LU solver. 
+  #   Other possible values are +:lower_tri+, +:upper_tri+ and +:pos_def+ (alternatively,
+  #   non-abbreviated symbols +:lower_triangular+, +:upper_triangular+, 
+  #   and +:positive_definite+ can be used. 
+  #   If +:lower_tri+ or +:upper_tri+ is set, then a specialized linear solver for linear 
+  #   systems AX=B with a lower or upper triangular matrix A is used. If +:pos_def+ is chosen, 
+  #   then the linear system is solved via the Cholesky factorization.
+  #   Note that when +:lower_tri+ or +:upper_tri+ is used, then the algorithm just assumes that
+  #   all entries in the lower/upper triangle of the matrix are zeros without checking (which
+  #   can be useful in certain applications).
+  #     
+  #
   # == Usage
   # 
   #   a = NMatrix.new [2,2], [3,1,1,2], dtype: dtype
   #   b = NMatrix.new [2,1], [9,8], dtype: dtype
   #   a.solve(b)
-  def solve b
+  #
+  #   # solve an upper triangular linear system more efficiently:
+  #   require 'benchmark'
+  #   require 'nmatrix/lapacke'
+  #   rand_mat = NMatrix.random([10000, 10000], dtype: :float64)
+  #   a = rand_mat.triu
+  #   b = NMatrix.random([10000, 10], dtype: :float64)
+  #   Benchmark.bm(10) do |bm|
+  #     bm.report('general') { a.solve(b) }
+  #     bm.report('upper_tri') { a.solve(b, form: :upper_tri) }
+  #   end
+  #   #                   user     system      total        real
+  #   #  general     73.170000   0.670000  73.840000 ( 73.810086)
+  #   #  upper_tri    0.180000   0.000000   0.180000 (  0.182491)
+  #
+  def solve(b, opts = {})
     raise(ShapeError, "Must be called on square matrix") unless self.dim == 2 && self.shape[0] == self.shape[1]
     raise(ShapeError, "number of rows of b must equal number of cols of self") if 
       self.shape[1] != b.shape[0]
-    raise ArgumentError, "only works with dense matrices" if self.stype != :dense
-    raise ArgumentError, "only works for non-integer, non-object dtypes" if 
+    raise(ArgumentError, "only works with dense matrices") if self.stype != :dense
+    raise(ArgumentError, "only works for non-integer, non-object dtypes") if 
       integer_dtype? or object_dtype? or b.integer_dtype? or b.object_dtype?
 
-    x     = b.clone
-    clone = self.clone
-    n = self.shape[0]
+    opts = { form: :general }.merge(opts)
+    x    = b.clone
+    n    = self.shape[0]
     nrhs = b.shape[1]
 
-    ipiv = NMatrix::LAPACK.clapack_getrf(:row, n, n, clone, n)
-    # When we call clapack_getrs with :row, actually only the first matrix
-    # (i.e. clone) is interpreted as row-major, while the other matrix (x)
-    # is interpreted as column-major. See here: http://math-atlas.sourceforge.net/faq.html#RowSolve
-    # So we must transpose x before and after
-    # calling it.
-    x = x.transpose
-    NMatrix::LAPACK.clapack_getrs(:row, :no_transpose, n, nrhs, clone, n, ipiv, x, n)
-    x.transpose
+    case opts[:form] 
+    when :general
+      clone = self.clone
+      ipiv = NMatrix::LAPACK.clapack_getrf(:row, n, n, clone, n)
+      # When we call clapack_getrs with :row, actually only the first matrix
+      # (i.e. clone) is interpreted as row-major, while the other matrix (x)
+      # is interpreted as column-major. See here: http://math-atlas.sourceforge.net/faq.html#RowSolve
+      # So we must transpose x before and after
+      # calling it.
+      x = x.transpose
+      NMatrix::LAPACK.clapack_getrs(:row, :no_transpose, n, nrhs, clone, n, ipiv, x, n)
+      x.transpose
+    when :upper_tri, :upper_triangular
+      raise(ArgumentError, "upper triangular solver does not work with complex dtypes") if
+        complex_dtype? or b.complex_dtype?
+      # this is the correct function call; see https://github.com/SciRuby/nmatrix/issues/374
+      NMatrix::BLAS::cblas_trsm(:row, :left, :upper, false, :nounit, n, nrhs, 1.0, self, n, x, nrhs)
+      x
+    when :lower_tri, :lower_triangular
+      raise(ArgumentError, "lower triangular solver does not work with complex dtypes") if
+        complex_dtype? or b.complex_dtype?
+      # this is a workaround; see https://github.com/SciRuby/nmatrix/issues/422
+      x = x.transpose
+      NMatrix::BLAS::cblas_trsm(:row, :right, :lower, :transpose, :nounit, nrhs, n, 1.0, self, n, x, n)
+      x.transpose
+    when :pos_def, :positive_definite
+      u, l = self.factorize_cholesky
+      z = l.solve(b, form: :lower_tri)
+      u.solve(z, form: :upper_tri)
+    else
+      raise(ArgumentError, "#{opts[:form]} is not a valid form option")
+    end
   end
 
   #
