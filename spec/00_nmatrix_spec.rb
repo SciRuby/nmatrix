@@ -461,6 +461,12 @@ describe 'NMatrix' do
         expect(n.transpose).to eq n
         expect(n.transpose).not_to be n
       end
+
+      it "should check permute argument if supplied for #{stype} matrix" do
+        n = NMatrix.new([2,2], [1,2,3,4], stype: stype)
+        expect{n.transpose *4 }.to raise_error(ArgumentError)
+        expect{n.transpose [1,1,2] }.to raise_error(ArgumentError)
+      end
     end
   end
 

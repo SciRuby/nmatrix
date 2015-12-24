@@ -232,8 +232,8 @@ namespace nm {
     template <typename DType>
     void inverse(const int M, void* a_elements) {
       DType* matrix   = reinterpret_cast<DType*>(a_elements);
-      int* row_index = new int[M]; // arrays for keeping track of column scrambling
-      int* col_index = new int[M];
+      int row_index[M]; // arrays for keeping track of column scrambling
+      int col_index[M];
 
       for (int k = 0;k < M; ++k) {
         DType akk = std::abs( matrix[k * (M + 1)] ) ; // diagonal element
@@ -294,9 +294,6 @@ namespace nm {
           }
         }
       }
-
-      delete[] row_index;
-      delete[] col_index;
     }
 
     /*
