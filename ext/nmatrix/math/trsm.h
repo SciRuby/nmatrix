@@ -108,7 +108,7 @@ inline void trsm_nothrow(const enum CBLAS_SIDE side, const enum CBLAS_UPLO uplo,
                 b[k + j * ldb] /= a[k + k * lda];
               }
 
-              for (int i = 0; i < k-1; ++i) {
+              for (int i = 0; i < k; ++i) {
                 b[i + j * ldb] -= b[k + j * ldb] * a[i + k * lda];
               }
             }
@@ -177,7 +177,7 @@ inline void trsm_nothrow(const enum CBLAS_SIDE side, const enum CBLAS_UPLO uplo,
               b[i + j * ldb] = alpha * b[i + j * ldb];
             }
           }
-          for (int k = 0; k < j-1; ++k) {
+          for (int k = 0; k < j; ++k) {
             if (a[k + j * lda] != 0) {
               for (int i = 0; i < m; ++i) {
                 b[i + j * ldb] -= a[k + j * lda] * b[i + k * ldb];
@@ -227,7 +227,7 @@ inline void trsm_nothrow(const enum CBLAS_SIDE side, const enum CBLAS_UPLO uplo,
               b[i + k * ldb] = temp * b[i + k * ldb];
             }
           }
-          for (int j = 0; j < k-1; ++j) {
+          for (int j = 0; j < k; ++j) {
             if (a[j + k * lda] != 0.) {
               DType temp= a[j + k * lda];
               for (int i = 0; i < m; ++i) {
