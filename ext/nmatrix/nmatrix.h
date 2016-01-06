@@ -33,6 +33,11 @@
  */
 
 #include <ruby.h>
+ 
+#undef RB_OBJ_WB_UNPROTECT_FOR
+#define RB_OBJ_WB_UNPROTECT_FOR(type, obj) \
+  (RGENGC_WB_PROTECTED_##type ? \
+  OBJ_WB_UNPROTECT((VALUE)(obj)) : ((VALUE)(obj)))
 
 #ifdef __cplusplus
   #include <cmath>
