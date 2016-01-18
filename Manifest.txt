@@ -8,9 +8,12 @@ Gemfile
 nmatrix.gemspec
 nmatrix-atlas.gemspec
 nmatrix-lapacke.gemspec
+nmatrix-fftw.gemspec
+travis.sh
 .travis.yml
 lib/nmatrix.rb
 lib/nmatrix/atlas.rb
+lib/nmatrix/fftw.rb
 lib/nmatrix/lapack_core.rb
 lib/nmatrix/lapack_ext_common.rb
 lib/nmatrix/lapack_plugin.rb
@@ -207,5 +210,5 @@ ext/nmatrix/ruby_nmatrix.c
 ext/nmatrix/types.h
 ext/nmatrix/nm_memory.h
 ext/nmatrix/extconf.rb
-
-
+ext/nmatrix_fftw/extconf.rb
+ext/nmatrix_fftw/nmatrix_fftw.cpp

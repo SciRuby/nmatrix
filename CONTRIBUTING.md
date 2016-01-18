@@ -34,11 +34,11 @@ Thanks!
 
 To start helping with the code, you need to have all the dependencies in place:
 
-- ATLAS and LAPACK
 - GCC 4.3+
 - git
 - Ruby 1.9+
 - `bundler` gem
+- ATLAS/LAPACKE/FFTW dependending on the plugin you want to change.
 
 Now, you need to clone the git repository:
 
@@ -68,12 +68,9 @@ NMatrix uses a lot of C/C++ to speed up execution of processes and give more con
 
 Please go thorough this before you create any C accessors:
 
-* Perform all pre-computation error checking in Ruby. 
-    - Since this is (mostly) a trivial computation, doing this in Ruby before calling the actual C code will save immensely on time needed to read and write code. Plus, one won't need to write obscure code for accessing NMatrix attributes in C code (`NM_SHAPE0(obj)` for example), saving both the readers' and writers' time.
+* Perform all pre-computation error checking in Ruby.
 * Curate any extra data (cloned objects, trivial computations, etc.) in Ruby.
-* The corresponding extern "C" exposed function should have a name format `nm_#{function_name}`, this  function should call a C++ function which should follow a convention `nm_#{sub_namespace}_#{function_name}` and the C++ templated function that is called by this function should be inside a namespace `nm::#{sub_namespace}`.
-* Do _NOT_ resolve VALUE into constituent elements unless they reach the function where the elements are needed or it is absolutely necessary. Passing around a VALUE in the C/C++ core is much more convienient than passing around `void*` pointers which point to an array of matrix elements. 
-    - If you'll look at [this line](https://github.com/v0dro/nmatrix/commit/b957c5fdbcef0bf1ebe78922f84f9ea37938b247#diff-55f2ba27400bce950282e78db97bfbcfR1791), you'll notice that matrix elements aren't resolved until the final step i.e. passing the elements into the `nm::math::solve` function for the actual computation.
+* Do _NOT_ resolve VALUE into constituent elements unless they reach the function where the elements are needed or it is absolutely necessary. Passing around a VALUE in the C/C++ core is much more convienient than passing around `void*` pointers which point to an array of matrix elements.
 
 Basically, follow a practice of 'once you enter C, never look back!'.
 
@@ -83,7 +80,6 @@ If you have something more in mind, discuss it in the issue tracker or on [this]
 
 This section is a work in progress.
 
-* Single statements following a `if`/`while`/`for` etc. should be preferably on the same line and _enclosed within braces_.
 * Use camel_case notation for arguments. No upper case.
 * Write a brief description of the arguments that your function receives in the comments directly above the function.
 * Explicitly state in the comments any anomalies that your function might have. For example, that it does not work with a certain storage or data type.

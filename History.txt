@@ -739,3 +739,38 @@
   * Fixed bug where Array#to_nm would alter the array (by
     @andrewcsmith)
 
+=== 0.3.0 / 2016-01-18
+
+* 2 major enhancements:
+  
+  * New plugin nmatrix-fftw for wrapping over FFTW (by @v0dro)
+  
+  * Change Ruby Array C pointer references to be compatible with ruby 2.3.0 (by @mrkn)
+
+* 8 minor enhancements:
+
+  * Improve Travis configs to test on Linux and OSX with and without plugins (by @mrkn)
+
+  * Added non-abbreviated versions to the options of NMatrix#solve. Added more docs (by @agisga)
+
+  * Add several specialized algorithms to NMatrix#solve for more efficient solving of linear systems with upper or lower trinagular matrices (by @agisga)
+
+  * Check if permute option in NMatrix#transpose is an Array (by @firemind)
+
+  * Use std::unique_ptr<T[]> for variable length array of non-POD type in math.h (by @mrkn)
+
+  * Add negative operator member function in Complex<Type> class  (by @mrkn)
+
+  * Avoid over-writing CONFIG['CXX'] in nmatrix/extconf.rb (by @mrkn)
+
+  * Remove redundant C implementation of complex_conjugate (by @yoongkang)
+
+* 4 bug fixes:
+
+  * Fix memory leak in math.cpp (inverse()) (#387) (by @lokeshh)
+
+  * Fix problem with NMatrix#transpose swallowing an argument without using it (#416) (by @firemind)
+
+  * Move rubyobj_from_cval function into `nm` namespace from C-linkage to fix a C compile time error (by @mrkn)
+
+  * Undefined variable 'idefaults' added in nmatrix_lapacke/extconf.rb (by @agisga)
