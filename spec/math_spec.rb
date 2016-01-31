@@ -480,6 +480,14 @@ describe "math" do
                                 stype: :list)
         expect(n.symmetric?).to be_truthy
       end
+      
+      it "should return false for non symmetric matrix" do
+        n = NMatrix.new([3,3], [1.00000, 0.56695, 1.53374,
+                                0.56695, 1.00000, 0.77813,
+                                0.53374, 0.77813, 1.00000], dtype: dtype,
+                                stype: :list)
+        expect(n.symmetric?).to be_falsy
+      end
     end    
 
     context "#hermitian? for #{dtype}" do

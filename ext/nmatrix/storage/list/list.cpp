@@ -606,7 +606,7 @@ void init_default(LIST_STORAGE* s) {
 template <typename DType>
 bool is_symmetric(const LIST_STORAGE* mat) {
   
-  std::cout << "\n\n\nWhoo hoo\n\n\n";
+  std::cout << "\n\n\nImplementation goes here\n\n\n";
 
   return true;
 }
