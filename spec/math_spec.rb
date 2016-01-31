@@ -463,7 +463,7 @@ describe "math" do
       end unless dtype =~ /complex/
     end
 
-    context "#symmetric? for #{dtype}" do
+    context "#symmetric? for #{dtype} (dense)" do
       it "should return true for symmetric matrix" do 
         n = NMatrix.new([3,3], [1.00000, 0.56695, 0.53374,
                                 0.56695, 1.00000, 0.77813,
@@ -471,6 +471,16 @@ describe "math" do
         expect(n.symmetric?).to be_truthy
       end
     end
+    
+    context "#symmetric? for #{dtype} (list)" do
+      it "should return true for symmetric matrix" do 
+        n = NMatrix.new([3,3], [1.00000, 0.56695, 0.53374,
+                                0.56695, 1.00000, 0.77813,
+                                0.53374, 0.77813, 1.00000], dtype: dtype,
+                                stype: :list)
+        expect(n.symmetric?).to be_truthy
+      end
+    end    
 
     context "#hermitian? for #{dtype}" do
       it "should return true for complex hermitian or non-complex symmetric matrix" do 
