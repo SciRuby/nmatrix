@@ -236,6 +236,86 @@ class NMatrix
       m
     end
     alias :identity :eye
+
+    #
+    # call-seq:
+    #     hilbert(shape) -> NMatrix
+    #     hilbert(shape, dtype: dtype) -> NMatrix
+    #     hilbert(shape, stype: stype, dtype: dtype) -> NMatrix
+    #
+    # Creates an hilbert matrix (square matrix).
+    #
+    # * *Arguments* :
+    #   - +size+ -> integer ( for square matrix) specifying the dimensions.
+    #   - +dtype+ -> (optional) Default is +:float64+
+    #   - +stype+ -> (optional) Default is +:dense+.
+    # * *Returns* :
+    #   - A hilbert matrix.
+    #
+    # Examples:
+    #
+    #    NMatrix.hilbert(3) # =>  1.0     0.5      0.3333333333333333
+    #            0.5                         0.3333333333333333    0.25
+    #            0.3333333333333333          0.25                  0.2
+    #
+    def hilbert(shape, opts={})
+      m = NMatrix.new([shape,shape], {:dtype => :float64}.merge(opts))
+      0.upto(shape - 1) do |i|
+        0.upto(i) do |j|
+          m[i,j] = 1.0 / (j + i + 1)
+          m[j,i] = m[i,j] if i != j
+        end
+      end
+      m
+    end
+
+    #
+    # call-seq:
+    #     inv_hilbert(shape) -> NMatrix
+    #     inv_hilbert(shape, dtype: dtype) -> NMatrix
+    #     inv_hilbert(shape, stype: stype, dtype: dtype) -> NMatrix
+    #
+    # Creates an inverse hilbert matrix (square matrix rank 2).
+    #
+    # * *Arguments* :
+    #   - +size+ -> Array (or integer for square matrix) specifying the dimensions.
+    #   - +dtype+ -> (optional) Default is +:float64+
+    #   - +stype+ -> (optional) Default is +:dense+.
+    # * *Returns* :
+    #   - A hilbert matrix.
+    #
+    # Examples:
+    #    NMatrix.inv_hilbert(3) # =>   9.0,  -36.0,   30.0
+    #                          -36.0,  192.0, -180.0
+    #                          30.0, -180.0,  180.0
+    #
+    #
+    def inv_hilbert(shape, opts={})
+      opts = {:dtype => :float64}.merge(opts)
+      m = NMatrix.new([shape,shape],opts)
+      combination = NMatrix.new([2*shape,2*shape],opts)
+      #combinations refers to the combination of n things taken k at a time
+      0.upto(2*shape-1) do |i|
+        0.upto(i) do |j|
+          if j != 0 and j != i
+            combination[i,j] = combination[i-1,j] + combination[i-1,j-1]
+          else
+            combination[i,j] = 1
+          end
+        end
+      end
+
+      0.upto(shape-1) do |i|
+        0.upto(i) do |j|
+          m[i,j] = combination[shape + j,shape - i - 1] * ((i+j)+1) * \
+          combination[shape + i,shape - j - 1] * (-1) ** ((i+j)) * \
+          combination[(i+j),i] * combination[(i+j),i]
+          m[j,i] = m[i,j] if i != j
+        end
+      end
+      m
+    end
+
     #
     # call-seq:
     #     diagonals(array) -> NMatrix

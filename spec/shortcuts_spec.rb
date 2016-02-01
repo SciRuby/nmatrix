@@ -50,6 +50,41 @@ describe NMatrix do
     expect(m).to eq identity3
   end
 
+  it "hilbert() creates an hilbert matrix" do
+    m = NMatrix.hilbert(8)
+    expect(m[4, 0]).to be_within(0.000001).of(0.2)
+    expect(m[4, 1]).to be_within(0.000001).of(0.16666666666666666)
+    expect(m[4, 2]).to be_within(0.000001).of(0.14285714285714285)
+    expect(m[4, 3]).to be_within(0.000001).of(0.125)
+
+    m = NMatrix.hilbert(3)
+    hilbert3 = NMatrix.new([3, 3], [1.0, 0.5, 0.3333333333333333,\
+     0.5, 0.3333333333333333, 0.25, 0.3333333333333333, 0.25, 0.2])
+    expect(m).to eq hilbert3
+    0.upto(2) do |i|
+      0.upto(2) do |j|
+        expect(m[i, j]).to be_within(0.000001).of(hilbert3[i,j])
+      end
+    end
+  end
+
+  it "inv_hilbert() creates an inverse hilbert matrix" do
+    m = NMatrix.inv_hilbert(6)
+    inv_hilbert6 = [3360.0,  -88200.0,   564480.0, -1411200.0]
+    expect(m[2,0]).to be_within(0.000001).of(inv_hilbert6[0])
+    expect(m[2,1]).to be_within(0.000001).of(inv_hilbert6[1])
+    expect(m[2,2]).to be_within(0.000001).of(inv_hilbert6[2])
+    expect(m[2,3]).to be_within(0.000001).of(inv_hilbert6[3])
+
+    m = NMatrix.inv_hilbert(3)
+    inv_hilbert3 = NMatrix.new([3, 3], [  9.0,  -36.0,   30.0, -36.0,  192.0, -180.0, 30.0, -180.0,  180.0] )
+    0.upto(2) do |i|
+      0.upto(2) do |j|
+        expect(m[i, j]).to be_within(0.000001).of(inv_hilbert3[i,j])
+      end
+    end
+  end
+
   it "diag() creates a matrix with pre-supplied diagonal" do
     arr = [1,2,3,4]
     m = NMatrix.diag(arr)
