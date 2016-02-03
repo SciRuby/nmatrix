@@ -42,6 +42,7 @@ require_relative './io/mat_reader'
 require_relative './io/mat5_reader'
 require_relative './io/market'
 require_relative './io/point_cloud'
+require_relative './io/csv_reader'
 
 require_relative './lapack_core.rb'
 require_relative './yale_functions.rb'
@@ -99,6 +100,31 @@ class NMatrix
     def load_pcd_file(file_path)
       NMatrix::IO::PointCloudReader::MetaReader.new(file_path)
     end
+
+    # call-seq:
+    #     load_csv_file(path) -> NMatrix::IO::Csv::CsvReader
+    #     load_csv_file(path, options) -> NMatrix::IO::Csv::CsvReader
+    #
+    # * *Arguments* :
+    #   - +file_path+ -> The path to a CSV file.
+    #   - +options+ -> Hash with options (:delim String, ',' by default; :dtype Symbol, 
+    #   may be the type supported by SciRuby, :float64 by default)
+    #
+    # * *Returns* :
+    #   - A NMatrix::IO::Csv::CsvReader object 
+    #   with the matrix stored in its +matrix+ property
+    #
+    # * *Using* *options* :
+    #   load_csv_file('mat.csv', delim: ',')
+    #   load_csv_file('mat.csv', delim: ',' , dtype: :int32)
+    #
+    #   PLEASE NOTE THAT: 
+    #   specifying :dtype with :object will result in a :float64 cast
+    #
+    def load_csv_file(file_path, options = {})
+      NMatrix::IO::Csv::CsvReader.new(file_path, options)
+    end
+
 
     # Calculate the size of an NMatrix of a given shape.
     def size(shape)
