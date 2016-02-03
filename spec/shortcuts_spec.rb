@@ -158,6 +158,33 @@ describe NMatrix do
       expect { NMatrix.random("not an array or integer") }.to raise_error
     end
   end
+  
+  context "::linspace" do
+    it "creates a row vector when given only one shape parameter" do
+      v = NMatrix.linspace(1, 10, 4)
+      #Expect a row vector only
+      expect(v.shape.length).to eq(1)
+      
+      ans = [1.0,4.0,7.0,10.0]
+
+      expect(v[0]).to be_within(0.000001).of(ans[0])
+      expect(v[1]).to be_within(0.000001).of(ans[1])
+      expect(v[2]).to be_within(0.000001).of(ans[2])
+      expect(v[3]).to be_within(0.000001).of(ans[3])
+    end
+    
+    it "creates a matrix of input shape with each entry linearly spaced in row major order" do
+      v = NMatrix.linspace(1, Math::PI, [2,2])
+      expect(v.dtype).to eq(:float64)
+
+      ans = [1.0, 1.7138642072677612, 2.4277284145355225, 3.1415927410125732]
+      
+      expect(v[0,0]).to be_within(0.000001).of(ans[0])
+      expect(v[0,1]).to be_within(0.000001).of(ans[1])
+      expect(v[1,0]).to be_within(0.000001).of(ans[2])
+      expect(v[1,1]).to be_within(0.000001).of(ans[3])
+    end
+  end
 
   it "seq() creates a matrix of integers, sequentially" do
     m = NMatrix.seq(2) # 2x2 matrix.
@@ -170,7 +197,6 @@ describe NMatrix do
       end
     end
   end
-
 
   it "indgen() creates a matrix of integers as well as seq()" do
     m = NMatrix.indgen(2) # 2x2 matrix.

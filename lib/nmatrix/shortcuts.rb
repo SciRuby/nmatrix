@@ -468,6 +468,58 @@ class NMatrix
 
     #
     # call-seq:
+    #     linspace(base, limit) -> 1x100 NMatrix
+    #     linspace(base, limit, *shape) -> NMatrix
+    #
+    # Returns an NMatrix with +[shape[0] x shape[1] x .. x shape[dim-1]]+ values of dtype +:float64+ equally spaced from
+    # +base+ to +limit+, inclusive.
+    #
+    # See: http://www.mathworks.com/help/matlab/ref/linspace.html
+    #
+    # * *Arguments* :
+    #   - +base+ -> The first value in the sequence.
+    #   - +limit+ -> The last value in the sequence.
+    #   - +shape+ -> Desired output shape. Default returns a 1x100 row vector.
+    # * *Returns* :
+    #   - NMatrix with +:float64+ values.
+    #
+    # Examples :-
+    #
+    #   NMatrix.linspace(1,Math::PI, 6)
+    #     =>[1.0,
+    #        1.4283185005187988,
+    #        1.8566370010375977,
+    #        2.2849555015563965,
+    #        2.7132740020751953,
+    #        3.1415927410125732
+    #       ]
+    #
+    #   NMatrix.linspace(1,10, [3,2])
+    #     =>[
+    #         [              1.0, 2.799999952316284]
+    #         [4.599999904632568, 6.400000095367432]
+    #         [8.199999809265137,              10.0]
+    #       ]
+    #
+    def linspace(base, limit, shape = [100])
+      
+      # Convert shape to array format 
+      shape = [shape] if shape.is_a? Integer 
+      
+      #Calculate number of elements 
+      count = shape.inject(:*)
+            
+      # Linear spacing between elements calculated in step
+      #   step = limit - base / (count - 1)
+      #   [Result Sequence] = [0->N sequence] * step + [Base]
+      step = (limit - base) * (1.0 / (count - 1))
+      result = NMatrix.seq(shape, {:dtype => :float64}) * step
+      result += NMatrix.new(shape, base)
+      result
+    end
+
+    #
+    # call-seq:
     #     seq(shape) -> NMatrix
     #     seq(shape, options) -> NMatrix
     #     bindgen(shape) -> NMatrix of :byte
