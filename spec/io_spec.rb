@@ -146,4 +146,27 @@ describe NMatrix::IO do
     expect(o).to eq(m)
     expect(o).not_to eq(n)
   end
+
+  it "reads csv file containing a single dense integer matrix" do
+    n = NMatrix::IO::Csv.load 'spec/2x2_dense_int.csv', dtype: :float64
+    m = NMatrix.new(2, [1, 2, 5, 8], dtype: :int64)
+    expect(n).to eq(m)
+  end
+
+  it "reads csv file containing a single dense float matrix" do
+    n = NMatrix::IO::Csv.load 'spec/2x2_dense_float.csv'
+    m = NMatrix.new(2, [1.2, 2.3, 5.1, 12.2], dtype: :float64)
+    expect(n).to eq(m)
+  end
+
+  it "reads csv file not aligned properly with 0" do
+    n = NMatrix::IO::Csv.load 'spec/2x3_dense_not_aligned.csv'
+    m = NMatrix.new([2, 3], [1, 2, 0, 3, 4, 5], dtype: :float64)
+    expect(n).to eq(m)
+  end
+
+  it "fails to read malformed csv file" do
+    n = NMatrix::IO::Csv.load 'spec/malformed_csv.csv'
+    expect(n).to eq(nil)
+  end
 end

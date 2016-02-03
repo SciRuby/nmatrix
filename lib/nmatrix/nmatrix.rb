@@ -42,6 +42,7 @@ require_relative './io/mat_reader'
 require_relative './io/mat5_reader'
 require_relative './io/market'
 require_relative './io/point_cloud'
+require_relative './io/csv_reader'
 
 require_relative './lapack_core.rb'
 require_relative './yale_functions.rb'
@@ -98,6 +99,17 @@ class NMatrix
     #   - A PointCloudReader::MetaReader object with the matrix stored in its +matrix+ property
     def load_pcd_file(file_path)
       NMatrix::IO::PointCloudReader::MetaReader.new(file_path)
+    end
+
+    # call-seq:
+    #     load_pcd_file(path) -> PointCloudReader::MetaReader
+    #
+    # * *Arguments* :
+    #   - +file_path+ -> The path to a PCL PCD file.
+    # * *Returns* :
+    #   - A PointCloudReader::MetaReader object with the matrix stored in its +matrix+ property
+    def load_csv_file(file_path)
+      NMatrix::IO::Csv::CsvReader.new(file_path)
     end
 
     # Calculate the size of an NMatrix of a given shape.
