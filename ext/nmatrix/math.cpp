@@ -23,128 +23,131 @@
 //
 // == math.cpp
 //
-// Ruby-exposed BLAS functions.
+// Ruby-exposed CBLAS and LAPACK functions that are available without
+// an external library.
 //
-// === Procedure for adding LAPACK or CBLAS functions to math.cpp/math.h:
+// === Procedure for adding CBLAS functions to math.cpp/math.h:
 //
 // This procedure is written as if for a fictional function with double
-// version dbacon, which we'll say is from LAPACK.
+// version dbacon, which we'll say is from CBLAS.
 //
 // 1. Write a default templated version which probably returns a boolean.
 //    Call it bacon, and put it in math.h.
-//
-//    Order will always be row-major, so we don't need to pass that.
-//    CBLAS_TRANSPOSE-type arguments, however, should be passed.
-//
-//    Otherwise, arguments should look like those in cblas.h or clapack.h:
 //
 //    template <typename DType>
 //    bool bacon(const CBLAS_TRANSPOSE trans, const int M, const int N, DType* A, ...) {
 //      rb_raise(rb_eNotImpError, "only implemented for ATLAS types (float32, float64, complex64, complex128)");
 //    }
 //
+//    Make sure this is in namespace nm::math
+//
 // 2. In math.cpp, add a templated inline static version of the function which takes
-//    only void* pointers and uses reinterpret_cast to convert them to the
-//    proper dtype.
+//    only void* pointers and uses static_cast to convert them to the
+//    proper dtype. This should also be in namespace nm::math
 //
 //    This function may also need to switch m and n if these arguments are given.
 //
 //    For an example, see cblas_gemm. This function should do nothing other than cast
-//    appropriately. If clapack_dbacon, clapack_sbacon, clapack_cbacon, and clapack_zbacon
+//    appropriately. If cblas_dbacon, cblas_sbacon, cblas_cbacon, and cblas_zbacon
 //    all take void* only, and no other pointers that vary between functions, you can skip
 //    this particular step -- as we can call them directly using a custom function pointer
 //    array (same function signature!).
 //
-//    This version of the function will be the one exposed through NMatrix::LAPACK. We
-//    want it to be as close to the actual LAPACK version of the function as possible,
+//    This version of the function will be the one exposed through NMatrix::BLAS. We
+//    want it to be as close to the actual BLAS version of the function as possible,
 //    and with as few checks as possible.
 //
 //    You will probably need a forward declaration in the extern "C" block.
 //
 //    Note: In that case, the function you wrote in Step 1 should also take exactly the
-//    same arguments as clapack_xbacon. Otherwise Bad Things will happen.
+//    same arguments as cblas_xbacon. Otherwise Bad Things will happen.
 //
-// 3. In math.cpp, add inline specialized versions of bacon for the different ATLAS types.
+// 3. In cblas_templates_core.h, add a default template like in step 1 (which will just
+//    call nm::math::bacon()) and also
+//    inline specialized versions of bacon for the different BLAS types.
+//    This will allow both nmatrix-atlas and nmatrix-lapacke to use the optimized version
+//    of bacon from whatever external library is available, as well as the internal version
+//    if an external version is not available. These functions will end up in a namsespace
+//    like nm::math::atlas, but don't explicitly put them in a namespace, they will get
+//    put in the appropriate namespace when cblas_templates_core.h is included.
 //
-//    You could do this with a macro, if the arguments are all similar (see #define LAPACK_GETRF).
-//    Or you may prefer to do it by hand:
+//    template <typename DType>
+//    inline bool bacon(const CBLAS_TRANSPOSE trans, const int M, const int N, DType* A, ...) {
+//      nm::math::bacon(trans, M, N, A, ...);
+//    }
 //
 //    template <>
 //    inline bool bacon(const CBLAS_TRANSPOSE trans, const int M, const int N, float* A, ...) {
-//      clapack_sbacon(trans, M, N, A, ...);
+//      cblas_sbacon(trans, M, N, A, ...);
 //      return true;
 //    }
 //
-//    Make sure these functions are in the namespace nm::math.
-//
 //    Note that you should do everything in your power here to parse any return values
-//    clapack_sbacon may give you. We're not trying very hard in this example, but you might
+//    cblas_sbacon may give you. We're not trying very hard in this example, but you might
 //    look at getrf to see how it might be done.
 //
-// 4. Expose the function in nm_math_init_blas(), in math.cpp:
+// 4. Write the C function nm_cblas_bacon, which is what Ruby will call. Use the example
+//    of nm_cblas_gemm below. Also you must add a similar function in math_atlas.cpp
+//    and math_lapacke.cpp
 //
-//    rb_define_singleton_method(cNMatrix_LAPACK, "clapack_bacon", (METHOD)nm_lapack_bacon, 5);
+// 5. Expose the function in nm_math_init_blas(), in math.cpp:
 //
-//    Here, we're telling Ruby that nm_lapack_bacon takes five arguments as a Ruby function.
+//    rb_define_singleton_method(cNMatrix_Internal_BLAS, "cblas_bacon", (METHOD)nm_cblas_bacon, 5);
 //
-// 5. In blas.rb, write a bacon function which accesses clapack_bacon, but does all the
+//    Do something similar in math_atlas.cpp and math_lapacke.cpp to add the function
+//    to the plugin gems.
+//
+//    Here, we're telling Ruby that nm_cblas_bacon takes five arguments as a Ruby function.
+//
+// 6. In blas.rb, write a bacon function which accesses cblas_bacon, but does all the
 //    sanity checks we left out in step 2.
 //
-// 6. Write tests for NMatrix::LAPACK::getrf, confirming that it works for the ATLAS dtypes.
+// 7. Write tests for NMatrix::BLAS::bacon, confirming that it works for the ATLAS dtypes.
 //
-// 7. After you get it working properly with ATLAS, download dbacon.f from NETLIB, and use
+// 8. After you get it working properly with CBLAS, download dbacon.f from NETLIB, and use
 //    f2c to convert it to C. Clean it up so it's readable. Remove the extra indices -- f2c
 //    inserts a lot of unnecessary stuff.
 //
 //    Copy and paste the output into the default templated function you wrote in Step 1.
 //    Fix it so it works as a template instead of just for doubles.
 //
-// 8. Write tests to confirm that it works for all data types.
+//    Because of step 3, this will automatically also work for the nmatrix-atlas
+//    and nmatrix-lapacke implementations.
 //
-// 9. See about adding a Ruby-like interface, such as matrix_matrix_multiply for cblas_gemm,
+// 9. Write tests to confirm that it works for all data types.
+//
+// 10. See about adding a Ruby-like interface, such as matrix_matrix_multiply for cblas_gemm,
 //    or matrix_vector_multiply for cblas_gemv. This step is not mandatory.
 //
-// 10. Pull request!
-
-
+// 11. Pull request!
 
 /*
  * Project Includes
  */
 
 
+#include <ruby.h>
 #include <algorithm>
 #include <limits>
 #include <cmath>
 
-#if !(defined(HAVE_CBLAS_H) || defined(HAVE_ATLAS_CBLAS_H))
 #include "math/cblas_enums.h"
-#endif
 
-#include "math/inc.h"
 #include "data/data.h"
-#include "math/gesdd.h"
-#include "math/gesvd.h"
-#include "math/geev.h"
-#include "math/swap.h"
 #include "math/imax.h"
 #include "math/scal.h"
-#include "math/ger.h"
-#include "math/getf2.h"
 #include "math/laswp.h"
 #include "math/trsm.h"
-#include "math/long_dtype.h" // for gemm.h
 #include "math/gemm.h"
 #include "math/gemv.h"
 #include "math/asum.h"
 #include "math/nrm2.h"
 #include "math/getrf.h"
-#include "math/getri.h"
 #include "math/getrs.h"
-#include "math/potrs.h"
 #include "math/rot.h"
 #include "math/rotg.h"
 #include "math/math.h"
+#include "math/util.h"
 #include "storage/dense/dense.h"
 
 #include "nmatrix.h"
@@ -155,12 +158,6 @@
  */
 
 extern "C" {
-#if defined HAVE_CLAPACK_H
-  #include <clapack.h>
-#elif defined HAVE_ATLAS_CLAPACK_H
-  #include <atlas/clapack.h>
-#endif
-
   /* BLAS Level 1. */
   static VALUE nm_cblas_scal(VALUE self, VALUE n, VALUE scale, VALUE vector, VALUE incx);
   static VALUE nm_cblas_nrm2(VALUE self, VALUE n, VALUE x, VALUE incx);
@@ -170,34 +167,20 @@ extern "C" {
   static VALUE nm_cblas_imax(VALUE self, VALUE n, VALUE x, VALUE incx);
 
   /* BLAS Level 2. */
+  static VALUE nm_cblas_gemv(VALUE self, VALUE trans_a, VALUE m, VALUE n, VALUE vAlpha, VALUE a, VALUE lda,
+                             VALUE x, VALUE incx, VALUE vBeta, VALUE y, VALUE incy);
+
   /* BLAS Level 3. */
   static VALUE nm_cblas_gemm(VALUE self, VALUE order, VALUE trans_a, VALUE trans_b, VALUE m, VALUE n, VALUE k, VALUE vAlpha,
                              VALUE a, VALUE lda, VALUE b, VALUE ldb, VALUE vBeta, VALUE c, VALUE ldc);
-  static VALUE nm_cblas_gemv(VALUE self, VALUE trans_a, VALUE m, VALUE n, VALUE vAlpha, VALUE a, VALUE lda,
-                             VALUE x, VALUE incx, VALUE vBeta, VALUE y, VALUE incy);
   static VALUE nm_cblas_trsm(VALUE self, VALUE order, VALUE side, VALUE uplo, VALUE trans_a, VALUE diag, VALUE m, VALUE n,
                              VALUE vAlpha, VALUE a, VALUE lda, VALUE b, VALUE ldb);
-  static VALUE nm_cblas_trmm(VALUE self, VALUE order, VALUE side, VALUE uplo, VALUE trans_a, VALUE diag, VALUE m, VALUE n,
-                             VALUE alpha, VALUE a, VALUE lda, VALUE b, VALUE ldb);
-  static VALUE nm_cblas_herk(VALUE self, VALUE order, VALUE uplo, VALUE trans, VALUE n, VALUE k, VALUE alpha, VALUE a,
-                             VALUE lda, VALUE beta, VALUE c, VALUE ldc);
-  static VALUE nm_cblas_syrk(VALUE self, VALUE order, VALUE uplo, VALUE trans, VALUE n, VALUE k, VALUE alpha, VALUE a,
-                             VALUE lda, VALUE beta, VALUE c, VALUE ldc);
 
   /* LAPACK. */
   static VALUE nm_has_clapack(VALUE self);
   static VALUE nm_clapack_getrf(VALUE self, VALUE order, VALUE m, VALUE n, VALUE a, VALUE lda);
-  static VALUE nm_clapack_potrf(VALUE self, VALUE order, VALUE uplo, VALUE n, VALUE a, VALUE lda);
   static VALUE nm_clapack_getrs(VALUE self, VALUE order, VALUE trans, VALUE n, VALUE nrhs, VALUE a, VALUE lda, VALUE ipiv, VALUE b, VALUE ldb);
-  static VALUE nm_clapack_potrs(VALUE self, VALUE order, VALUE uplo, VALUE n, VALUE nrhs, VALUE a, VALUE lda, VALUE b, VALUE ldb);
-  static VALUE nm_clapack_getri(VALUE self, VALUE order, VALUE n, VALUE a, VALUE lda, VALUE ipiv);
-  static VALUE nm_clapack_potri(VALUE self, VALUE order, VALUE uplo, VALUE n, VALUE a, VALUE lda);
   static VALUE nm_clapack_laswp(VALUE self, VALUE n, VALUE a, VALUE lda, VALUE k1, VALUE k2, VALUE ipiv, VALUE incx);
-  static VALUE nm_clapack_lauum(VALUE self, VALUE order, VALUE uplo, VALUE n, VALUE a, VALUE lda);
-
-  static VALUE nm_lapack_gesvd(VALUE self, VALUE jobu, VALUE jobvt, VALUE m, VALUE n, VALUE a, VALUE lda, VALUE s, VALUE u, VALUE ldu, VALUE vt, VALUE ldvt, VALUE lworkspace_size);
-  static VALUE nm_lapack_gesdd(VALUE self, VALUE jobz, VALUE m, VALUE n, VALUE a, VALUE lda, VALUE s, VALUE u, VALUE ldu, VALUE vt, VALUE ldvt, VALUE lworkspace_size);
-  static VALUE nm_lapack_geev(VALUE self, VALUE compute_left, VALUE compute_right, VALUE n, VALUE a, VALUE lda, VALUE w, VALUE wi, VALUE vl, VALUE ldvl, VALUE vr, VALUE ldvr, VALUE lwork);
 } // end of extern "C" block
 
 ////////////////////
@@ -241,50 +224,6 @@ namespace nm {
     }
 
     /*
-     * Solve a system of linear equations using forward-substution followed by 
-     * back substution from the LU factorization of the matrix of co-efficients.
-     * Replaces x_elements with the result. Works only with non-integer, non-object
-     * data types.
-     *
-     * args - r           -> The number of rows of the matrix.
-     *        lu_elements -> Elements of the LU decomposition of the co-efficients 
-     *                       matrix, as a contiguos array.
-     *        b_elements  -> Elements of the the right hand sides, as a contiguous array.
-     *        x_elements  -> The array that will contain the results of the computation.
-     *        pivot       -> Positions of permuted rows.
-     */
-    template <typename DType>
-    void solve(const int r, const void* lu_elements, const void* b_elements, void* x_elements, const int* pivot) {
-      int ii = 0, ip;
-      DType sum;
-
-      const DType* matrix = reinterpret_cast<const DType*>(lu_elements);
-      const DType* b      = reinterpret_cast<const DType*>(b_elements);
-      DType* x            = reinterpret_cast<DType*>(x_elements);
-
-      for (int i = 0; i < r; ++i) { x[i] = b[i]; } 
-      for (int i = 0; i < r; ++i) { // forward substitution loop
-        ip = pivot[i];
-        sum = x[ip];
-        x[ip] = x[i];
-
-        if (ii != 0) {
-          for (int j = ii - 1;j < i; ++j) { sum = sum - matrix[i * r + j] * x[j]; }
-        }
-        else if (sum != 0.0) {
-          ii = i + 1;
-        }
-        x[i] = sum;
-      }
-
-      for (int i = r - 1; i >= 0; --i) { // back substitution loop
-        sum = x[i];
-        for (int j = i + 1; j < r; j++) { sum = sum - matrix[i * r + j] * x[j]; }
-        x[i] = sum/matrix[i * r + i];
-      }
-    }
-
-    /*
      * Calculates in-place inverse of A_elements. Uses Gauss-Jordan elimination technique.
      * In-place inversion of the matrix saves on memory and time.
      *
@@ -294,8 +233,8 @@ namespace nm {
     template <typename DType>
     void inverse(const int M, void* a_elements) {
       DType* matrix   = reinterpret_cast<DType*>(a_elements);
-      int* row_index = new int[M]; // arrays for keeping track of column scrambling
-      int* col_index = new int[M];
+      int row_index[M]; // arrays for keeping track of column scrambling
+      int col_index[M];
 
       for (int k = 0;k < M; ++k) {
         DType akk = std::abs( matrix[k * (M + 1)] ) ; // diagonal element
@@ -356,9 +295,6 @@ namespace nm {
           }
         }
       }
-
-      delete[] row_index;
-      delete[] col_index;
     }
 
     /*
@@ -480,22 +416,6 @@ namespace nm {
     }
 
     /*
-     * Function signature conversion for calling CBLAS' gesvd functions as directly as possible.
-     */
-    template <typename DType, typename CType>
-    inline static int lapack_gesvd(char jobu, char jobvt, int m, int n, void* a, int lda, void* s, void* u, int ldu, void* vt, int ldvt, void* work, int lwork, void* rwork) {
-      return gesvd<DType,CType>(jobu, jobvt, m, n, reinterpret_cast<DType*>(a), lda, reinterpret_cast<DType*>(s), reinterpret_cast<DType*>(u), ldu, reinterpret_cast<DType*>(vt), ldvt, reinterpret_cast<DType*>(work), lwork, reinterpret_cast<CType*>(rwork));
-    }
-
-    /*
-     * Function signature conversion for calling CBLAS' gesvd functions as directly as possible.
-     */
-    template <typename DType, typename CType>
-    inline static int lapack_gesdd(char jobz, int m, int n, void* a, int lda, void* s, void* u, int ldu, void* vt, int ldvt, void* work, int lwork, int* iwork, void* rwork) {
-      return gesdd<DType,CType>(jobz, m, n, reinterpret_cast<DType*>(a), lda, reinterpret_cast<DType*>(s), reinterpret_cast<DType*>(u), ldu, reinterpret_cast<DType*>(vt), ldvt, reinterpret_cast<DType*>(work), lwork, iwork, reinterpret_cast<CType*>(rwork));
-    }
-
-    /*
      * Function signature conversion for calling CBLAS' gemm functions as directly as possible.
      *
      * For documentation: http://www.netlib.org/blas/dgemm.f
@@ -554,39 +474,6 @@ namespace nm {
                   reinterpret_cast<const DType*>(a), lda, reinterpret_cast<DType*>(b), ldb);
     }
 
-
-    /*
-     * Function signature conversion for calling CBLAS' trmm functions as directly as possible.
-     *
-     * For documentation: http://www.netlib.org/blas/dtrmm.f
-     */
-    template <typename DType>
-    inline static void cblas_trmm(const enum CBLAS_ORDER order, const enum CBLAS_SIDE side, const enum CBLAS_UPLO uplo,
-                                  const enum CBLAS_TRANSPOSE ta, const enum CBLAS_DIAG diag, const int m, const int n, const void* alpha,
-                                  const void* A, const int lda, void* B, const int ldb)
-    {
-      trmm<DType>(order, side, uplo, ta, diag, m, n, reinterpret_cast<const DType*>(alpha),
-                  reinterpret_cast<const DType*>(A), lda, reinterpret_cast<DType*>(B), ldb);
-    }
-
-
-    /*
-     * Function signature conversion for calling CBLAS' syrk functions as directly as possible.
-     *
-     * For documentation: http://www.netlib.org/blas/dsyrk.f
-     */
-    template <typename DType>
-    inline static void cblas_syrk(const enum CBLAS_ORDER order, const enum CBLAS_UPLO uplo, const enum CBLAS_TRANSPOSE trans,
-                                  const int n, const int k, const void* alpha,
-                                  const void* A, const int lda, const void* beta, void* C, const int ldc)
-    {
-      syrk<DType>(order, uplo, trans, n, k, reinterpret_cast<const DType*>(alpha),
-                  reinterpret_cast<const DType*>(A), lda, reinterpret_cast<const DType*>(beta), reinterpret_cast<DType*>(C), ldc);
-    }
-
-
-
-
   }
 } // end of namespace nm::math
 
@@ -598,80 +485,29 @@ extern "C" {
 ///////////////////
 
 void nm_math_init_blas() {
-	cNMatrix_LAPACK = rb_define_module_under(cNMatrix, "LAPACK");
+  VALUE cNMatrix_Internal = rb_define_module_under(cNMatrix, "Internal");
 
   rb_define_singleton_method(cNMatrix, "has_clapack?", (METHOD)nm_has_clapack, 0);
 
-  /* ATLAS-CLAPACK Functions */
-  rb_define_singleton_method(cNMatrix_LAPACK, "clapack_getrf", (METHOD)nm_clapack_getrf, 5);
-  rb_define_singleton_method(cNMatrix_LAPACK, "clapack_potrf", (METHOD)nm_clapack_potrf, 5);
-  rb_define_singleton_method(cNMatrix_LAPACK, "clapack_getrs", (METHOD)nm_clapack_getrs, 9);
-  rb_define_singleton_method(cNMatrix_LAPACK, "clapack_potrs", (METHOD)nm_clapack_potrs, 8);
-  rb_define_singleton_method(cNMatrix_LAPACK, "clapack_getri", (METHOD)nm_clapack_getri, 5);
-  rb_define_singleton_method(cNMatrix_LAPACK, "clapack_potri", (METHOD)nm_clapack_potri, 5);
-  rb_define_singleton_method(cNMatrix_LAPACK, "clapack_laswp", (METHOD)nm_clapack_laswp, 7);
-  rb_define_singleton_method(cNMatrix_LAPACK, "clapack_lauum", (METHOD)nm_clapack_lauum, 5);
+  VALUE cNMatrix_Internal_LAPACK = rb_define_module_under(cNMatrix_Internal, "LAPACK");
 
-  /* Non-ATLAS regular LAPACK Functions called via Fortran interface */
-  rb_define_singleton_method(cNMatrix_LAPACK, "lapack_gesvd", (METHOD)nm_lapack_gesvd, 12);
-  rb_define_singleton_method(cNMatrix_LAPACK, "lapack_gesdd", (METHOD)nm_lapack_gesdd, 11);
-  rb_define_singleton_method(cNMatrix_LAPACK, "lapack_geev",  (METHOD)nm_lapack_geev,  12);
+  /* ATLAS-CLAPACK Functions that are implemented internally */
+  rb_define_singleton_method(cNMatrix_Internal_LAPACK, "clapack_getrf", (METHOD)nm_clapack_getrf, 5);
+  rb_define_singleton_method(cNMatrix_Internal_LAPACK, "clapack_getrs", (METHOD)nm_clapack_getrs, 9);
+  rb_define_singleton_method(cNMatrix_Internal_LAPACK, "clapack_laswp", (METHOD)nm_clapack_laswp, 7);
 
-  cNMatrix_BLAS = rb_define_module_under(cNMatrix, "BLAS");
+  VALUE cNMatrix_Internal_BLAS = rb_define_module_under(cNMatrix_Internal, "BLAS");
 
-  rb_define_singleton_method(cNMatrix_BLAS, "cblas_scal", (METHOD)nm_cblas_scal, 4);
-  rb_define_singleton_method(cNMatrix_BLAS, "cblas_nrm2", (METHOD)nm_cblas_nrm2, 3);
-  rb_define_singleton_method(cNMatrix_BLAS, "cblas_asum", (METHOD)nm_cblas_asum, 3);
-  rb_define_singleton_method(cNMatrix_BLAS, "cblas_rot",  (METHOD)nm_cblas_rot,  7);
-  rb_define_singleton_method(cNMatrix_BLAS, "cblas_rotg", (METHOD)nm_cblas_rotg, 1);
-  rb_define_singleton_method(cNMatrix_BLAS, "cblas_imax", (METHOD)nm_cblas_imax, 3);
+  rb_define_singleton_method(cNMatrix_Internal_BLAS, "cblas_scal", (METHOD)nm_cblas_scal, 4);
+  rb_define_singleton_method(cNMatrix_Internal_BLAS, "cblas_nrm2", (METHOD)nm_cblas_nrm2, 3);
+  rb_define_singleton_method(cNMatrix_Internal_BLAS, "cblas_asum", (METHOD)nm_cblas_asum, 3);
+  rb_define_singleton_method(cNMatrix_Internal_BLAS, "cblas_rot",  (METHOD)nm_cblas_rot,  7);
+  rb_define_singleton_method(cNMatrix_Internal_BLAS, "cblas_rotg", (METHOD)nm_cblas_rotg, 1);
+  rb_define_singleton_method(cNMatrix_Internal_BLAS, "cblas_imax", (METHOD)nm_cblas_imax, 3);
 
-	rb_define_singleton_method(cNMatrix_BLAS, "cblas_gemm", (METHOD)nm_cblas_gemm, 14);
-	rb_define_singleton_method(cNMatrix_BLAS, "cblas_gemv", (METHOD)nm_cblas_gemv, 11);
-	rb_define_singleton_method(cNMatrix_BLAS, "cblas_trsm", (METHOD)nm_cblas_trsm, 12);
-	rb_define_singleton_method(cNMatrix_BLAS, "cblas_trmm", (METHOD)nm_cblas_trmm, 12);
-	rb_define_singleton_method(cNMatrix_BLAS, "cblas_syrk", (METHOD)nm_cblas_syrk, 11);
-	rb_define_singleton_method(cNMatrix_BLAS, "cblas_herk", (METHOD)nm_cblas_herk, 11);
-}
-
-/*
- * Interprets lapack jobu and jobvt arguments, for which LAPACK needs character values A, S, O, or N.
- *
- * Called by lapack_gesvd -- basically inline. svd stands for singular value decomposition.
- */
-static inline char lapack_svd_job_sym(VALUE op) {
-  if (rb_to_id(op) == rb_intern("all") || rb_to_id(op) == rb_intern("a")) return 'A';
-  else if (rb_to_id(op) == rb_intern("return") || rb_to_id(op) == rb_intern("s")) return 'S';
-  else if (rb_to_id(op) == rb_intern("overwrite") || rb_to_id(op) == rb_intern("o")) return 'O';
-  else if (rb_to_id(op) == rb_intern("none") || rb_to_id(op) == rb_intern("n")) return 'N';
-  else rb_raise(rb_eArgError, "Expected :all, :return, :overwrite, :none (or :a, :s, :o, :n, respectively)");
-  return 'a';
-}
-
-
-/*
- * Interprets lapack jobvl and jobvr arguments, for which LAPACK needs character values N or V.
- *
- * Called by lapack_geev -- basically inline. evd stands for eigenvalue decomposition.
- */
-static inline char lapack_evd_job_sym(VALUE op) {
-  if (op == Qfalse || op == Qnil || rb_to_id(op) == rb_intern("n")) return 'N';
-  else return 'V';
-}
-
-
-/* Interprets cblas argument which could be any of false/:no_transpose, :transpose, or :complex_conjugate,
- * into an enum recognized by cblas.
- *
- * Called by nm_cblas_gemm -- basically inline.
- *
- */
-static inline enum CBLAS_TRANSPOSE blas_transpose_sym(VALUE op) {
-  if (op == Qfalse || rb_to_id(op) == nm_rb_no_transpose) return CblasNoTrans;
-  else if (rb_to_id(op) == nm_rb_transpose) return CblasTrans;
-  else if (rb_to_id(op) == nm_rb_complex_conjugate) return CblasConjTrans;
-  else rb_raise(rb_eArgError, "Expected false, :transpose, or :complex_conjugate");
-  return CblasNoTrans;
+  rb_define_singleton_method(cNMatrix_Internal_BLAS, "cblas_gemm", (METHOD)nm_cblas_gemm, 14);
+  rb_define_singleton_method(cNMatrix_Internal_BLAS, "cblas_gemv", (METHOD)nm_cblas_gemv, 11);
+  rb_define_singleton_method(cNMatrix_Internal_BLAS, "cblas_trsm", (METHOD)nm_cblas_trsm, 12);
 }
 
 /*
@@ -703,55 +539,6 @@ static VALUE nm_cblas_scal(VALUE self, VALUE n, VALUE alpha, VALUE vector, VALUE
 
   return vector;
 }
-
-/*
- * Interprets cblas argument which could be :left or :right
- *
- * Called by nm_cblas_trsm -- basically inline
- */
-static inline enum CBLAS_SIDE blas_side_sym(VALUE op) {
-  ID op_id = rb_to_id(op);
-  if (op_id == nm_rb_left)  return CblasLeft;
-  if (op_id == nm_rb_right) return CblasRight;
-  rb_raise(rb_eArgError, "Expected :left or :right for side argument");
-  return CblasLeft;
-}
-
-/*
- * Interprets cblas argument which could be :upper or :lower
- *
- * Called by nm_cblas_trsm -- basically inline
- */
-static inline enum CBLAS_UPLO blas_uplo_sym(VALUE op) {
-  ID op_id = rb_to_id(op);
-  if (op_id == nm_rb_upper) return CblasUpper;
-  if (op_id == nm_rb_lower) return CblasLower;
-  rb_raise(rb_eArgError, "Expected :upper or :lower for uplo argument");
-  return CblasUpper;
-}
-
-
-/*
- * Interprets cblas argument which could be :unit (true) or :nonunit (false or anything other than true/:unit)
- *
- * Called by nm_cblas_trsm -- basically inline
- */
-static inline enum CBLAS_DIAG blas_diag_sym(VALUE op) {
-  if (rb_to_id(op) == nm_rb_unit || op == Qtrue) return CblasUnit;
-  return CblasNonUnit;
-}
-
-/*
- * Interprets cblas argument which could be :row or :col
- */
-static inline enum CBLAS_ORDER blas_order_sym(VALUE op) {
-  if (rb_to_id(op) == rb_intern("row") || rb_to_id(op) == rb_intern("row_major")) return CblasRowMajor;
-  else if (rb_to_id(op) == rb_intern("col") || rb_to_id(op) == rb_intern("col_major") ||
-           rb_to_id(op) == rb_intern("column") || rb_to_id(op) == rb_intern("column_major")) return CblasColMajor;
-  rb_raise(rb_eArgError, "Expected :row or :col for order argument");
-  return CblasRowMajor;
-}
-
 
 /*
  * Call any of the cblas_xrotg functions as directly as possible.
@@ -810,8 +597,8 @@ static VALUE nm_cblas_rotg(VALUE self, VALUE ab) {
       rb_ary_store(result, 0, *reinterpret_cast<VALUE*>(pC));
       rb_ary_store(result, 1, *reinterpret_cast<VALUE*>(pS));
     } else {
-      rb_ary_store(result, 0, rubyobj_from_cval(pC, dtype).rval);
-      rb_ary_store(result, 1, rubyobj_from_cval(pS, dtype).rval);
+      rb_ary_store(result, 0, nm::rubyobj_from_cval(pC, dtype).rval);
+      rb_ary_store(result, 1, nm::rubyobj_from_cval(pS, dtype).rval);
     }
     NM_CONSERVATIVE(nm_unregister_value(&ab));
     NM_CONSERVATIVE(nm_unregister_value(&self));
@@ -935,7 +722,7 @@ static VALUE nm_cblas_nrm2(VALUE self, VALUE n, VALUE x, VALUE incx) {
 
     ttable[dtype](FIX2INT(n), NM_STORAGE_DENSE(x)->elements, FIX2INT(incx), Result);
 
-    return rubyobj_from_cval(Result, rdtype).rval;
+    return nm::rubyobj_from_cval(Result, rdtype).rval;
   }
 }
 
@@ -984,7 +771,7 @@ static VALUE nm_cblas_asum(VALUE self, VALUE n, VALUE x, VALUE incx) {
 
   ttable[dtype](FIX2INT(n), NM_STORAGE_DENSE(x)->elements, FIX2INT(incx), Result);
 
-  return rubyobj_from_cval(Result, rdtype).rval;
+  return nm::rubyobj_from_cval(Result, rdtype).rval;
 }
 
 /*
@@ -1117,12 +904,8 @@ static VALUE nm_cblas_trsm(VALUE self,
       NULL, NULL, NULL, NULL, NULL, // integers not allowed due to division
       nm::math::cblas_trsm<float>,
       nm::math::cblas_trsm<double>,
-#if (defined(HAVE_CBLAS_H) || defined(HAVE_ATLAS_CBLAS_H))
-      cblas_ctrsm, cblas_ztrsm, // call directly, same function signature!
-#else
       nm::math::cblas_trsm<nm::Complex64>,
       nm::math::cblas_trsm<nm::Complex128>,
-#endif
       nm::math::cblas_trsm<nm::RubyObject>
   };
 
@@ -1139,358 +922,6 @@ static VALUE nm_cblas_trsm(VALUE self,
 
   return Qtrue;
 }
-
-
-static VALUE nm_cblas_trmm(VALUE self,
-                           VALUE order,
-                           VALUE side, VALUE uplo,
-                           VALUE trans_a, VALUE diag,
-                           VALUE m, VALUE n,
-                           VALUE alpha,
-                           VALUE a, VALUE lda,
-                           VALUE b, VALUE ldb)
-{
-  static void (*ttable[nm::NUM_DTYPES])(const enum CBLAS_ORDER,
-                                        const enum CBLAS_SIDE, const enum CBLAS_UPLO,
-                                        const enum CBLAS_TRANSPOSE, const enum CBLAS_DIAG,
-                                        const int m, const int n, const void* alpha, const void* a,
-                                        const int lda, void* b, const int ldb) = {
-      NULL, NULL, NULL, NULL, NULL, // integers not allowed due to division
-      nm::math::cblas_trmm<float>,
-      nm::math::cblas_trmm<double>,
-#if (defined(HAVE_CBLAS_H) || defined(HAVE_ATLAS_CBLAS_H))
-      cblas_ctrmm, cblas_ztrmm, // call directly, same function signature!
-#else
-      nm::math::cblas_trmm<nm::Complex64>,
-      nm::math::cblas_trmm<nm::Complex128>,
-#endif
-      NULL
-  };
-
-  nm::dtype_t dtype = NM_DTYPE(a);
-
-  if (!ttable[dtype]) {
-    rb_raise(nm_eDataTypeError, "this matrix operation not yet defined for non-BLAS dtypes");
-  } else {
-    void *pAlpha = NM_ALLOCA_N(char, DTYPE_SIZES[dtype]);
-    rubyval_to_cval(alpha, dtype, pAlpha);
-
-    ttable[dtype](blas_order_sym(order), blas_side_sym(side), blas_uplo_sym(uplo), blas_transpose_sym(trans_a), blas_diag_sym(diag), FIX2INT(m), FIX2INT(n), pAlpha, NM_STORAGE_DENSE(a)->elements, FIX2INT(lda), NM_STORAGE_DENSE(b)->elements, FIX2INT(ldb));
-  }
-
-  return b;
-}
-
-
-static VALUE nm_cblas_syrk(VALUE self,
-                           VALUE order,
-                           VALUE uplo,
-                           VALUE trans,
-                           VALUE n, VALUE k,
-                           VALUE alpha,
-                           VALUE a, VALUE lda,
-                           VALUE beta,
-                           VALUE c, VALUE ldc)
-{
-  static void (*ttable[nm::NUM_DTYPES])(const enum CBLAS_ORDER, const enum CBLAS_UPLO, const enum CBLAS_TRANSPOSE,
-                                        const int n, const int k, const void* alpha, const void* a,
-                                        const int lda, const void* beta, void* c, const int ldc) = {
-      NULL, NULL, NULL, NULL, NULL, // integers not allowed due to division
-      nm::math::cblas_syrk<float>,
-      nm::math::cblas_syrk<double>,
-#if (defined(HAVE_CBLAS_H) || defined(HAVE_ATLAS_CBLAS_H))
-      cblas_csyrk, cblas_zsyrk, // call directly, same function signature!
-#else
-      nm::math::cblas_syrk<nm::Complex64>,
-      nm::math::cblas_syrk<nm::Complex128>,
-#endif
-      NULL
-  };
-
-  nm::dtype_t dtype = NM_DTYPE(a);
-
-  if (!ttable[dtype]) {
-    rb_raise(nm_eDataTypeError, "this matrix operation undefined for integer matrices");
-  } else {
-    void *pAlpha = NM_ALLOCA_N(char, DTYPE_SIZES[dtype]),
-         *pBeta = NM_ALLOCA_N(char, DTYPE_SIZES[dtype]);
-    rubyval_to_cval(alpha, dtype, pAlpha);
-    rubyval_to_cval(beta, dtype, pBeta);
-
-    ttable[dtype](blas_order_sym(order), blas_uplo_sym(uplo), blas_transpose_sym(trans), FIX2INT(n), FIX2INT(k), pAlpha, NM_STORAGE_DENSE(a)->elements, FIX2INT(lda), pBeta, NM_STORAGE_DENSE(c)->elements, FIX2INT(ldc));
-  }
-
-  return Qtrue;
-}
-
-
-static VALUE nm_cblas_herk(VALUE self,
-                           VALUE order,
-                           VALUE uplo,
-                           VALUE trans,
-                           VALUE n, VALUE k,
-                           VALUE alpha,
-                           VALUE a, VALUE lda,
-                           VALUE beta,
-                           VALUE c, VALUE ldc)
-{
-
-  nm::dtype_t dtype = NM_DTYPE(a);
-
-  if (dtype == nm::COMPLEX64) {
-#if (defined(HAVE_CBLAS_H) || defined(HAVE_ATLAS_CBLAS_H))
-    cblas_cherk(blas_order_sym(order), blas_uplo_sym(uplo), blas_transpose_sym(trans), FIX2INT(n), FIX2INT(k), NUM2DBL(alpha), NM_STORAGE_DENSE(a)->elements, FIX2INT(lda), NUM2DBL(beta), NM_STORAGE_DENSE(c)->elements, FIX2INT(ldc));
-#else
-  rb_raise(rb_eNotImpError, "BLAS not linked");
-#endif
-  } else if (dtype == nm::COMPLEX128) {
-#if (defined(HAVE_CBLAS_H) || defined(HAVE_ATLAS_CBLAS_H))
-    cblas_zherk(blas_order_sym(order), blas_uplo_sym(uplo), blas_transpose_sym(trans), FIX2INT(n), FIX2INT(k), NUM2DBL(alpha), NM_STORAGE_DENSE(a)->elements, FIX2INT(lda), NUM2DBL(beta), NM_STORAGE_DENSE(c)->elements, FIX2INT(ldc));
-#else
-  rb_raise(rb_eNotImpError, "BLAS not linked");
-#endif
-  } else
-    rb_raise(rb_eNotImpError, "this matrix operation undefined for non-complex dtypes");
-  return Qtrue;
-}
-
-
-/*
- * Function signature conversion for calling CBLAS' gesvd functions as directly as possible.
- *
- * xGESVD computes the singular value decomposition (SVD) of a real
- * M-by-N matrix A, optionally computing the left and/or right singular
- * vectors. The SVD is written
- *
- *      A = U * SIGMA * transpose(V)
- *
- * where SIGMA is an M-by-N matrix which is zero except for its
- * min(m,n) diagonal elements, U is an M-by-M orthogonal matrix, and
- * V is an N-by-N orthogonal matrix.  The diagonal elements of SIGMA
- * are the singular values of A; they are real and non-negative, and
- * are returned in descending order.  The first min(m,n) columns of
- * U and V are the left and right singular vectors of A.
- *
- * Note that the routine returns V**T, not V.
- */
-static VALUE nm_lapack_gesvd(VALUE self, VALUE jobu, VALUE jobvt, VALUE m, VALUE n, VALUE a, VALUE lda, VALUE s, VALUE u, VALUE ldu, VALUE vt, VALUE ldvt, VALUE lwork) {
-  static int (*gesvd_table[nm::NUM_DTYPES])(char, char, int, int, void* a, int, void* s, void* u, int, void* vt, int, void* work, int, void* rwork) = {
-    NULL, NULL, NULL, NULL, NULL, // no integer ops
-    nm::math::lapack_gesvd<float,float>,
-    nm::math::lapack_gesvd<double,double>,
-    nm::math::lapack_gesvd<nm::Complex64,float>,
-    nm::math::lapack_gesvd<nm::Complex128,double>,
-    NULL // no objects
-  };
-
-  nm::dtype_t dtype = NM_DTYPE(a);
-
-
-  if (!gesvd_table[dtype]) {
-    rb_raise(rb_eNotImpError, "this operation not yet implemented for non-BLAS dtypes");
-    return Qfalse;
-  } else {
-    int M = FIX2INT(m),
-        N = FIX2INT(n);
-
-    int min_mn  = NM_MIN(M,N);
-    int max_mn  = NM_MAX(M,N);
-
-    char JOBU = lapack_svd_job_sym(jobu),
-         JOBVT = lapack_svd_job_sym(jobvt);
-
-    // only need rwork for complex matrices
-    int rwork_size  = (dtype == nm::COMPLEX64 || dtype == nm::COMPLEX128) ? 5 * min_mn : 0;
-    void* rwork     = rwork_size > 0 ? NM_ALLOCA_N(char, DTYPE_SIZES[dtype] * rwork_size) : NULL;
-    int work_size   = FIX2INT(lwork);
-
-    // ignore user argument for lwork if it's too small.
-    work_size       = NM_MAX((dtype == nm::COMPLEX64 || dtype == nm::COMPLEX128 ? 2 * min_mn + max_mn : NM_MAX(3*min_mn + max_mn, 5*min_mn)), work_size);
-    void* work      = NM_ALLOCA_N(char, DTYPE_SIZES[dtype] * work_size);
-
-    int info = gesvd_table[dtype](JOBU, JOBVT, M, N, NM_STORAGE_DENSE(a)->elements, FIX2INT(lda),
-      NM_STORAGE_DENSE(s)->elements, NM_STORAGE_DENSE(u)->elements, FIX2INT(ldu), NM_STORAGE_DENSE(vt)->elements, FIX2INT(ldvt),
-      work, work_size, rwork);
-    return INT2FIX(info);
-  }
-}
-
-/*
- * Function signature conversion for calling CBLAS' gesdd functions as directly as possible.
- *
- * xGESDD uses a divide-and-conquer strategy to compute the singular value decomposition (SVD) of a real
- * M-by-N matrix A, optionally computing the left and/or right singular
- * vectors. The SVD is written
- *
- *      A = U * SIGMA * transpose(V)
- *
- * where SIGMA is an M-by-N matrix which is zero except for its
- * min(m,n) diagonal elements, U is an M-by-M orthogonal matrix, and
- * V is an N-by-N orthogonal matrix.  The diagonal elements of SIGMA
- * are the singular values of A; they are real and non-negative, and
- * are returned in descending order.  The first min(m,n) columns of
- * U and V are the left and right singular vectors of A.
- *
- * Note that the routine returns V**T, not V.
- */
-static VALUE nm_lapack_gesdd(VALUE self, VALUE jobz, VALUE m, VALUE n, VALUE a, VALUE lda, VALUE s, VALUE u, VALUE ldu, VALUE vt, VALUE ldvt, VALUE lwork) {
-  static int (*gesdd_table[nm::NUM_DTYPES])(char, int, int, void* a, int, void* s, void* u, int, void* vt, int, void* work, int, int* iwork, void* rwork) = {
-    NULL, NULL, NULL, NULL, NULL, // no integer ops
-    nm::math::lapack_gesdd<float,float>,
-    nm::math::lapack_gesdd<double,double>,
-    nm::math::lapack_gesdd<nm::Complex64,float>,
-    nm::math::lapack_gesdd<nm::Complex128,double>,
-    NULL // no Ruby objects
-  };
-
-  nm::dtype_t dtype = NM_DTYPE(a);
-
-  if (!gesdd_table[dtype]) {
-    rb_raise(rb_eNotImpError, "this operation not yet implemented for non-BLAS dtypes");
-    return Qfalse;
-  } else {
-    int M = FIX2INT(m),
-        N = FIX2INT(n);
-
-    int min_mn  = NM_MIN(M,N);
-    int max_mn  = NM_MAX(M,N);
-
-    char JOBZ = lapack_svd_job_sym(jobz);
-
-    // only need rwork for complex matrices
-    void* rwork = NULL;
-
-    int work_size = FIX2INT(lwork); // Make sure we allocate enough work, regardless of the user request.
-    if (dtype == nm::COMPLEX64 || dtype == nm::COMPLEX128) {
-      int rwork_size = min_mn * (JOBZ == 'N' ? 5 : NM_MAX(5*min_mn + 7, 2*max_mn + 2*min_mn + 1));
-      rwork = NM_ALLOCA_N(char, DTYPE_SIZES[dtype] * rwork_size);
-
-      if (JOBZ == 'N')      work_size = NM_MAX(work_size, 3*min_mn + NM_MAX(max_mn, 6*min_mn));
-      else if (JOBZ == 'O') work_size = NM_MAX(work_size, 3*min_mn*min_mn + NM_MAX(max_mn, 5*min_mn*min_mn + 4*min_mn));
-      else                  work_size = NM_MAX(work_size, 3*min_mn*min_mn + NM_MAX(max_mn, 4*min_mn*min_mn + 4*min_mn));
-    } else {
-      if (JOBZ == 'N')      work_size = NM_MAX(work_size, 2*min_mn + max_mn);
-      else if (JOBZ == 'O') work_size = NM_MAX(work_size, 2*min_mn*min_mn + max_mn + 2*min_mn);
-      else                  work_size = NM_MAX(work_size, min_mn*min_mn + max_mn + 2*min_mn);
-    }
-    void* work  = NM_ALLOCA_N(char, DTYPE_SIZES[dtype] * work_size);
-    int* iwork  = NM_ALLOCA_N(int, 8*min_mn);
-
-    int info = gesdd_table[dtype](JOBZ, M, N, NM_STORAGE_DENSE(a)->elements, FIX2INT(lda),
-      NM_STORAGE_DENSE(s)->elements, NM_STORAGE_DENSE(u)->elements, FIX2INT(ldu), NM_STORAGE_DENSE(vt)->elements, FIX2INT(ldvt),
-      work, work_size, iwork, rwork);
-    return INT2FIX(info);
-  }
-}
-
-
-/*
- * Function signature conversion for calling CBLAS' geev functions as directly as possible.
- *
- * GEEV computes for an N-by-N real nonsymmetric matrix A, the
- * eigenvalues and, optionally, the left and/or right eigenvectors.
- *
- * The right eigenvector v(j) of A satisfies
- *                    A * v(j) = lambda(j) * v(j)
- * where lambda(j) is its eigenvalue.
- *
- * The left eigenvector u(j) of A satisfies
- *                 u(j)**H * A = lambda(j) * u(j)**H
- * where u(j)**H denotes the conjugate transpose of u(j).
- *
- * The computed eigenvectors are normalized to have Euclidean norm
- * equal to 1 and largest component real.
- */
-static VALUE nm_lapack_geev(VALUE self, VALUE compute_left, VALUE compute_right, VALUE n, VALUE a, VALUE lda, VALUE w, VALUE wi, VALUE vl, VALUE ldvl, VALUE vr, VALUE ldvr, VALUE lwork) {
-  static int (*geev_table[nm::NUM_DTYPES])(char, char, int, void* a, int, void* w, void* wi, void* vl, int, void* vr, int, void* work, int, void* rwork) = {
-    NULL, NULL, NULL, NULL, NULL, // no integer ops
-    nm::math::lapack_geev<float,float>,
-    nm::math::lapack_geev<double,double>,
-    nm::math::lapack_geev<nm::Complex64,float>,
-    nm::math::lapack_geev<nm::Complex128,double>,
-    NULL // no Ruby objects
-  };
-
-  nm::dtype_t dtype = NM_DTYPE(a);
-
-
-  if (!geev_table[dtype]) {
-    rb_raise(rb_eNotImpError, "this operation not yet implemented for non-BLAS dtypes");
-    return Qfalse;
-  } else {
-    int N = FIX2INT(n);
-
-    char JOBVL = lapack_evd_job_sym(compute_left),
-         JOBVR = lapack_evd_job_sym(compute_right);
-
-    void* A  = NM_STORAGE_DENSE(a)->elements;
-    void* WR = NM_STORAGE_DENSE(w)->elements;
-    void* WI = wi == Qnil ? NULL : NM_STORAGE_DENSE(wi)->elements;
-    void* VL = NM_STORAGE_DENSE(vl)->elements;
-    void* VR = NM_STORAGE_DENSE(vr)->elements;
-
-    // only need rwork for complex matrices (wi == Qnil for complex)
-    int rwork_size  = dtype == nm::COMPLEX64 || dtype == nm::COMPLEX128 ? N * DTYPE_SIZES[dtype] : 0; // 2*N*floattype for complex only, otherwise 0
-    void* rwork     = rwork_size > 0 ? NM_ALLOCA_N(char, rwork_size) : NULL;
-    int work_size   = FIX2INT(lwork);
-    void* work;
-
-    int info;
-
-    // if work size is 0 or -1, query.
-    if (work_size <= 0) {
-      work_size = -1;
-      work = NM_ALLOC_N(char, DTYPE_SIZES[dtype]); //2*N * DTYPE_SIZES[dtype]);
-      info = geev_table[dtype](JOBVL, JOBVR, N, A, FIX2INT(lda), WR, WI, VL, FIX2INT(ldvl), VR, FIX2INT(ldvr), work, work_size, rwork);
-      work_size = (int)(dtype == nm::COMPLEX64 || dtype == nm::FLOAT32 ? reinterpret_cast<float*>(work)[0] : reinterpret_cast<double*>(work)[0]);
-      // line above is basically: work_size = (int)(work[0]); // now have new work_size
-      NM_FREE(work);
-      if (info == 0)
-        rb_warn("geev: calculated optimal lwork of %d; to eliminate this message, use a positive value for lwork (at least 2*shape[i])", work_size);
-      else return INT2FIX(info); // error of some kind on query!
-    }
-
-    // if work size is < 2*N, just set it to 2*N
-    if (work_size < 2*N) work_size = 2*N;
-    if (work_size < 3*N && (dtype == nm::FLOAT32 || dtype == nm::FLOAT64)) {
-      work_size = JOBVL == 'V' || JOBVR == 'V' ? 4*N : 3*N;
-    }
-
-    // Allocate work array for actual run
-    work = NM_ALLOCA_N(char, work_size * DTYPE_SIZES[dtype]);
-
-    // Perform the actual calculation.
-    info = geev_table[dtype](JOBVL, JOBVR, N, A, FIX2INT(lda), WR, WI, VL, FIX2INT(ldvl), VR, FIX2INT(ldvr), work, work_size, rwork);
-
-    return INT2FIX(info);
-  }
-}
-
-
-static VALUE nm_clapack_lauum(VALUE self, VALUE order, VALUE uplo, VALUE n, VALUE a, VALUE lda) {
-  static int (*ttable[nm::NUM_DTYPES])(const enum CBLAS_ORDER, const enum CBLAS_UPLO, const int n, void* a, const int lda) = {
-      NULL, NULL, NULL, NULL, NULL,
-      nm::math::clapack_lauum<float>,
-      nm::math::clapack_lauum<double>,
-#if defined (HAVE_CLAPACK_H) || defined (HAVE_ATLAS_CLAPACK_H)
-      clapack_clauum, clapack_zlauum, // call directly, same function signature!
-#else // Especially important for Mac OS, which doesn't seem to include the ATLAS clapack interface.
-      nm::math::clapack_lauum<nm::Complex64>,
-      nm::math::clapack_lauum<nm::Complex128>,
-#endif
-      NULL
-  };
-
-  if (!ttable[NM_DTYPE(a)]) {
-    rb_raise(rb_eNotImpError, "does not yet work for non-BLAS dtypes (needs herk, syrk, trmm)");
-  } else {
-    // Call either our version of lauum or the LAPACK version.
-    ttable[NM_DTYPE(a)](blas_order_sym(order), blas_uplo_sym(uplo), FIX2INT(n), NM_STORAGE_DENSE(a)->elements, FIX2INT(lda));
-  }
-
-  return a;
-}
-
 
 /* Call any of the clapack_xgetrf functions as directly as possible.
  *
@@ -1521,12 +952,8 @@ static VALUE nm_clapack_getrf(VALUE self, VALUE order, VALUE m, VALUE n, VALUE a
       NULL, NULL, NULL, NULL, NULL, // integers not allowed due to division
       nm::math::clapack_getrf<float>,
       nm::math::clapack_getrf<double>,
-#if defined (HAVE_CLAPACK_H) || defined (HAVE_ATLAS_CLAPACK_H)
-      clapack_cgetrf, clapack_zgetrf, // call directly, same function signature!
-#else // Especially important for Mac OS, which doesn't seem to include the ATLAS clapack interface.
       nm::math::clapack_getrf<nm::Complex64>,
       nm::math::clapack_getrf<nm::Complex128>,
-#endif
       nm::math::clapack_getrf<nm::RubyObject>
   };
 
@@ -1554,47 +981,6 @@ static VALUE nm_clapack_getrf(VALUE self, VALUE order, VALUE m, VALUE n, VALUE a
 }
 
 
-/* Call any of the clapack_xpotrf functions as directly as possible.
- *
- * You probably don't want to call this function. Instead, why don't you try clapack_potrf, which is more flexible
- * with its arguments?
- *
- * This function does almost no type checking. Seriously, be really careful when you call it! There's no exception
- * handling, so you can easily crash Ruby!
- *
- * Returns an array giving the pivot indices (normally these are argument #5).
- */
-static VALUE nm_clapack_potrf(VALUE self, VALUE order, VALUE uplo, VALUE n, VALUE a, VALUE lda) {
-#if !defined(HAVE_CLAPACK_H) && !defined(HAVE_ATLAS_CLAPACK_H)
-  rb_raise(rb_eNotImpError, "potrf currently requires CLAPACK");
-#endif
-
-  static int (*ttable[nm::NUM_DTYPES])(const enum CBLAS_ORDER, const enum CBLAS_UPLO, const int n, void* a, const int lda) = {
-      NULL, NULL, NULL, NULL, NULL, // integers not allowed due to division
-      nm::math::clapack_potrf<float>,
-      nm::math::clapack_potrf<double>,
-#if defined (HAVE_CLAPACK_H) || defined (HAVE_ATLAS_CLAPACK_H)
-      clapack_cpotrf, clapack_zpotrf, // call directly, same function signature!
-#else // Especially important for Mac OS, which doesn't seem to include the ATLAS clapack interface.
-      nm::math::clapack_potrf<nm::Complex64>,
-      nm::math::clapack_potrf<nm::Complex128>,
-#endif
-      NULL
-  };
-
-  if (!ttable[NM_DTYPE(a)]) {
-    rb_raise(rb_eNotImpError, "this operation not yet implemented for non-BLAS dtypes");
-    // FIXME: Once BLAS dtypes are implemented, replace error above with the error below.
-    //rb_raise(nm_eDataTypeError, "this matrix operation undefined for integer matrices");
-  } else {
-    // Call either our version of potrf or the LAPACK version.
-    ttable[NM_DTYPE(a)](blas_order_sym(order), blas_uplo_sym(uplo), FIX2INT(n), NM_STORAGE_DENSE(a)->elements, FIX2INT(lda));
-  }
-
-  return a;
-}
-
-
 /*
  * Call any of the clapack_xgetrs functions as directly as possible.
  */
@@ -1605,12 +991,8 @@ static VALUE nm_clapack_getrs(VALUE self, VALUE order, VALUE trans, VALUE n, VAL
       NULL, NULL, NULL, NULL, NULL, // integers not allowed due to division
       nm::math::clapack_getrs<float>,
       nm::math::clapack_getrs<double>,
-#if defined (HAVE_CLAPACK_H) || defined (HAVE_ATLAS_CLAPACK_H)
-      clapack_cgetrs, clapack_zgetrs, // call directly, same function signature!
-#else // Especially important for Mac OS, which doesn't seem to include the ATLAS clapack interface.
       nm::math::clapack_getrs<nm::Complex64>,
       nm::math::clapack_getrs<nm::Complex128>,
-#endif
       nm::math::clapack_getrs<nm::RubyObject>
   };
 
@@ -1621,7 +1003,7 @@ static VALUE nm_clapack_getrs(VALUE self, VALUE order, VALUE trans, VALUE n, VAL
   } else {
     ipiv_ = NM_ALLOCA_N(int, RARRAY_LEN(ipiv));
     for (int index = 0; index < RARRAY_LEN(ipiv); ++index) {
-      ipiv_[index] = FIX2INT( RARRAY_PTR(ipiv)[index] );
+      ipiv_[index] = FIX2INT( RARRAY_AREF(ipiv, index) );
     }
   }
 
@@ -1638,145 +1020,13 @@ static VALUE nm_clapack_getrs(VALUE self, VALUE order, VALUE trans, VALUE n, VAL
   return b;
 }
 
-
-/*
- * Call any of the clapack_xpotrs functions as directly as possible.
- */
-static VALUE nm_clapack_potrs(VALUE self, VALUE order, VALUE uplo, VALUE n, VALUE nrhs, VALUE a, VALUE lda, VALUE b, VALUE ldb) {
-  static int (*ttable[nm::NUM_DTYPES])(const enum CBLAS_ORDER Order, const enum CBLAS_UPLO Uplo, const int N,
-                                       const int NRHS, const void* A, const int lda, void* B, const int ldb) = {
-      NULL, NULL, NULL, NULL, NULL, // integers not allowed due to division
-      nm::math::clapack_potrs<float,false>,
-      nm::math::clapack_potrs<double,false>,
-#if defined (HAVE_CLAPACK_H) || defined (HAVE_ATLAS_CLAPACK_H)
-      clapack_cpotrs, clapack_zpotrs, // call directly, same function signature!
-#else // Especially important for Mac OS, which doesn't seem to include the ATLAS clapack interface.
-      nm::math::clapack_potrs<nm::Complex64,true>,
-      nm::math::clapack_potrs<nm::Complex128,true>,
-#endif
-      nm::math::clapack_potrs<nm::RubyObject,false>
-  };
-
-
-  if (!ttable[NM_DTYPE(a)]) {
-    rb_raise(nm_eDataTypeError, "this matrix operation undefined for integer matrices");
-  } else {
-
-    // Call either our version of potrs or the LAPACK version.
-    ttable[NM_DTYPE(a)](blas_order_sym(order), blas_uplo_sym(uplo), FIX2INT(n), FIX2INT(nrhs), NM_STORAGE_DENSE(a)->elements, FIX2INT(lda),
-                        NM_STORAGE_DENSE(b)->elements, FIX2INT(ldb));
-  }
-
-  // b is both returned and modified directly in the argument list.
-  return b;
-}
-
-
 /*
  * Simple way to check from within Ruby code if clapack functions are available, without
  * having to wait around for an exception to be thrown.
  */
 static VALUE nm_has_clapack(VALUE self) {
-#if defined (HAVE_CLAPACK_H) || defined (HAVE_ATLAS_CLAPACK_H)
-  return Qtrue;
-#else
   return Qfalse;
-#endif
 }
-
-
-/* Call any of the clapack_xgetri functions as directly as possible.
- *
- * You probably don't want to call this function. Instead, why don't you try clapack_getri, which is more flexible
- * with its arguments?
- *
- * This function does almost no type checking. Seriously, be really careful when you call it! There's no exception
- * handling, so you can easily crash Ruby!
- *
- * Returns an array giving the pivot indices (normally these are argument #5).
- */
-static VALUE nm_clapack_getri(VALUE self, VALUE order, VALUE n, VALUE a, VALUE lda, VALUE ipiv) {
-#if !defined (HAVE_CLAPACK_H) && !defined (HAVE_ATLAS_CLAPACK_H)
-  rb_raise(rb_eNotImpError, "getri currently requires CLAPACK");
-#endif
-
-  static int (*ttable[nm::NUM_DTYPES])(const enum CBLAS_ORDER, const int n, void* a, const int lda, const int* ipiv) = {
-      NULL, NULL, NULL, NULL, NULL, // integers not allowed due to division
-      nm::math::clapack_getri<float>,
-      nm::math::clapack_getri<double>,
-#if defined (HAVE_CLAPACK_H) || defined (HAVE_ATLAS_CLAPACK_H)
-      clapack_cgetri, clapack_zgetri, // call directly, same function signature!
-#else // Especially important for Mac OS, which doesn't seem to include the ATLAS clapack interface.
-      nm::math::clapack_getri<nm::Complex64>,
-      nm::math::clapack_getri<nm::Complex128>,
-#endif
-      NULL
-  };
-
-  // Allocate the C version of the pivot index array
-  int* ipiv_;
-  if (TYPE(ipiv) != T_ARRAY) {
-    rb_raise(rb_eArgError, "ipiv must be of type Array");
-  } else {
-    ipiv_ = NM_ALLOCA_N(int, RARRAY_LEN(ipiv));
-    for (int index = 0; index < RARRAY_LEN(ipiv); ++index) {
-      ipiv_[index] = FIX2INT( RARRAY_PTR(ipiv)[index] );
-    }
-  }
-
-  if (!ttable[NM_DTYPE(a)]) {
-    rb_raise(rb_eNotImpError, "this operation not yet implemented for non-BLAS dtypes");
-    // FIXME: Once non-BLAS dtypes are implemented, replace error above with the error below.
-    //rb_raise(nm_eDataTypeError, "this matrix operation undefined for integer matrices");
-  } else {
-    // Call either our version of getri or the LAPACK version.
-    ttable[NM_DTYPE(a)](blas_order_sym(order), FIX2INT(n), NM_STORAGE_DENSE(a)->elements, FIX2INT(lda), ipiv_);
-  }
-
-  return a;
-}
-
-
-/* Call any of the clapack_xpotri functions as directly as possible.
- *
- * You probably don't want to call this function. Instead, why don't you try clapack_potri, which is more flexible
- * with its arguments?
- *
- * This function does almost no type checking. Seriously, be really careful when you call it! There's no exception
- * handling, so you can easily crash Ruby!
- *
- * Returns an array giving the pivot indices (normally these are argument #5).
- */
-static VALUE nm_clapack_potri(VALUE self, VALUE order, VALUE uplo, VALUE n, VALUE a, VALUE lda) {
-#if !defined (HAVE_CLAPACK_H) && !defined (HAVE_ATLAS_CLAPACK_H)
-  rb_raise(rb_eNotImpError, "getri currently requires CLAPACK");
-#endif
-
-  static int (*ttable[nm::NUM_DTYPES])(const enum CBLAS_ORDER, const enum CBLAS_UPLO, const int n, void* a, const int lda) = {
-      NULL, NULL, NULL, NULL, NULL, // integers not allowed due to division
-      nm::math::clapack_potri<float>,
-      nm::math::clapack_potri<double>,
-#if defined (HAVE_CLAPACK_H) || defined (HAVE_ATLAS_CLAPACK_H)
-      clapack_cpotri, clapack_zpotri, // call directly, same function signature!
-#else // Especially important for Mac OS, which doesn't seem to include the ATLAS clapack interface.
-      nm::math::clapack_potri<nm::Complex64>,
-      nm::math::clapack_potri<nm::Complex128>,
-#endif
-      NULL
-  };
-
-  if (!ttable[NM_DTYPE(a)]) {
-    rb_raise(rb_eNotImpError, "this operation not yet implemented for non-BLAS dtypes");
-    // FIXME: Once BLAS dtypes are implemented, replace error above with the error below.
-    //rb_raise(nm_eDataTypeError, "this matrix operation undefined for integer matrices");
-  } else {
-    // Call either our version of getri or the LAPACK version.
-    ttable[NM_DTYPE(a)](blas_order_sym(order), blas_uplo_sym(uplo), FIX2INT(n), NM_STORAGE_DENSE(a)->elements, FIX2INT(lda));
-  }
-
-  return a;
-}
-
 
 /*
  * Call any of the clapack_xlaswp functions as directly as possible.
@@ -1805,7 +1055,7 @@ static VALUE nm_clapack_laswp(VALUE self, VALUE n, VALUE a, VALUE lda, VALUE k1,
   } else {
     ipiv_ = NM_ALLOCA_N(int, RARRAY_LEN(ipiv));
     for (int index = 0; index < RARRAY_LEN(ipiv); ++index) {
-      ipiv_[index] = FIX2INT( RARRAY_PTR(ipiv)[index] );
+      ipiv_[index] = FIX2INT( RARRAY_AREF(ipiv, index) );
     }
   }
 
@@ -1824,22 +1074,6 @@ void nm_math_det_exact(const int M, const void* elements, const int lda, nm::dty
   NAMED_DTYPE_TEMPLATE_TABLE(ttable, nm::math::det_exact, void, const int M, const void* A_elements, const int lda, void* result_arg);
 
   ttable[dtype](M, elements, lda, result);
-}
-
-/*
- * C accessor for solving a system of linear equations. 
- */
-void nm_math_solve(VALUE lu, VALUE b, VALUE x, VALUE ipiv) {
-  int* pivot = new int[RARRAY_LEN(ipiv)];
-
-  for (int i = 0; i < RARRAY_LEN(ipiv); ++i) {
-    pivot[i] = FIX2INT(rb_ary_entry(ipiv, i));  
-  }
-
-  NAMED_DTYPE_TEMPLATE_TABLE(ttable, nm::math::solve, void, const int, const void*, const void*, void*, const int*);
-
-  ttable[NM_DTYPE(x)](NM_SHAPE0(b), NM_STORAGE_DENSE(lu)->elements, 
-    NM_STORAGE_DENSE(b)->elements, NM_STORAGE_DENSE(x)->elements, pivot);
 }
 
 /*

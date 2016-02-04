@@ -62,8 +62,8 @@ namespace nm { namespace dense_storage {
   template <typename LDType, typename RDType>
   DENSE_STORAGE* cast_copy(const DENSE_STORAGE* rhs, nm::dtype_t new_dtype);
 
-	template <typename LDType, typename RDType>
-	bool eqeq(const DENSE_STORAGE* left, const DENSE_STORAGE* right);
+  template <typename LDType, typename RDType>
+  bool eqeq(const DENSE_STORAGE* left, const DENSE_STORAGE* right);
 
   template <typename DType>
   static DENSE_STORAGE* matrix_multiply(const STORAGE_PAIR& casted_storage, size_t* resulting_shape, bool vector);
@@ -216,7 +216,7 @@ static DENSE_STORAGE* nm_dense_storage_create_dummy(nm::dtype_t dtype, size_t* s
   s->count      = 1;
   s->src        = s;
 
-	s->elements   = NULL;
+  s->elements   = NULL;
 
   return s;
 }
@@ -255,7 +255,7 @@ DENSE_STORAGE* nm_dense_storage_create(nm::dtype_t dtype, size_t* shape, size_t 
       for (size_t i = 0; i < count; i += elements_length) {
 
         if (i + elements_length > count) {
-        	copy_length = count - i;
+          copy_length = count - i;
         }
 
         memcpy((char*)(s->elements)+i*DTYPE_SIZES[dtype], (char*)(elements)+(i % elements_length)*DTYPE_SIZES[dtype], copy_length*DTYPE_SIZES[dtype]);
@@ -316,7 +316,7 @@ void nm_dense_storage_mark(STORAGE* storage_base) {
     if (els) {
       rb_gc_mark_locations(els, &(els[nm_storage_count_max_elements(storage)-1]));
     }
-  	//for (size_t index = nm_storage_count_max_elements(storage); index-- > 0;) {
+    //for (size_t index = nm_storage_count_max_elements(storage); index-- > 0;) {
     //  rb_gc_mark(els[index]);
     //}
   }
@@ -390,9 +390,9 @@ VALUE nm_dense_map_pair(VALUE self, VALUE right) {
     size_t s_index = nm_dense_storage_pos(s, coords),
            t_index = nm_dense_storage_pos(t, coords);
 
-    VALUE sval = NM_DTYPE(self) == nm::RUBYOBJ ? reinterpret_cast<VALUE*>(s->elements)[s_index] : rubyobj_from_cval((char*)(s->elements) + s_index*DTYPE_SIZES[NM_DTYPE(self)], NM_DTYPE(self)).rval;
+    VALUE sval = NM_DTYPE(self) == nm::RUBYOBJ ? reinterpret_cast<VALUE*>(s->elements)[s_index] : nm::rubyobj_from_cval((char*)(s->elements) + s_index*DTYPE_SIZES[NM_DTYPE(self)], NM_DTYPE(self)).rval;
     nm_register_value(&sval);
-    VALUE tval = NM_DTYPE(right) == nm::RUBYOBJ ? reinterpret_cast<VALUE*>(t->elements)[t_index] : rubyobj_from_cval((char*)(t->elements) + t_index*DTYPE_SIZES[NM_DTYPE(right)], NM_DTYPE(right)).rval;
+    VALUE tval = NM_DTYPE(right) == nm::RUBYOBJ ? reinterpret_cast<VALUE*>(t->elements)[t_index] : nm::rubyobj_from_cval((char*)(t->elements) + t_index*DTYPE_SIZES[NM_DTYPE(right)], NM_DTYPE(right)).rval;
     result_elem[k] = rb_yield_values(2, sval, tval);
     nm_unregister_value(&sval);
   }
@@ -442,7 +442,7 @@ VALUE nm_dense_map(VALUE self) {
     nm_dense_storage_coords(result, k, coords);
     size_t s_index = nm_dense_storage_pos(s, coords);
 
-    result_elem[k] = rb_yield(NM_DTYPE(self) == nm::RUBYOBJ ? reinterpret_cast<VALUE*>(s->elements)[s_index] : rubyobj_from_cval((char*)(s->elements) + s_index*DTYPE_SIZES[NM_DTYPE(self)], NM_DTYPE(self)).rval);
+    result_elem[k] = rb_yield(NM_DTYPE(self) == nm::RUBYOBJ ? reinterpret_cast<VALUE*>(s->elements)[s_index] : nm::rubyobj_from_cval((char*)(s->elements) + s_index*DTYPE_SIZES[NM_DTYPE(self)], NM_DTYPE(self)).rval);
   }
 
   VALUE klass = CLASS_OF(self);
@@ -488,7 +488,7 @@ VALUE nm_dense_each_with_indices(VALUE nmatrix) {
     VALUE ary = rb_ary_new();
     nm_register_value(&ary);
     if (NM_DTYPE(nmatrix) == nm::RUBYOBJ) rb_ary_push(ary, reinterpret_cast<VALUE*>(s->elements)[slice_index]);
-    else rb_ary_push(ary, rubyobj_from_cval((char*)(s->elements) + slice_index*DTYPE_SIZES[NM_DTYPE(nmatrix)], NM_DTYPE(nmatrix)).rval);
+    else rb_ary_push(ary, nm::rubyobj_from_cval((char*)(s->elements) + slice_index*DTYPE_SIZES[NM_DTYPE(nmatrix)], NM_DTYPE(nmatrix)).rval);
 
     for (size_t p = 0; p < s->dim; ++p) {
       rb_ary_push(ary, INT2FIX(coords[p]));
@@ -547,7 +547,7 @@ VALUE nm_dense_each(VALUE nmatrix) {
     for (size_t i = 0; i < nm_storage_count_max_elements(s); ++i) {
       nm_dense_storage_coords(sliced_dummy, i, temp_coords);
       sliced_index = nm_dense_storage_pos(s, temp_coords);
-      VALUE v = rubyobj_from_cval((char*)(s->elements) + sliced_index*DTYPE_SIZES[NM_DTYPE(nmatrix)], NM_DTYPE(nmatrix)).rval;
+      VALUE v = nm::rubyobj_from_cval((char*)(s->elements) + sliced_index*DTYPE_SIZES[NM_DTYPE(nmatrix)], NM_DTYPE(nmatrix)).rval;
       rb_yield( v ); // yield to the copy we made
     }
   }
@@ -657,7 +657,7 @@ void nm_dense_storage_set(VALUE left, SLICE* slice, VALUE right) {
  *
  * TODO: Test the shape of the two matrices.
  * TODO: See if using memcmp is faster when the left- and right-hand matrices
- *				have the same dtype.
+ *        have the same dtype.
  */
 bool nm_dense_storage_eqeq(const STORAGE* left, const STORAGE* right) {
   LR_DTYPE_TEMPLATE_TABLE(nm::dense_storage::eqeq, bool, const DENSE_STORAGE*, const DENSE_STORAGE*)
@@ -667,7 +667,7 @@ bool nm_dense_storage_eqeq(const STORAGE* left, const STORAGE* right) {
     return false;
   }
 
-	return ttable[left->dtype][right->dtype]((const DENSE_STORAGE*)left, (const DENSE_STORAGE*)right);
+  return ttable[left->dtype][right->dtype]((const DENSE_STORAGE*)left, (const DENSE_STORAGE*)right);
 }
 
 /*
@@ -675,24 +675,24 @@ bool nm_dense_storage_eqeq(const STORAGE* left, const STORAGE* right) {
  * dtype of Complex64 or Complex128 this is the same as testing for symmetry.
  */
 bool nm_dense_storage_is_hermitian(const DENSE_STORAGE* mat, int lda) {
-	if (mat->dtype == nm::COMPLEX64) {
-		return nm::dense_storage::is_hermitian<nm::Complex64>(mat, lda);
+  if (mat->dtype == nm::COMPLEX64) {
+    return nm::dense_storage::is_hermitian<nm::Complex64>(mat, lda);
 
-	} else if (mat->dtype == nm::COMPLEX128) {
-		return nm::dense_storage::is_hermitian<nm::Complex128>(mat, lda);
+  } else if (mat->dtype == nm::COMPLEX128) {
+    return nm::dense_storage::is_hermitian<nm::Complex128>(mat, lda);
 
-	} else {
-		return nm_dense_storage_is_symmetric(mat, lda);
-	}
+  } else {
+    return nm_dense_storage_is_symmetric(mat, lda);
+  }
 }
 
 /*
  * Is this dense matrix symmetric about the diagonal?
  */
 bool nm_dense_storage_is_symmetric(const DENSE_STORAGE* mat, int lda) {
-	DTYPE_TEMPLATE_TABLE(nm::dense_storage::is_symmetric, bool, const DENSE_STORAGE*, int);
+  DTYPE_TEMPLATE_TABLE(nm::dense_storage::is_symmetric, bool, const DENSE_STORAGE*, int);
 
-	return ttable[mat->dtype](mat, lda);
+  return ttable[mat->dtype](mat, lda);
 }
 
 //////////
@@ -798,7 +798,7 @@ DENSE_STORAGE* nm_dense_storage_copy(const DENSE_STORAGE* rhs) {
   count = nm_storage_count_max_elements(lhs);
 
 
-	// Ensure that allocation worked before copying.
+  // Ensure that allocation worked before copying.
   if (lhs && count) {
     if (rhs == rhs->src) // not a reference
       memcpy(lhs->elements, rhs->elements, DTYPE_SIZES[rhs->dtype] * count);
@@ -941,7 +941,7 @@ DENSE_STORAGE* cast_copy(const DENSE_STORAGE* rhs, dtype_t new_dtype) {
 
   nm_dense_storage_register(lhs);
 
-	// Ensure that allocation worked before copying.
+  // Ensure that allocation worked before copying.
   if (lhs && count) {
     if (rhs->src != rhs) { // Make a copy of a ref to a matrix.
       size_t* offset      = NM_ALLOCA_N(size_t, rhs->dim);
@@ -956,7 +956,7 @@ DENSE_STORAGE* cast_copy(const DENSE_STORAGE* rhs, dtype_t new_dtype) {
       LDType* lhs_els          = reinterpret_cast<LDType*>(lhs->elements);
 
       for (size_t i = 0; i < count; ++i)
-    	  lhs_els[i] = rhs_els[i];
+        lhs_els[i] = rhs_els[i];
     }
   }
 
@@ -976,14 +976,8 @@ bool eqeq(const DENSE_STORAGE* left, const DENSE_STORAGE* right) {
   tmp1 = NULL; tmp2 = NULL;
   bool result = true;
   /* FIXME: Very strange behavior! The GC calls the method directly with non-initialized data. */
-  if (left->dim != right->dim) {
-    nm_dense_storage_unregister(right);
-    nm_dense_storage_unregister(left);
 
-    return false;
-  }
-
-  LDType* left_elements	  = (LDType*)left->elements;
+  LDType* left_elements    = (LDType*)left->elements;
   RDType* right_elements  = (RDType*)right->elements;
 
   // Copy elements in temp matrix if you have reference to the right.
@@ -1023,39 +1017,39 @@ bool eqeq(const DENSE_STORAGE* left, const DENSE_STORAGE* right) {
 
 template <typename DType>
 bool is_hermitian(const DENSE_STORAGE* mat, int lda) {
-	unsigned int i, j;
-	register DType complex_conj;
+  unsigned int i, j;
+  register DType complex_conj;
 
-	const DType* els = (DType*) mat->elements;
+  const DType* els = (DType*) mat->elements;
 
-	for (i = mat->shape[0]; i-- > 0;) {
-		for (j = i + 1; j < mat->shape[1]; ++j) {
-			complex_conj		= els[j*lda + i];
-			complex_conj.i	= -complex_conj.i;
+  for (i = mat->shape[0]; i-- > 0;) {
+    for (j = i + 1; j < mat->shape[1]; ++j) {
+      complex_conj    = els[j*lda + i];
+      complex_conj.i  = -complex_conj.i;
 
-			if (els[i*lda+j] != complex_conj) {
-	      return false;
-	    }
-		}
-	}
+      if (els[i*lda+j] != complex_conj) {
+        return false;
+      }
+    }
+  }
 
-	return true;
+  return true;
 }
 
 template <typename DType>
 bool is_symmetric(const DENSE_STORAGE* mat, int lda) {
-	unsigned int i, j;
-	const DType* els = (DType*) mat->elements;
+  unsigned int i, j;
+  const DType* els = (DType*) mat->elements;
 
-	for (i = mat->shape[0]; i-- > 0;) {
-		for (j = i + 1; j < mat->shape[1]; ++j) {
-			if (els[i*lda+j] != els[j*lda+i]) {
-	      return false;
-	    }
-		}
-	}
+  for (i = mat->shape[0]; i-- > 0;) {
+    for (j = i + 1; j < mat->shape[1]; ++j) {
+      if (els[i*lda+j] != els[j*lda+i]) {
+        return false;
+      }
+    }
+  }
 
-	return true;
+  return true;
 }
 
 

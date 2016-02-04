@@ -59,14 +59,6 @@
 #ifndef GETRS_H
 #define GETRS_H
 
-extern "C" {
-#if defined HAVE_CBLAS_H
-  #include <cblas.h>
-#elif defined HAVE_ATLAS_CBLAS_H
-  #include <atlas/cblas.h>
-#endif
-}
-
 namespace nm { namespace math {
 
 

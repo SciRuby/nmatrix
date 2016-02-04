@@ -85,7 +85,7 @@
  */
 
 extern "C" {
-  static YALE_STORAGE*	alloc(nm::dtype_t dtype, size_t* shape, size_t dim);
+  static YALE_STORAGE*  alloc(nm::dtype_t dtype, size_t* shape, size_t dim);
 
   static size_t yale_count_slice_copy_ndnz(const YALE_STORAGE* s, size_t*, size_t*);
 
@@ -117,10 +117,10 @@ template <typename LD, typename RD>
 static VALUE map_merged_stored(VALUE left, VALUE right, VALUE init);
 
 template <typename DType>
-static bool						ndrow_is_empty(const YALE_STORAGE* s, IType ija, const IType ija_next);
+static bool            ndrow_is_empty(const YALE_STORAGE* s, IType ija, const IType ija_next);
 
 template <typename LDType, typename RDType>
-static bool						ndrow_eqeq_ndrow(const YALE_STORAGE* l, const YALE_STORAGE* r, IType l_ija, const IType l_ija_next, IType r_ija, const IType r_ija_next);
+static bool            ndrow_eqeq_ndrow(const YALE_STORAGE* l, const YALE_STORAGE* r, IType l_ija, const IType l_ija_next, IType r_ija, const IType r_ija_next);
 
 template <typename LDType, typename RDType>
 static bool           eqeq(const YALE_STORAGE* left, const YALE_STORAGE* right);
@@ -128,9 +128,9 @@ static bool           eqeq(const YALE_STORAGE* left, const YALE_STORAGE* right);
 template <typename LDType, typename RDType>
 static bool eqeq_different_defaults(const YALE_STORAGE* s, const LDType& s_init, const YALE_STORAGE* t, const RDType& t_init);
 
-static void						increment_ia_after(YALE_STORAGE* s, IType ija_size, IType i, long n);
+static void            increment_ia_after(YALE_STORAGE* s, IType ija_size, IType i, long n);
 
-static IType				  insert_search(YALE_STORAGE* s, IType left, IType right, IType key, bool& found);
+static IType          insert_search(YALE_STORAGE* s, IType left, IType right, IType key, bool& found);
 
 template <typename DType>
 static char           vector_insert(YALE_STORAGE* s, size_t pos, size_t* j, void* val_, size_t n, bool struct_only);
@@ -436,13 +436,13 @@ int binary_search(YALE_STORAGE* s, IType left, IType right, IType key) {
   IType mid_j = ija[mid];
 
   if (mid_j == key)
-  	return mid;
+    return mid;
 
   else if (mid_j > key)
-  	return binary_search(s, left, mid - 1, key);
+    return binary_search(s, left, mid - 1, key);
 
   else
-  	return binary_search(s, mid + 1, right, key);
+    return binary_search(s, mid + 1, right, key);
 }
 
 
@@ -503,7 +503,7 @@ static char vector_insert_resize(YALE_STORAGE* s, size_t current_size, size_t po
   }
 
   if (new_capacity < current_size + n)
-  	new_capacity = current_size + n;
+    new_capacity = current_size + n;
 
   nm_yale_storage_register(s);
 
@@ -564,8 +564,8 @@ static char vector_insert_resize(YALE_STORAGE* s, size_t current_size, size_t po
  * diag). Does not free anything; you are responsible!
  *
  * TODO: Improve this so it can handle non-contiguous element insertions
- *	efficiently. For now, we can just sort the elements in the row in
- *	question.)
+ *  efficiently. For now, we can just sort the elements in the row in
+ *  question.)
  */
 template <typename DType>
 static char vector_insert(YALE_STORAGE* s, size_t pos, size_t* j, void* val_, size_t n, bool struct_only) {
@@ -585,7 +585,7 @@ static char vector_insert(YALE_STORAGE* s, size_t pos, size_t* j, void* val_, si
     vector_insert_resize<DType>(s, size, pos, j, n, struct_only);
 
     // Need to get the new locations for ija and a.
-  	ija = s->ija;
+    ija = s->ija;
     a   = reinterpret_cast<DType*>(s->a);
   } else {
     /*
@@ -594,7 +594,7 @@ static char vector_insert(YALE_STORAGE* s, size_t pos, size_t* j, void* val_, si
      * the end, one element at a time.
      *
      * TODO: This can be made slightly more efficient, but only after the tests
-     *	are written.
+     *  are written.
      */
 
     if (struct_only) {
@@ -655,10 +655,10 @@ static IType insert_search(YALE_STORAGE* s, IType left, IType right, IType key, 
     return mid;
 
   } else if (mid_j > key) {
-  	return insert_search(s, left, mid-1, key, found);
+    return insert_search(s, left, mid-1, key, found);
 
   } else {
-  	return insert_search(s, mid+1, right, key, found);
+    return insert_search(s, mid+1, right, key, found);
   }
 }
 
@@ -1119,10 +1119,10 @@ static bool is_pos_default_value(YALE_STORAGE* s, size_t apos) {
 extern "C" {
 
 void nm_init_yale_functions() {
-	/*
-	 * This module stores methods that are useful for debugging Yale matrices,
-	 * i.e. the ones with +:yale+ stype.
-	 */
+  /*
+   * This module stores methods that are useful for debugging Yale matrices,
+   * i.e. the ones with +:yale+ stype.
+   */
   cNMatrix_YaleFunctions = rb_define_module_under(cNMatrix, "YaleFunctions");
 
   // Expert recommendation. Eventually this should go in a separate gem, or at least a separate module.
@@ -1336,7 +1336,7 @@ static void* default_value_ptr(const YALE_STORAGE* s) {
  */
 static VALUE obj_at(YALE_STORAGE* s, size_t k) {
   if (s->dtype == nm::RUBYOBJ)  return reinterpret_cast<VALUE*>(((YALE_STORAGE*)(s->src))->a)[k];
-  else  return rubyobj_from_cval(reinterpret_cast<void*>(reinterpret_cast<char*>(((YALE_STORAGE*)(s->src))->a) + k * DTYPE_SIZES[s->dtype]), s->dtype).rval;
+  else  return nm::rubyobj_from_cval(reinterpret_cast<void*>(reinterpret_cast<char*>(((YALE_STORAGE*)(s->src))->a) + k * DTYPE_SIZES[s->dtype]), s->dtype).rval;
 }
 
 
@@ -1345,7 +1345,7 @@ static VALUE obj_at(YALE_STORAGE* s, size_t k) {
  */
 static VALUE default_value(const YALE_STORAGE* s) {
   if (s->dtype == nm::RUBYOBJ) return *reinterpret_cast<VALUE*>(default_value_ptr(s));
-  else return rubyobj_from_cval(default_value_ptr(s), s->dtype).rval;
+  else return nm::rubyobj_from_cval(default_value_ptr(s), s->dtype).rval;
 }
 
 
@@ -1664,7 +1664,7 @@ static VALUE nm_a(int argc, VALUE* argv, VALUE self) {
       }
     } else {
       for (size_t i = 0; i < size; ++i) {
-        vals[i] = rubyobj_from_cval((char*)(s->a) + DTYPE_SIZES[s->dtype]*i, s->dtype).rval;
+        vals[i] = nm::rubyobj_from_cval((char*)(s->a) + DTYPE_SIZES[s->dtype]*i, s->dtype).rval;
       }
     }
     VALUE ary = rb_ary_new4(size, vals);
@@ -1681,7 +1681,7 @@ static VALUE nm_a(int argc, VALUE* argv, VALUE self) {
     NM_CONSERVATIVE(nm_unregister_value(&idx));
     NM_CONSERVATIVE(nm_unregister_value(&self));
     if (index >= size) rb_raise(rb_eRangeError, "out of range");
-    return rubyobj_from_cval((char*)(s->a) + DTYPE_SIZES[s->dtype] * index, s->dtype).rval;
+    return nm::rubyobj_from_cval((char*)(s->a) + DTYPE_SIZES[s->dtype] * index, s->dtype).rval;
   }
 }
 
@@ -1712,7 +1712,7 @@ static VALUE nm_d(int argc, VALUE* argv, VALUE self) {
       }
     } else {
       for (size_t i = 0; i < s->shape[0]; ++i) {
-        vals[i] = rubyobj_from_cval((char*)(s->a) + DTYPE_SIZES[s->dtype]*i, s->dtype).rval;
+        vals[i] = nm::rubyobj_from_cval((char*)(s->a) + DTYPE_SIZES[s->dtype]*i, s->dtype).rval;
       }
     }
     nm_unregister_values(vals, s->shape[0]);
@@ -1725,7 +1725,7 @@ static VALUE nm_d(int argc, VALUE* argv, VALUE self) {
     NM_CONSERVATIVE(nm_unregister_value(&idx));
     NM_CONSERVATIVE(nm_unregister_value(&self));
     if (index >= s->shape[0]) rb_raise(rb_eRangeError, "out of range");
-    return rubyobj_from_cval((char*)(s->a) + DTYPE_SIZES[s->dtype] * index, s->dtype).rval;
+    return nm::rubyobj_from_cval((char*)(s->a) + DTYPE_SIZES[s->dtype] * index, s->dtype).rval;
   }
 }
 
@@ -1752,7 +1752,7 @@ static VALUE nm_lu(VALUE self) {
     }
   } else {
     for (size_t i = 0; i < size - s->shape[0] - 1; ++i) {
-      vals[i] = rubyobj_from_cval((char*)(s->a) + DTYPE_SIZES[s->dtype]*(s->shape[0] + 1 + i), s->dtype).rval;
+      vals[i] = nm::rubyobj_from_cval((char*)(s->a) + DTYPE_SIZES[s->dtype]*(s->shape[0] + 1 + i), s->dtype).rval;
     }
   }
 
@@ -1927,7 +1927,7 @@ static VALUE nm_nd_row(int argc, VALUE* argv, VALUE self) {
     ret = rb_hash_new();
 
     for (size_t idx = pos; idx < nextpos; ++idx) {
-      rb_hash_aset(ret, INT2FIX(s->ija[idx]), rubyobj_from_cval((char*)(s->a) + DTYPE_SIZES[s->dtype]*idx, s->dtype).rval);
+      rb_hash_aset(ret, INT2FIX(s->ija[idx]), nm::rubyobj_from_cval((char*)(s->a) + DTYPE_SIZES[s->dtype]*idx, s->dtype).rval);
     }
   }
   NM_CONSERVATIVE(nm_unregister_value(&as));

@@ -44,6 +44,10 @@ MATRIX32A_ARRAY = [12.0, 25.0, 9.0, 10.0, 8.0, 5.0]
 COMPLEX_MATRIX43A_ARRAY = MATRIX43A_ARRAY.zip(MATRIX43A_ARRAY.reverse).collect { |ary| Complex(ary[0], ary[1]) }
 COMPLEX_MATRIX32A_ARRAY = MATRIX32A_ARRAY.zip(MATRIX32A_ARRAY.reverse).collect { |ary| Complex(ary[0], -ary[1]) }
 
+#3x4 matrix used for testing various getrf and LU decomposition functions
+GETRF_EXAMPLE_ARRAY = [-1,0,10,4,9,2,3,5,7,8,1,6]
+GETRF_SOLUTION_ARRAY = [9.0, 2.0, 3.0, 5.0, 7.0/9, 58.0/9, -4.0/3, 19.0/9, -1.0/9, 1.0/29, 301.0/29, 130.0/29]
+
 def create_matrix(stype) #:nodoc:
   m = NMatrix.new([3,3], 0, dtype: :int32, stype: stype, default: 0)
 
@@ -134,3 +138,12 @@ end
 def integer_dtype? dtype
   [:byte,:int8,:int16,:int32,:int64].include?(dtype)
 end
+
+# If a focus: true option is supplied to any test, running `rake spec focus=true`
+# will run only the focused tests and nothing else.
+if ENV["focus"] == "true"
+  RSpec.configure do |c|
+    c.filter_run :focus => true
+  end
+end
+

@@ -85,7 +85,7 @@ public:
     actual_shape_ = actual->shape;
 
     if (init_obj_ == Qnil) {
-      init_obj_ = s->dtype == nm::RUBYOBJ ? *reinterpret_cast<VALUE*>(s->default_val) : rubyobj_from_cval(s->default_val, s->dtype).rval;
+      init_obj_ = s->dtype == nm::RUBYOBJ ? *reinterpret_cast<VALUE*>(s->default_val) : nm::rubyobj_from_cval(s->default_val, s->dtype).rval;
     }
     nm_register_value(&init_obj_);
   }
@@ -181,7 +181,7 @@ static void map_empty_stored_r(RecurseData& result, RecurseData& s, LIST* x, con
       if (!val->first) nm::list::del(val, 0);
       else {
         nm_list_storage_register_list(val, rec-1);
-	temp_vals.push_front(val);
+  temp_vals.push_front(val);
         nm::list::insert_helper(x, xcurr, curr->key - offset, val);
       }
       curr = curr->next;
@@ -193,7 +193,7 @@ static void map_empty_stored_r(RecurseData& result, RecurseData& s, LIST* x, con
     while (curr) {
       VALUE val, s_val;
       if (s.dtype() == nm::RUBYOBJ) s_val = (*reinterpret_cast<nm::RubyObject*>(curr->val)).rval;
-      else                          s_val = rubyobj_from_cval(curr->val, s.dtype()).rval;
+      else                          s_val = nm::rubyobj_from_cval(curr->val, s.dtype()).rval;
 
       if (rev) val = rb_yield_values(2, t_init, s_val);
       else     val = rb_yield_values(2, s_val, t_init);
@@ -265,7 +265,7 @@ static void map_stored_r(RecurseData& result, RecurseData& left, LIST* x, const 
       size_t key;
       VALUE  val;
 
-      val   = rb_yield_values(1, left.dtype() == nm::RUBYOBJ ? *reinterpret_cast<VALUE*>(lcurr->val) : rubyobj_from_cval(lcurr->val, left.dtype()).rval);
+      val   = rb_yield_values(1, left.dtype() == nm::RUBYOBJ ? *reinterpret_cast<VALUE*>(lcurr->val) : nm::rubyobj_from_cval(lcurr->val, left.dtype()).rval);
       key   = lcurr->key - left.offset(rec);
       lcurr = lcurr->next;
 
@@ -355,15 +355,15 @@ static void map_merged_stored_r(RecurseData& result, RecurseData& left, RecurseD
       VALUE  val;
 
       if (!rcurr || (lcurr && (lcurr->key - left.offset(rec) < rcurr->key - right.offset(rec)))) {
-        val   = rb_yield_values(2, rubyobj_from_cval(lcurr->val, left.dtype()).rval, right.init_obj());
+        val   = rb_yield_values(2, nm::rubyobj_from_cval(lcurr->val, left.dtype()).rval, right.init_obj());
         key   = lcurr->key - left.offset(rec);
         lcurr = lcurr->next;
       } else if (!lcurr || (rcurr && (rcurr->key - right.offset(rec) < lcurr->key - left.offset(rec)))) {
-	      val   = rb_yield_values(2, left.init_obj(), rubyobj_from_cval(rcurr->val, right.dtype()).rval);
+        val   = rb_yield_values(2, left.init_obj(), nm::rubyobj_from_cval(rcurr->val, right.dtype()).rval);
         key   = rcurr->key - right.offset(rec);
         rcurr = rcurr->next;
       } else { // == and both present
-        val   = rb_yield_values(2, rubyobj_from_cval(lcurr->val, left.dtype()).rval, rubyobj_from_cval(rcurr->val, right.dtype()).rval);
+        val   = rb_yield_values(2, nm::rubyobj_from_cval(lcurr->val, left.dtype()).rval, nm::rubyobj_from_cval(rcurr->val, right.dtype()).rval);
         key   = lcurr->key - left.offset(rec);
         lcurr = lcurr->next;
         rcurr = rcurr->next;
@@ -855,7 +855,7 @@ static void each_with_indices_r(nm::list_storage::RecurseData& s, const LIST* l,
         rb_ary_unshift(stack, s.dtype() == nm::RUBYOBJ ? *reinterpret_cast<VALUE*>(s.init()) : s.init_obj());
 
       } else { // index == curr->key - offset
-        rb_ary_unshift(stack, s.dtype() == nm::RUBYOBJ ? *reinterpret_cast<VALUE*>(curr->val) : rubyobj_from_cval(curr->val, s.dtype()).rval);
+        rb_ary_unshift(stack, s.dtype() == nm::RUBYOBJ ? *reinterpret_cast<VALUE*>(curr->val) : nm::rubyobj_from_cval(curr->val, s.dtype()).rval);
 
         curr = curr->next;
       }
@@ -902,7 +902,7 @@ static void each_stored_with_indices_r(nm::list_storage::RecurseData& s, const L
       rb_ary_push(stack, LONG2NUM(static_cast<long>(curr->key - offset))); // add index to end
 
       // add value to beginning
-      rb_ary_unshift(stack, s.dtype() == nm::RUBYOBJ ? *reinterpret_cast<VALUE*>(curr->val) : rubyobj_from_cval(curr->val, s.dtype()).rval);
+      rb_ary_unshift(stack, s.dtype() == nm::RUBYOBJ ? *reinterpret_cast<VALUE*>(curr->val) : nm::rubyobj_from_cval(curr->val, s.dtype()).rval);
       // yield to the whole stack (value, i, j, k, ...)
       rb_yield_splat(stack);
 
@@ -975,7 +975,7 @@ VALUE nm_list_map_stored(VALUE left, VALUE init) {
     init = rb_yield_values(1, sdata.init_obj());
     nm_register_value(&init);
   }
-	// Allocate a new shape array for the resulting matrix.
+  // Allocate a new shape array for the resulting matrix.
   void* init_val = NM_ALLOC(VALUE);
   memcpy(init_val, &init, sizeof(VALUE));
   nm_register_value(&*reinterpret_cast<VALUE*>(init_val));
@@ -1316,12 +1316,12 @@ void nm_list_storage_remove(STORAGE* storage, SLICE* slice) {
  * Comparison of contents for list storage.
  */
 bool nm_list_storage_eqeq(const STORAGE* left, const STORAGE* right) {
-	NAMED_LR_DTYPE_TEMPLATE_TABLE(ttable, nm::list_storage::eqeq_r, bool, nm::list_storage::RecurseData& left, nm::list_storage::RecurseData& right, const LIST* l, const LIST* r, size_t rec)
+  NAMED_LR_DTYPE_TEMPLATE_TABLE(ttable, nm::list_storage::eqeq_r, bool, nm::list_storage::RecurseData& left, nm::list_storage::RecurseData& right, const LIST* l, const LIST* r, size_t rec)
 
   nm::list_storage::RecurseData ldata(reinterpret_cast<const LIST_STORAGE*>(left)),
                                 rdata(reinterpret_cast<const LIST_STORAGE*>(right));
 
-	return ttable[left->dtype][right->dtype](ldata, rdata, ldata.top_level_list(), rdata.top_level_list(), ldata.dim()-1);
+  return ttable[left->dtype][right->dtype](ldata, rdata, ldata.top_level_list(), rdata.top_level_list(), ldata.dim()-1);
 }
 
 //////////
@@ -1349,7 +1349,7 @@ STORAGE* nm_list_storage_matrix_multiply(const STORAGE_PAIR& casted_storage, siz
 VALUE nm_list_storage_to_hash(const LIST_STORAGE* s, const nm::dtype_t dtype) {
   nm_list_storage_register(s);
   // Get the default value for the list storage.
-  VALUE default_value = rubyobj_from_cval(s->default_val, dtype).rval;
+  VALUE default_value = nm::rubyobj_from_cval(s->default_val, dtype).rval;
   nm_list_storage_unregister(s);
   // Recursively copy each dimension of the matrix into a nested hash.
   return nm_list_copy_to_hash(s->rows, dtype, s->dim - 1, default_value);
@@ -1390,7 +1390,7 @@ size_t nm_list_storage_count_nd_elements(const LIST_STORAGE* s) {
   size_t count = 0;
 
   if (s->dim != 2) {
-  	rb_raise(rb_eNotImpError, "non-diagonal element counting only defined for dim = 2");
+    rb_raise(rb_eNotImpError, "non-diagonal element counting only defined for dim = 2");
   }
 
   for (i_curr = s->rows->first; i_curr; i_curr = i_curr->next) {
@@ -1401,7 +1401,7 @@ size_t nm_list_storage_count_nd_elements(const LIST_STORAGE* s) {
       int j = j_curr->key - s->offset[1];
       if (j < 0 || j >= (int)s->shape[1]) continue;
 
-      if (i != j)  	++count;
+      if (i != j)    ++count;
     }
   }
 
@@ -1621,7 +1621,7 @@ extern "C" {
    */
   VALUE nm_list_default_value(VALUE self) {
     NM_CONSERVATIVE(nm_register_value(&self));
-    VALUE to_return = (NM_DTYPE(self) == nm::RUBYOBJ) ? *reinterpret_cast<VALUE*>(NM_DEFAULT_VAL(self)) : rubyobj_from_cval(NM_DEFAULT_VAL(self), NM_DTYPE(self)).rval;
+    VALUE to_return = (NM_DTYPE(self) == nm::RUBYOBJ) ? *reinterpret_cast<VALUE*>(NM_DEFAULT_VAL(self)) : nm::rubyobj_from_cval(NM_DEFAULT_VAL(self), NM_DTYPE(self)).rval;
     NM_CONSERVATIVE(nm_unregister_value(&self));
     return to_return;
   }

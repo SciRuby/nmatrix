@@ -57,6 +57,33 @@
   #include "nm_memory.h"
 #endif
 
+#ifndef FIX_CONST_VALUE_PTR
+# if defined(__fcc__) || defined(__fcc_version) || \
+    defined(__FCC__) || defined(__FCC_VERSION)
+/* workaround for old version of Fujitsu C Compiler (fcc) */
+#  define FIX_CONST_VALUE_PTR(x) ((const VALUE *)(x))
+# else
+#  define FIX_CONST_VALUE_PTR(x) (x)
+# endif
+#endif
+
+#ifndef HAVE_RB_ARRAY_CONST_PTR
+static inline const VALUE *
+rb_array_const_ptr(VALUE a)
+{
+  return FIX_CONST_VALUE_PTR((RBASIC(a)->flags & RARRAY_EMBED_FLAG) ?
+    RARRAY(a)->as.ary : RARRAY(a)->as.heap.ptr);
+}
+#endif
+
+#ifndef RARRAY_CONST_PTR
+# define RARRAY_CONST_PTR(a) rb_array_const_ptr(a)
+#endif
+
+#ifndef RARRAY_AREF
+# define RARRAY_AREF(a, i) (RARRAY_CONST_PTR(a)[i])
+#endif
+
 /*
  * Macros
  */
@@ -323,7 +350,10 @@ NM_DEF_STRUCT_POST(NM_GC_HOLDER);       // };
 #define NM_SHAPE1(val)          (NM_STORAGE(val)->shape[1])
 #define NM_DEFAULT_VAL(val)     (NM_STORAGE_LIST(val)->default_val)
 
+// Number of elements in a dense nmatrix.
 #define NM_DENSE_COUNT(val)     (nm_storage_count_max_elements(NM_STORAGE_DENSE(val)))
+
+// Get a pointer to the array that stores elements in a dense matrix.
 #define NM_DENSE_ELEMENTS(val)  (NM_STORAGE_DENSE(val)->elements)
 #define NM_SIZEOF_DTYPE(val)    (DTYPE_SIZES[NM_DTYPE(val)])
 #define NM_REF(val,slice)       (RefFuncs[NM_STYPE(val)]( NM_STORAGE(val), slice, NM_SIZEOF_DTYPE(val) ))

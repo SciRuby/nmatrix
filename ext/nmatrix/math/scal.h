@@ -58,28 +58,6 @@ inline void scal(const int n, const DType scalar, DType* x, const int incx) {
   }
 }
 
-#if defined HAVE_CBLAS_H || defined HAVE_ATLAS_CBLAS_H
-template <>
-inline void scal(const int n, const float scalar, float* x, const int incx) {
-  cblas_sscal(n, scalar, x, incx);
-}
-
-template <>
-inline void scal(const int n, const double scalar, double* x, const int incx) {
-  cblas_dscal(n, scalar, x, incx);
-}
-
-template <>
-inline void scal(const int n, const Complex64 scalar, Complex64* x, const int incx) {
-  cblas_cscal(n, (const void*)(&scalar), (void*)(x), incx);
-}
-
-template <>
-inline void scal(const int n, const Complex128 scalar, Complex128* x, const int incx) {
-  cblas_zscal(n, (const void*)(&scalar), (void*)(x), incx);
-}
-#endif
-
 /*
  * Function signature conversion for LAPACK's scal function.
  */

@@ -33,7 +33,8 @@
  * Standard Includes
  */
 
-#include <stdlib.h>
+#include <ruby.h>
+#include <cstdlib>
 #include <list>
 /*
  * Project Includes
@@ -69,17 +70,17 @@ extern "C" {
   // Lifecycle //
   ///////////////
 
-  LIST_STORAGE*	nm_list_storage_create(nm::dtype_t dtype, size_t* shape, size_t dim, void* init_val);
-  void					nm_list_storage_delete(STORAGE* s);
-  void					nm_list_storage_delete_ref(STORAGE* s);
-  void					nm_list_storage_mark(STORAGE*);
+  LIST_STORAGE*  nm_list_storage_create(nm::dtype_t dtype, size_t* shape, size_t dim, void* init_val);
+  void          nm_list_storage_delete(STORAGE* s);
+  void          nm_list_storage_delete_ref(STORAGE* s);
+  void          nm_list_storage_mark(STORAGE*);
   void          nm_list_storage_register(const STORAGE* s);
   void          nm_list_storage_unregister(const STORAGE* s);
   void          nm_list_storage_register_list(const LIST* l, size_t recursions);
   void          nm_list_storage_unregister_list(const LIST* l, size_t recursions);
   void          nm_list_storage_register_node(const NODE* n);
   void          nm_list_storage_unregister_node(const NODE* n);
-  void		      nm_list_storage_completely_unregister_node(const NODE* curr);
+  void          nm_list_storage_completely_unregister_node(const NODE* curr);
   ///////////////
   // Accessors //
   ///////////////

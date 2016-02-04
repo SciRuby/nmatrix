@@ -69,28 +69,6 @@ inline int imax(const int n, const DType *x, const int incx) {
   return imax;
 }
 
-#if defined HAVE_CBLAS_H || defined HAVE_ATLAS_CBLAS_H
-template<>
-inline int imax(const int n, const float* x, const int incx) {
-  return cblas_isamax(n, x, incx);
-}
-
-template<>
-inline int imax(const int n, const double* x, const int incx) {
-  return cblas_idamax(n, x, incx);
-}
-
-template<>
-inline int imax(const int n, const Complex64* x, const int incx) {
-  return cblas_icamax(n, x, incx);
-}
-
-template <>
-inline int imax(const int n, const Complex128* x, const int incx) {
-  return cblas_izamax(n, x, incx);
-}
-#endif
-
 template<typename DType>
 inline int cblas_imax(const int n, const void* x, const int incx) {
   return imax<DType>(n, reinterpret_cast<const DType*>(x), incx);

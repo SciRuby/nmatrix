@@ -59,6 +59,13 @@
 #ifndef GETRF_H
 #define GETRF_H
 
+#include "math/laswp.h"
+#include "math/math.h"
+#include "math/trsm.h"
+#include "math/gemm.h"
+#include "math/imax.h"
+#include "math/scal.h"
+
 namespace nm { namespace math {
 
 /* Numeric inverse -- usually just 1 / f, but a little more complicated for complex. */
@@ -68,8 +75,6 @@ inline DType numeric_inverse(const DType& n) {
 }
 template <> inline float numeric_inverse(const float& n) { return 1 / n; }
 template <> inline double numeric_inverse(const double& n) { return 1 / n; }
-
-
 
 /*
  * Templated version of row-order and column-order getrf, derived from ATL_getrfR.c (from ATLAS 3.8.0).
@@ -109,7 +114,12 @@ inline int getrf_nothrow(const int M, const int N, DType* A, const int lda, int*
     if (N_ul > NB) N_ul = ATL_MulByNB(ATL_DivByNB(N_ul));
 #endif
 
-    int N_dr = M - N_ul;
+    int N_dr;
+    if (RowMajor) {
+      N_dr = M - N_ul;
+    } else {
+      N_dr = N - N_ul;
+    }
 
     int i = RowMajor ? getrf_nothrow<true,DType>(N_ul, N, A, lda, ipiv) : getrf_nothrow<false,DType>(M, N_ul, A, lda, ipiv);
 
@@ -135,7 +145,7 @@ inline int getrf_nothrow(const int M, const int N, DType* A, const int lda, int*
       nm::math::laswp<DType>(N_dr, Ac, lda, 0, N_ul, ipiv, 1);
 
       nm::math::trsm<DType>(CblasColMajor, CblasLeft, CblasLower, CblasNoTrans, CblasUnit, N_ul, N_dr, one, A, lda, Ac, lda);
-      nm::math::gemm<DType>(CblasColMajor, CblasNoTrans, CblasNoTrans, M-N_ul, N_dr, N_ul, &neg_one, An, lda, Ac, lda, &one, An, lda);
+      nm::math::gemm<DType>(CblasColMajor, CblasNoTrans, CblasNoTrans, M-N_ul, N_dr, N_ul, &neg_one, &(A[N_ul]), lda, Ac, lda, &one, An, lda);
 
       i = getrf_nothrow<false,DType>(M-N_ul, N_dr, An, lda, ipiv+N_ul);
     }
@@ -148,9 +158,14 @@ inline int getrf_nothrow(const int M, const int N, DType* A, const int lda, int*
 
     nm::math::laswp<DType>(N_ul, A, lda, N_ul, MN, ipiv, 1);  /* apply pivots */
 
-  } else if (MN == 1) { // there's another case for the colmajor version, but i don't know that it's that critical. Calls ATLAS LU2, who knows what that does.
+  } else if (MN == 1) { // there's another case for the colmajor version, but it doesn't seem to be necessary.
 
-    int i = *ipiv = nm::math::imax<DType>(N, A, 1); // cblas_iamax(N, A, 1);
+    int i;
+    if (RowMajor) {
+      i = *ipiv = nm::math::imax<DType>(N, A, 1); // cblas_iamax(N, A, 1);
+    } else {
+      i = *ipiv = nm::math::imax<DType>(M, A, 1);
+    }
 
     DType tmp = A[i];
     if (tmp != 0) {

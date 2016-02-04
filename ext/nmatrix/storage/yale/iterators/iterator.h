@@ -29,6 +29,7 @@
 #ifndef YALE_ITERATORS_ITERATOR_H
 # define YALE_ITERATORS_ITERATOR_H
 
+#include <ruby.h>
 #include <type_traits>
 #include <typeinfo>
 

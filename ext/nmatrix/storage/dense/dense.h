@@ -32,7 +32,8 @@
  * Standard Includes
  */
 
-#include <stdlib.h>
+#include <ruby.h>
+#include <cstdlib>
 
 /*
  * Project Includes
@@ -69,10 +70,10 @@ extern "C" {
 // Lifecycle //
 ///////////////
 
-DENSE_STORAGE*	nm_dense_storage_create(nm::dtype_t dtype, size_t* shape, size_t dim, void* elements, size_t elements_length);
-void						nm_dense_storage_delete(STORAGE* s);
-void						nm_dense_storage_delete_ref(STORAGE* s);
-void						nm_dense_storage_mark(STORAGE*);
+DENSE_STORAGE*  nm_dense_storage_create(nm::dtype_t dtype, size_t* shape, size_t dim, void* elements, size_t elements_length);
+void            nm_dense_storage_delete(STORAGE* s);
+void            nm_dense_storage_delete_ref(STORAGE* s);
+void            nm_dense_storage_mark(STORAGE*);
 void            nm_dense_storage_register(const STORAGE* s);
 void            nm_dense_storage_unregister(const STORAGE* s);
 
@@ -86,8 +87,8 @@ VALUE nm_dense_map_pair(VALUE self, VALUE right);
 VALUE nm_dense_map(VALUE self);
 VALUE nm_dense_each(VALUE nmatrix);
 VALUE nm_dense_each_with_indices(VALUE nmatrix);
-void*	nm_dense_storage_get(const STORAGE* s, SLICE* slice);
-void*	nm_dense_storage_ref(const STORAGE* s, SLICE* slice);
+void*  nm_dense_storage_get(const STORAGE* s, SLICE* slice);
+void*  nm_dense_storage_ref(const STORAGE* s, SLICE* slice);
 void  nm_dense_storage_set(VALUE left, SLICE* slice, VALUE right);
 
 ///////////

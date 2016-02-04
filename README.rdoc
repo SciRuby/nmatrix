@@ -14,8 +14,24 @@ Fast Numerical Linear Algebra Library for Ruby
 
 == Description
 
-NMatrix is a fast numerical linear algebra library for Ruby, with dense and sparse matrices, written mostly in C and
-C++. It is part of the SciRuby project.
+NMatrix is a fast numerical linear algebra library for Ruby, with
+dense and sparse matrices, written mostly in C and C++. It is part of
+the SciRuby project.
+
+Three gems are provided in this repository. The +nmatrix+ gem provides
+all core matrix functionality, and requires minimal external
+dependencies, making it easy to install. The +nmatrix-atlas+ and
++nmatrix-lapacke+ gems are optional extensions of the main +nmatrix+
+gem that rely on external linear algebra libraries to provide advanced
+features for dense matrices (singular value decomposition,
+eigenvalue/eigenvector finding, Cholesky factorization), as well as
+providing faster implementations of common operations like
+multiplication, inverses, and determinants. +nmatrix-atlas+ requires
+the {ATLAS library}[http://math-atlas.sourceforge.net/], while
++nmatrix-lapacke+ is designed to work with various LAPACK
+implementations (including ATLAS).  The +nmatrix-atlas+ and
++nmatrix-lapacke+ gems both provide similar interfaces for using these
+advanced features.
 
 NMatrix was inspired by {NArray}[http://narray.rubyforge.org], by Masahiro Tanaka.
 
@@ -25,33 +41,62 @@ To install the latest stable version:
 
     gem install nmatrix
 
-However, you will need to install {ATLAS}[http://math-atlas.sourceforge.net/] with CBLAS (C interface to
-{BLAS}[http://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms]) first. Detailed directions can be found
-{here}[https://github.com/SciRuby/nmatrix/wiki/Installation]. The requirements for NMatrix are:
+The requirements for NMatrix are:
+* GCC 4.3 or later (clang support is experimental)
+* Ruby 1.9.3 or later
 
-* ATLAS, preferably with CLAPACK ({see here for details}[https://github.com/SciRuby/nmatrix/wiki/Installation])
-* a version of GCC or clang which supports C++0x or C++11
-* Ruby 1.9.3+
-* {packable}[http://github.com/marcandre/packable] 1.3.5 (used for I/O)
+To install +nmatrix-atlas+ or +nmatrix-lapacke+, an additional requirement is a
+compatible LAPACK library.
+Detailed directions for this step can be found
+{here}[https://github.com/SciRuby/nmatrix/wiki/Installation].
 
 If you want to obtain the latest (development) code, you should generally do:
 
     git clone https://github.com/SciRuby/nmatrix.git
     cd nmatrix/
+    gem install bundler
     bundle install
     bundle exec rake compile
-    bundle exec rake repackage
-    gem install pkg/nmatrix-0.1.0.rc5.gem
+    bundle exec rake spec
 
-Detailed instructions are available for {Mac}[https://github.com/SciRuby/nmatrix/wiki/Installation#mac-os-x] and {Linux}[https://github.com/SciRuby/nmatrix/wiki/Installation#linux].
-We are currently working on Mavericks (Mac OS X) installation instructions, but in general, you'll need Homebrew and should
-probably use +brew install gcc48+ instead of using the install script.
+If you want to try out the code without installing:
+
+    bundle exec rake pry
+
+To install:
+
+    bundle exec rake install
+
+The commands above build and install only the core +nmatrix+ gem.  If
+you want to build one or more of the plugin gems (+nmatrix-atlas+,
++nmatrix-lapacke+) in addition to the core nmatrix gem, use the
+<tt>nmatrix_plugins=</tt> option, e.g.  <tt>rake compile
+nmatrix_plugins=all</tt>, <tt>rake install nmatrix_plugins=atlas</tt>,
+<tt>rake clean nmatrix_plugins=atlas,lapacke</tt>. Each of these
+commands apply to the +nmatrix+ gem and any additional plugin gems
+specified. For example, <tt>rake spec nmatrix_plugins=atlas</tt> will
+test both the core +nmatrix+ gem and the +nmatrix-atlas+ gem.
+
+== Upgrading from NMatrix 0.1.0
+
+If your code requires features provided by ATLAS (Cholesky
+decomposition, singular value decomposition, eigenvalues/eigenvectors,
+inverses of matrices bigger than 3-by-3), your code now depends on the
++nmatrix-atlas+ gem. You will need to add this a dependency of your
+project and <tt>require 'nmatrix/atlas'</tt> in addition to
+<tt>require 'nmatrix'</tt>. In most cases, no further changes should
+be necessary, however there have been a few {API
+changes}[https://github.com/SciRuby/nmatrix/wiki/API-Changes], please
+check to see if these affect you.
 
 == Documentation
 
-If you have a suggestion or want to add documentation for any class or method in NMatrix, please open an issue or send a pull request with the changes.
+If you have a suggestion or want to add documentation for any class or
+method in NMatrix, please open an issue or send a pull request with
+the changes.
 
-You can find the complete API documentation {on our website}[http://sciruby.com/nmatrix/docs/].
+You can find the complete API documentation {on our
+website}[http://sciruby.com/nmatrix/docs/].
 
 == Examples
 
@@ -74,34 +119,59 @@ Create a new NMatrix using the +N+ shortcut:
     >> m.inspect
     => #<NMatrix:0x007f8e121b6cf8shape:[2,3] dtype:int32 stype:dense>
 
-The above output requires that you have a pretty-print-enabled console such as Pry; otherwise, you'll
-see the output given by +inspect+.
+The above output requires that you have a pretty-print-enabled console
+such as Pry; otherwise, you'll see the output given by +inspect+.
 
-If you want to learn more about how to create a
-matrix, {read the guide in our wiki}[https://github.com/SciRuby/nmatrix/wiki/How-to-create-a-NMatrix].
+If you want to learn more about how to create a matrix, {read the guide in our wiki}[https://github.com/SciRuby/nmatrix/wiki/How-to-create-a-NMatrix].
 
 Again, you can find the complete API documentation {on our website}[http://sciruby.com/nmatrix/docs/].
 
+=== Using advanced features provided by plugins
+
+Certain features (see the documentation) require either the
+nmatrix-atlas or the nmatrix-lapacke gem to be installed. These can be
+accessed by using <tt>require 'nmatrix/atlas'</tt> or <tt>require
+'nmatrix/lapacke'</tt>. If you don't care which of the two gems is
+installed, use <tt>require 'nmatrix/lapack_plugin'</tt>, which will
+require whichever one of the two is available.
+
+Fast fourier transforms can be conducted with the nmatrix-fftw
+extension, which is an interface to the FFTW C library. Use
+<tt>require 'nmatrix/fftw'</tt> for using this plugin.
+
+== Plugin Details
+
+=== *FFTW*
+
+This is plugin for interfacing with the {FFTW library}[http://www.fftw.org].
+It has been tested with FFTW 3.3.4.
+
+It works reliably only with 64 bit numbers (or the NMatrix `:float64`
+or `:complex128` data type). See the docs for more details.
+
 == NArray Compatibility
 
-When NArray[http://masa16.github.io/narray/] is installed alongside NMatrix, <tt>require 'nmatrix'</tt>
-will inadvertently load NArray's +lib/nmatrix.rb+ file, usually accompanied by the following error:
+When NArray[http://masa16.github.io/narray/] is installed alongside
+NMatrix, <tt>require 'nmatrix'</tt> will inadvertently load NArray's
++lib/nmatrix.rb+ file, usually accompanied by the following error:
 
     uninitialized constant NArray (NameError)
 
-To make sure NMatrix is loaded properly in the presence of NArray, use <tt>require 'nmatrix/nmatrix'</tt>
-instead of <tt>require 'nmatrix'</tt> in your code.
+To make sure NMatrix is loaded properly in the presence of NArray, use
+<tt>require 'nmatrix/nmatrix'</tt> instead of <tt>require
+'nmatrix'</tt> in your code.
 
 == Developers
 
-Read the instructions in +CONTRIBUTING.md+ if you want to help NMatrix.
+Read the instructions in +CONTRIBUTING.md+ if you want to help
+NMatrix.
 
 == Features
 
 The following features exist in the current version of NMatrix (0.1.0.rc1):
 
 * Matrix and vector storage containers: dense, yale, list (more to come)
-* Data types: byte (uint8), int8, int16, int32, int64, float32, float64, complex64, complex128, rational64, rational128,
+* Data types: byte (uint8), int8, int16, int32, int64, float32, float64, complex64, complex128,
   Ruby object
 * Interconversion between storage and data types
 * Element-wise and right-hand-scalar operations and comparisons for all matrix types
@@ -117,21 +187,17 @@ The following features exist in the current version of NMatrix (0.1.0.rc1):
   * Harwell-Boeing and Fortran file input
   * Point Cloud Library PCD file input
 * C and C++ API
-* BLAS internal implementations (no library) and ATLAS (with library) access:
-  * Level 1: xROT, xROTG (BLAS dtypes only), xASUM, xNRM2, IxAMAX
+* BLAS internal implementations (no library) and external (with nmatrix-lapack or nmatrix-atlas) access:
+  * Level 1: xROT, xROTG (BLAS dtypes only), xASUM, xNRM2, IxAMAX, xSCAL
   * Level 2: xGEMV
   * Level 3: xGEMM, xTRSM
-* LAPACK ATLAS access:
+* LAPACK access (with nmatrix-lapack or nmatrix-atlas plugin):
   * xGETRF, xGETRI, xGETRS, xGESV (Gaussian elimination)
   * xPOTRF, xPOTRI, xPOTRS, xPOSV (Cholesky factorization)
-  * xLASWP, xSCAL, xLAUUM
-* LAPACK-less internal implementations (no LAPACK needed and working on non-BLAS dtypes):
-  * xGETRF
-  * xLASWP, xSCAL
-  * xLAUUM (no LAPACK needed, but BLAS dtypes only)
-* LAPACK (non-ATLAS) access:
   * xGESVD, xGESDD (singular value decomposition)
-  * xGEEV (eigenvalue decomposition of a asymmetric square matrices)
+  * xGEEV (eigenvalue decomposition of asymmetric square matrices)
+* LAPACK-less internal implementations (no plugin or LAPACK needed and working on non-BLAS dtypes):
+  * xGETRF, xGETRS
 * LU decomposition
 * Matrix inversions
 * Determinant calculation for BLAS dtypes
@@ -142,16 +208,18 @@ The following features exist in the current version of NMatrix (0.1.0.rc1):
 
 === Planned Features (Short-to-Medium Term)
 
-See the issues tracker for a list of planned features or to request new ones.
+See the issues tracker for a list of planned features or to request
+new ones.
 
 == License
 
-Copyright (c) 2012--15, John Woods and the Ruby Science Foundation.
+Copyright (c) 2012--16, John Woods and the Ruby Science Foundation.
 
 All rights reserved.
 
-NMatrix, along with SciRuby, is licensed under the BSD 2-clause license. See
-{LICENSE.txt}[https://github.com/SciRuby/sciruby/wiki/License] for details.
+NMatrix, along with SciRuby, is licensed under the BSD 2-clause
+license. See {LICENSE.txt}[https://github.com/SciRuby/sciruby/wiki/License]
+for details.
 
 == Donations
 

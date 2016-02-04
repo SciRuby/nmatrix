@@ -195,19 +195,41 @@ class NMatrix
     NMatrix::LAPACK::lapacke_potrf(:row, which, self.shape[0], self, self.shape[1])
   end
 
-  def solve b
+  def solve(b, opts = {})
     raise(ShapeError, "Must be called on square matrix") unless self.dim == 2 && self.shape[0] == self.shape[1]
     raise(ShapeError, "number of rows of b must equal number of cols of self") if 
       self.shape[1] != b.shape[0]
-    raise ArgumentError, "only works with dense matrices" if self.stype != :dense
-    raise ArgumentError, "only works for non-integer, non-object dtypes" if 
+    raise(ArgumentError, "only works with dense matrices") if self.stype != :dense
+    raise(ArgumentError, "only works for non-integer, non-object dtypes") if 
       integer_dtype? or object_dtype? or b.integer_dtype? or b.object_dtype?
 
-    x     = b.clone
-    clone = self.clone
-    n = self.shape[0]
-    ipiv = NMatrix::LAPACK.lapacke_getrf(:row, n, n, clone, n)
-    NMatrix::LAPACK.lapacke_getrs(:row, :no_transpose, n, b.shape[1], clone, n, ipiv, x, b.shape[1])
-    x
+    opts = { form: :general }.merge(opts)
+    x    = b.clone
+    n    = self.shape[0]
+    nrhs = b.shape[1]
+
+    case opts[:form] 
+    when :general
+      clone = self.clone
+      ipiv = NMatrix::LAPACK.lapacke_getrf(:row, n, n, clone, n)
+      NMatrix::LAPACK.lapacke_getrs(:row, :no_transpose, n, nrhs, clone, n, ipiv, x, nrhs)
+      x
+    when :upper_tri, :upper_triangular
+      raise(ArgumentError, "upper triangular solver does not work with complex dtypes") if
+        complex_dtype? or b.complex_dtype?
+      NMatrix::BLAS::cblas_trsm(:row, :left, :upper, false, :nounit, n, nrhs, 1.0, self, n, x, nrhs)
+      x
+    when :lower_tri, :lower_triangular
+      raise(ArgumentError, "lower triangular solver does not work with complex dtypes") if
+        complex_dtype? or b.complex_dtype?
+      NMatrix::BLAS::cblas_trsm(:row, :left, :lower, false, :nounit, n, nrhs, 1.0, self, n, x, nrhs)
+      x
+    when :pos_def, :positive_definite
+      u, l = self.factorize_cholesky
+      z = l.solve(b, form: :lower_tri)
+      u.solve(z, form: :upper_tri)
+    else
+      raise(ArgumentError, "#{opts[:form]} is not a valid form option")
+    end
   end
 end
