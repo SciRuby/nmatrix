@@ -29,6 +29,7 @@
 #ifndef YALE_ITERATORS_STORED_DIAGONAL_H
 # define YALE_ITERATORS_STORED_DIAGONAL_H
 
+#include <ruby.h>
 #include <type_traits>
 #include <typeinfo>
 

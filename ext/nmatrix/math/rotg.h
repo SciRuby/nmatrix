@@ -84,34 +84,14 @@ inline void rotg(DType* a, DType* b, DType* c, DType* s) {
   }
 }
 
-#if (defined(HAVE_CBLAS_H) || defined(HAVE_ATLAS_CBLAS_H))
-template <>
-inline void rotg(float* a, float* b, float* c, float* s) {
-  cblas_srotg(a, b, c, s);
-}
-
-template <>
-inline void rotg(double* a, double* b, double* c, double* s) {
-  cblas_drotg(a, b, c, s);
-}
-#endif
-
 template <>
 inline void rotg(Complex64* a, Complex64* b, Complex64* c, Complex64* s) {
-#if (defined(HAVE_CBLAS_H) || defined(HAVE_ATLAS_CBLAS_H))
-  cblas_crotg(reinterpret_cast<void*>(a), reinterpret_cast<void*>(b), reinterpret_cast<void*>(c), reinterpret_cast<void*>(s));
-#else
   rb_raise(rb_eNotImpError, "BLAS not available, and existing template requires modification for complex");
-#endif
 }
 
 template <>
 inline void rotg(Complex128* a, Complex128* b, Complex128* c, Complex128* s) {
-#if (defined(HAVE_CBLAS_H) || defined(HAVE_ATLAS_CBLAS_H))
-  cblas_zrotg(reinterpret_cast<void*>(a), reinterpret_cast<void*>(b), reinterpret_cast<void*>(c), reinterpret_cast<void*>(s));
-#else
   rb_raise(rb_eNotImpError, "BLAS not available, and existing template requires modification for complex");
-#endif
 }
 
 

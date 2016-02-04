@@ -119,10 +119,10 @@ void mark(LIST* list, size_t recursions) {
     next = curr->next;
     
     if (recursions == 0) {
-    	rb_gc_mark(*((VALUE*)(curr->val)));
-    	
+      rb_gc_mark(*((VALUE*)(curr->val)));
+      
     } else {
-    	mark((LIST*)curr->val, recursions - 1);
+      mark((LIST*)curr->val, recursions - 1);
     }
     
     curr = next;
@@ -174,8 +174,8 @@ NODE* insert(LIST* list, bool replace, size_t key, void* val) {
   NODE *ins;
 
   if (list->first == NULL) {
-  	// List is empty
-  	
+    // List is empty
+    
     //if (!(ins = malloc(sizeof(NODE)))) return NULL;
     ins = NM_ALLOC(NODE);
     ins->next             = NULL;
@@ -186,8 +186,8 @@ NODE* insert(LIST* list, bool replace, size_t key, void* val) {
     return ins;
 
   } else if (key < list->first->key) {
-  	// Goes at the beginning of the list
-  	
+    // Goes at the beginning of the list
+    
     //if (!(ins = malloc(sizeof(NODE)))) return NULL;
     ins = NM_ALLOC(NODE);
     ins->next             = list->first;
@@ -214,7 +214,7 @@ NODE* insert(LIST* list, bool replace, size_t key, void* val) {
     return ins;
 
   } else {
-  	return insert_after(ins, key, val);
+    return insert_after(ins, key, val);
   }
 }
 
@@ -305,7 +305,7 @@ void* remove_by_key(LIST* list, size_t key) {
   void* val;
 
   if (!list->first || list->first->key > key) { // empty list or def. not present
-  	return NULL;
+    return NULL;
   }
 
   if (list->first->key == key) {
@@ -320,7 +320,7 @@ void* remove_by_key(LIST* list, size_t key) {
 
   f = find_preceding_from_node(list->first, key);
   if (!f || !f->next) { // not found, end of list
-  	return NULL;
+    return NULL;
   }
 
   if (f->next->key == key) {
@@ -411,15 +411,15 @@ bool remove_recursive(LIST* list, const size_t* coords, const size_t* offsets, c
 NODE* find(LIST* list, size_t key) {
   NODE* f;
   if (!list->first) {
-  	// empty list -- does not exist
-  	return NULL;
+    // empty list -- does not exist
+    return NULL;
   }
 
   // see if we can find it.
   f = find_nearest_from(list->first, key);
   
   if (!f || f->key == key) {
-  	return f;
+    return f;
   }
   
   return NULL;
@@ -458,10 +458,10 @@ NODE* find_preceding_from_node(NODE* prev, size_t key) {
   NODE* curr = prev->next;
 
   if (!curr || key <= curr->key) {
-  	return prev;
-  	
+    return prev;
+    
   } else {
-  	return find_preceding_from_node(curr, key);
+    return find_preceding_from_node(curr, key);
   }
 }
 
@@ -491,19 +491,19 @@ NODE* find_nearest_from(NODE* prev, size_t key) {
   NODE* f;
 
   if (prev && prev->key == key) {
-  	return prev;
+    return prev;
   }
 
   f = find_preceding_from_node(prev, key);
 
   if (!f->next) { // key exceeds final node; return final node.
-  	return f;
-  	
+    return f;
+    
   } else if (key == f->next->key) { // node already present; return location
-  	return f->next;
+    return f->next;
 
   } else {
-  	return f;
+    return f;
   }
 }
 
@@ -528,14 +528,14 @@ void cast_copy_contents(LIST* lhs, const LIST* rhs, size_t recursions) {
       lcurr->key = rcurr->key;
 
       if (recursions == 0) {
-      	// contents is some kind of value
+        // contents is some kind of value
 
         lcurr->val = NM_ALLOC( LDType );
 
         *reinterpret_cast<LDType*>(lcurr->val) = *reinterpret_cast<RDType*>( rcurr->val );
 
       } else {
-      	// contents is a list
+        // contents is a list
 
         lcurr->val = NM_ALLOC( LIST );
 
@@ -547,10 +547,10 @@ void cast_copy_contents(LIST* lhs, const LIST* rhs, size_t recursions) {
       }
 
       if (rcurr->next) {
-      	lcurr->next = NM_ALLOC( NODE );
+        lcurr->next = NM_ALLOC( NODE );
 
       } else {
-      	lcurr->next = NULL;
+        lcurr->next = NULL;
       }
 
       lcurr = lcurr->next;
@@ -608,7 +608,7 @@ extern "C" {
         size_t key = curr->key;
 
         if (recursions == 0) { // content is some kind of value
-          rb_hash_aset(h, INT2FIX(key), rubyobj_from_cval(curr->val, dtype).rval);
+          rb_hash_aset(h, INT2FIX(key), nm::rubyobj_from_cval(curr->val, dtype).rval);
         } else { // content is a list
           rb_hash_aset(h, INT2FIX(key), nm_list_copy_to_hash(reinterpret_cast<const LIST*>(curr->val), dtype, recursions-1, default_value));
         }

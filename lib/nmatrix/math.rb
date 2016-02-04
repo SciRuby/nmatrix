@@ -39,19 +39,21 @@ class NMatrix
   # Methods for generating permutation matrix from LU factorization results.
   module FactorizeLUMethods
     class << self
-      def permutation_matrix_from pivot_array
-        perm_arry = permutation_array_for pivot_array
-        n         = NMatrix.zeros perm_arry.size, dtype: :byte
+      def permutation_matrix_from(pivot_array)
+        perm_arry = permutation_array_for(pivot_array)
+        n         = NMatrix.zeros(perm_arry.size, dtype: :byte)
 
-        perm_arry.each_with_index { |e, i| n[i,e] = 1 }
+        perm_arry.each_with_index { |e, i| n[e,i] = 1 }
 
         n
       end
 
-      def permutation_array_for pivot_array
+      def permutation_array_for(pivot_array)
         perm_arry = Array.new(pivot_array.size) { |i| i }
         perm_arry.each_index do |i|
-          perm_arry[i], perm_arry[pivot_array[i]] = perm_arry[pivot_array[i]], perm_arry[i]
+          #the pivot indices returned by LAPACK getrf are indexed starting
+          #from 1, so we need to subtract 1 here
+          perm_arry[i], perm_arry[pivot_array[i]-1] = perm_arry[pivot_array[i]-1], perm_arry[i]
         end
 
         perm_arry
@@ -67,23 +69,18 @@ class NMatrix
   # Only works on dense matrices. Alternatively uses in-place Gauss-Jordan 
   # elimination.
   #
+  # * *Raises* :
+  #   - +StorageTypeError+ -> only implemented on dense matrices.
+  #   - +ShapeError+ -> matrix must be square.
+  #   - +DataTypeError+ -> cannot invert an integer matrix in-place.
+  #
   def invert!
-    if NMatrix.has_clapack?
-      # Get the pivot array; factor the matrix
-      pivot = self.getrf!
+    raise(StorageTypeError, "invert only works on dense matrices currently") unless self.dense?
+    raise(ShapeError, "Cannot invert non-square matrix") unless self.dim == 2 && self.shape[0] == self.shape[1]
+    raise(DataTypeError, "Cannot invert an integer matrix in-place") if self.integer_dtype?
 
-      # Now calculate the inverse using the pivot array
-      NMatrix::LAPACK::clapack_getri(:row, self.shape[1], self, self.shape[1], pivot)
-
-      self
-    else
-      if self.integer_dtype?
-        __inverse__(self.cast(dtype: :float64), true)
-      else
-        dtype = self.dtype
-        __inverse__(self, true)
-      end
-    end
+    #No internal implementation of getri, so use this other function
+    __inverse__(self, true)
   end
 
   #
@@ -93,44 +90,42 @@ class NMatrix
   # Make a copy of the matrix, then invert using Gauss-Jordan elimination.
   # Works without LAPACK.
   #
-  #
   # * *Returns* :
-  #   - A dense NMatrix.
+  #   - A dense NMatrix. Will be the same type as the input NMatrix,
+  #   except if the input is an integral dtype, in which case it will be a
+  #   :float64 NMatrix.
   #
-  def invert lda=nil, ldb=nil
-    if lda.nil? and ldb.nil?
-      if NMatrix.has_clapack?
-        begin
-          self.cast(:dense, self.dtype).invert! # call CLAPACK version
-        rescue NotImplementedError
-          inverse = self.clone
-          __inverse__(inverse, false)
-        end
-      elsif self.integer_dtype? # FIXME: This check is probably too slow.
-        casted = self.cast(dtype: :float64)
-        inverse       = casted.clone
-        casted.__inverse__(inverse, false)
-      else
-        inverse       = self.clone
-        __inverse__(inverse, false)
-      end
+  # * *Raises* :
+  #   - +StorageTypeError+ -> only implemented on dense matrices.
+  #   - +ShapeError+ -> matrix must be square.
+  #
+  def invert
+    #write this in terms of invert! so plugins will only have to overwrite
+    #invert! and not invert
+    if self.integer_dtype?
+      cloned = self.cast(dtype: :float64)
+      cloned.invert!
     else
-      inverse = self.clone_structure
-      if self.integer_dtype?
-        __inverse_exact__(inverse.cast(dtype: :float64), lda, ldb)
-      else
-        __inverse_exact__(inverse, lda, ldb)
-      end
+      cloned = self.clone
+      cloned.invert!
     end
   end
   alias :inverse :invert
 
   #
   # call-seq:
-  #     getrf! -> NMatrix
+  #     getrf! -> Array
   #
   # LU factorization of a general M-by-N matrix +A+ using partial pivoting with
-  # row interchanges. Only works in dense matrices.
+  # row interchanges. The LU factorization is A = PLU, where P is a row permutation
+  # matrix, L is a lower triangular matrix with unit diagonals, and U is an upper
+  # triangular matrix (note that this convention is different from the
+  # clapack_getrf behavior, but matches the standard LAPACK getrf).
+  # +A+ is overwritten with the elements of L and U (the unit
+  # diagonal elements of L are not saved). P is not returned directly and must be
+  # constructed from the pivot array ipiv. The row indices in ipiv are indexed
+  # starting from 1.
+  # Only works for dense matrices.
   #
   # * *Returns* :
   #   - The IPIV vector. The L and U matrices are stored in A.
@@ -139,45 +134,51 @@ class NMatrix
   #
   def getrf!
     raise(StorageTypeError, "ATLAS functions only work on dense matrices") unless self.dense?
-    NMatrix::LAPACK::clapack_getrf(:row, self.shape[0], self.shape[1], self, self.shape[1])
+
+    #For row-major matrices, clapack_getrf uses a different convention than
+    #described above (U has unit diagonal elements instead of L and columns
+    #are interchanged rather than rows). For column-major matrices, clapack
+    #uses the stanard conventions. So we just transpose the matrix before
+    #and after calling clapack_getrf.
+    #Unfortunately, this is not a very good way, uses a lot of memory.
+    temp = self.transpose
+    ipiv = NMatrix::LAPACK::clapack_getrf(:col, self.shape[0], self.shape[1], temp, self.shape[0])
+    temp = temp.transpose
+    self[0...self.shape[0], 0...self.shape[1]] = temp
+
+    #for some reason, in clapack_getrf, the indices in ipiv start from 0
+    #instead of 1 as in LAPACK.
+    ipiv.each_index { |i| ipiv[i]+=1 }
+
+    return ipiv
   end
-
-  alias :lu_decomposition! :getrf!
-
-  #
-  # call-seq:
-  #     getrf -> NMatrix
-  #
-  # In-place version of #getrf!. Returns the new matrix, which contains L and U matrices.
-  #
-  # * *Raises* :
-  #   - +StorageTypeError+ -> ATLAS functions only work on dense matrices.
-  #
-  def getrf
-    a = self.clone
-    a.getrf!
-    return a
-  end
-
 
   #
   # call-seq:
   #     potrf!(upper_or_lower) -> NMatrix
   #
   # Cholesky factorization of a symmetric positive-definite matrix -- or, if complex,
-  # a Hermitian positive-definite matrix +A+. This uses the ATLAS function clapack_potrf,
-  # so the result will be written in either the upper or lower triangular portion of the
-  # matrix upon which it is called.
+  # a Hermitian positive-definite matrix +A+.
+  # The result will be written in either the upper or lower triangular portion of the
+  # matrix, depending on whether the argument is +:upper+ or +:lower+.
+  # Also the function only reads in the upper or lower part of the matrix,
+  # so it doesn't actually have to be symmetric/Hermitian.
+  # However, if the matrix (i.e. the symmetric matrix implied by the lower/upper
+  # half) is not positive-definite, the function will return nonsense.
+  #
+  # This functions requires either the nmatrix-atlas or nmatrix-lapacke gem
+  # installed.
   #
   # * *Returns* :
   #   the triangular portion specified by the parameter
   # * *Raises* :
   #   - +StorageTypeError+ -> ATLAS functions only work on dense matrices.
+  #   - +ShapeError+ -> Must be square.
+  #   - +NotImplementedError+ -> If called without nmatrix-atlas or nmatrix-lapacke gem
   #
   def potrf!(which)
-    raise(StorageTypeError, "ATLAS functions only work on dense matrices") unless self.dense?
-    # FIXME: Surely there's an easy way to calculate one of these from the other. Do we really need to run twice?
-    NMatrix::LAPACK::clapack_potrf(:row, which, self.shape[0], self, self.shape[1])
+    # The real implementation is in the plugin files.
+    raise(NotImplementedError, "potrf! requires either the nmatrix-atlas or nmatrix-lapacke gem")
   end
 
   def potrf_upper!
@@ -191,12 +192,20 @@ class NMatrix
 
   #
   # call-seq:
-  #     factorize_cholesky -> ...
+  #     factorize_cholesky -> [upper NMatrix, lower NMatrix]
   #
-  # Cholesky factorization of a matrix.
+  # Calculates the Cholesky factorization of a matrix and returns the
+  # upper and lower matrices such that A=LU and L=U*, where * is
+  # either the transpose or conjugate transpose.
+  #
+  # Unlike potrf!, this makes method requires that the original is matrix is
+  # symmetric or Hermitian. However, it is still your responsibility to make
+  # sure it is positive-definite.
   def factorize_cholesky
-    [self.clone.potrf_upper!.triu!,
-    self.clone.potrf_lower!.tril!]
+    raise "Matrix must be symmetric/Hermitian for Cholesky factorization" unless self.hermitian?
+    l = self.clone.potrf_lower!.tril!
+    u = l.conjugate_transpose
+    [u,l]
   end
 
   #
@@ -212,18 +221,15 @@ class NMatrix
   # +with_permutation_matrix+ - If set to *true* will return the permutation 
   #   matrix alongwith the LU factorization as a second return value.
   # 
-  # FIXME: For some reason, getrf seems to require that the matrix be transposed first -- and then you have to transpose the
-  # FIXME: result again. Ideally, this would be an in-place factorize instead, and would be called nm_factorize_lu_bang.
-  #
   def factorize_lu with_permutation_matrix=nil
     raise(NotImplementedError, "only implemented for dense storage") unless self.stype == :dense
     raise(NotImplementedError, "matrix is not 2-dimensional") unless self.dimensions == 2
 
-    t     = self.transpose
-    pivot = NMatrix::LAPACK::clapack_getrf(:row, t.shape[0], t.shape[1], t, t.shape[1])
-    return t.transpose unless with_permutation_matrix
+    t     = self.clone
+    pivot = t.getrf!
+    return t unless with_permutation_matrix
 
-    [t.transpose, FactorizeLUMethods.permutation_matrix_from(pivot)]
+    [t, FactorizeLUMethods.permutation_matrix_from(pivot)]
   end
 
   # Reduce self to upper hessenberg form using householder transforms.
@@ -250,35 +256,94 @@ class NMatrix
     self
   end
 
-  # Solve a system of linear equations where *self* is the matrix of co-efficients
-  # and *b* is the vertical vector of right hand sides. Only works with dense
-  # matrices and non-integer, non-object data types.
+  # Solve the matrix equation AX = B, where A is +self+, B is the first
+  # argument, and X is returned. A must be a nxn square matrix, while B must be
+  # nxm. Only works with dense matrices and non-integer, non-object data types.
   # 
   # == Arguments
-  # 
-  # +b+ - Vector of Right Hand Sides.
-  # 
+  #
+  # * +b+ - the right hand side
+  #
+  # == Options
+  #
+  # * +form+ - Signifies the form of the matrix A in the linear system AX=B.
+  #   If not set then it defaults to +:general+, which uses an LU solver. 
+  #   Other possible values are +:lower_tri+, +:upper_tri+ and +:pos_def+ (alternatively,
+  #   non-abbreviated symbols +:lower_triangular+, +:upper_triangular+, 
+  #   and +:positive_definite+ can be used. 
+  #   If +:lower_tri+ or +:upper_tri+ is set, then a specialized linear solver for linear 
+  #   systems AX=B with a lower or upper triangular matrix A is used. If +:pos_def+ is chosen, 
+  #   then the linear system is solved via the Cholesky factorization.
+  #   Note that when +:lower_tri+ or +:upper_tri+ is used, then the algorithm just assumes that
+  #   all entries in the lower/upper triangle of the matrix are zeros without checking (which
+  #   can be useful in certain applications).
+  #     
+  #
   # == Usage
   # 
   #   a = NMatrix.new [2,2], [3,1,1,2], dtype: dtype
   #   b = NMatrix.new [2,1], [9,8], dtype: dtype
   #   a.solve(b)
-  def solve b
-    raise ArgumentError, "b must be a column vector" if b.shape[1] != 1
-    raise ArgumentError, "number of rows of b must equal number of cols of self" if 
+  #
+  #   # solve an upper triangular linear system more efficiently:
+  #   require 'benchmark'
+  #   require 'nmatrix/lapacke'
+  #   rand_mat = NMatrix.random([10000, 10000], dtype: :float64)
+  #   a = rand_mat.triu
+  #   b = NMatrix.random([10000, 10], dtype: :float64)
+  #   Benchmark.bm(10) do |bm|
+  #     bm.report('general') { a.solve(b) }
+  #     bm.report('upper_tri') { a.solve(b, form: :upper_tri) }
+  #   end
+  #   #                   user     system      total        real
+  #   #  general     73.170000   0.670000  73.840000 ( 73.810086)
+  #   #  upper_tri    0.180000   0.000000   0.180000 (  0.182491)
+  #
+  def solve(b, opts = {})
+    raise(ShapeError, "Must be called on square matrix") unless self.dim == 2 && self.shape[0] == self.shape[1]
+    raise(ShapeError, "number of rows of b must equal number of cols of self") if 
       self.shape[1] != b.shape[0]
-    raise ArgumentError, "only works with dense matrices" if self.stype != :dense
-    raise ArgumentError, "only works for non-integer, non-object dtypes" if 
+    raise(ArgumentError, "only works with dense matrices") if self.stype != :dense
+    raise(ArgumentError, "only works for non-integer, non-object dtypes") if 
       integer_dtype? or object_dtype? or b.integer_dtype? or b.object_dtype?
 
-    x     = b.clone_structure
-    clone = self.clone
-    t     = clone.transpose # transpose because of the getrf anomaly described above.
-    pivot = t.lu_decomposition!
-    t     = t.transpose
-    
-    __solve__(t, b, x, pivot)
-    x
+    opts = { form: :general }.merge(opts)
+    x    = b.clone
+    n    = self.shape[0]
+    nrhs = b.shape[1]
+
+    case opts[:form] 
+    when :general
+      clone = self.clone
+      ipiv = NMatrix::LAPACK.clapack_getrf(:row, n, n, clone, n)
+      # When we call clapack_getrs with :row, actually only the first matrix
+      # (i.e. clone) is interpreted as row-major, while the other matrix (x)
+      # is interpreted as column-major. See here: http://math-atlas.sourceforge.net/faq.html#RowSolve
+      # So we must transpose x before and after
+      # calling it.
+      x = x.transpose
+      NMatrix::LAPACK.clapack_getrs(:row, :no_transpose, n, nrhs, clone, n, ipiv, x, n)
+      x.transpose
+    when :upper_tri, :upper_triangular
+      raise(ArgumentError, "upper triangular solver does not work with complex dtypes") if
+        complex_dtype? or b.complex_dtype?
+      # this is the correct function call; see https://github.com/SciRuby/nmatrix/issues/374
+      NMatrix::BLAS::cblas_trsm(:row, :left, :upper, false, :nounit, n, nrhs, 1.0, self, n, x, nrhs)
+      x
+    when :lower_tri, :lower_triangular
+      raise(ArgumentError, "lower triangular solver does not work with complex dtypes") if
+        complex_dtype? or b.complex_dtype?
+      # this is a workaround; see https://github.com/SciRuby/nmatrix/issues/422
+      x = x.transpose
+      NMatrix::BLAS::cblas_trsm(:row, :right, :lower, :transpose, :nounit, nrhs, n, 1.0, self, n, x, n)
+      x.transpose
+    when :pos_def, :positive_definite
+      u, l = self.factorize_cholesky
+      z = l.solve(b, form: :lower_tri)
+      u.solve(z, form: :upper_tri)
+    else
+      raise(ArgumentError, "#{opts[:form]} is not a valid form option")
+    end
   end
 
   #
@@ -422,7 +487,7 @@ class NMatrix
   #     det -> determinant
   #
   # Calculate the determinant by way of LU decomposition. This is accomplished
-  # using clapack_getrf, and then by summing the diagonal elements. There is a
+  # using clapack_getrf, and then by taking the product of the diagonal elements. There is a
   # risk of underflow/overflow.
   #
   # There are probably also more efficient ways to calculate the determinant.
@@ -440,13 +505,13 @@ class NMatrix
   # * *Returns* :
   #   - The determinant of the matrix. It's the same type as the matrix's dtype.
   # * *Raises* :
-  #   - +NotImplementedError+ -> Must be used in 2D matrices.
+  #   - +ShapeError+ -> Must be used on square matrices.
   #
   def det
-    raise(NotImplementedError, "determinant can be calculated only for 2D matrices") unless self.dim == 2
+    raise(ShapeError, "determinant can be calculated only for square matrices") unless self.dim == 2 && self.shape[0] == self.shape[1]
 
     # Cast to a dtype for which getrf is implemented
-    new_dtype = [:byte,:int8,:int16,:int32,:int64].include?(self.dtype) ? :float64 : self.dtype
+    new_dtype = self.integer_dtype? ? :float64 : self.dtype
     copy = self.cast(:dense, new_dtype)
 
     # Need to know the number of permutations. We'll add up the diagonals of
@@ -455,7 +520,8 @@ class NMatrix
 
     num_perm = 0 #number of permutations
     pivot.each_with_index do |swap, i|
-      num_perm += 1 if swap != i
+      #pivot indexes rows starting from 1, instead of 0, so need to subtract 1 here
+      num_perm += 1 if swap-1 != i
     end
     prod = num_perm % 2 == 1 ? -1 : 1 # odd permutations => negative
     [shape[0],shape[1]].min.times do |i|

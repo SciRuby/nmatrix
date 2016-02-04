@@ -32,6 +32,7 @@
  * Standard Includes
  */
 
+#include <ruby.h>
 #include <cmath> // pow().
 
 /*
@@ -57,9 +58,9 @@ struct STORAGE_PAIR {
 };
 
 struct SLICE {
-  size_t*	coords; // Coordinate of first element
-  size_t*	lengths; // Lengths of slice
-  bool  	single; // true if all lengths equal to 1 (represents single matrix element)
+  size_t*  coords; // Coordinate of first element
+  size_t*  lengths; // Lengths of slice
+  bool    single; // true if all lengths equal to 1 (represents single matrix element)
 };
 
 /*

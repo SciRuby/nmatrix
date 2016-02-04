@@ -104,9 +104,9 @@ extern "C" {
 nm::dtype_t nm_dtype_from_rbstring(VALUE str) {
 
   for (size_t index = 0; index < NM_NUM_DTYPES; ++index) {
-  	if (!std::strncmp(RSTRING_PTR(str), DTYPE_NAMES[index], RSTRING_LEN(str))) {
-  		return static_cast<nm::dtype_t>(index);
-  	}
+    if (!std::strncmp(RSTRING_PTR(str), DTYPE_NAMES[index], RSTRING_LEN(str))) {
+      return static_cast<nm::dtype_t>(index);
+    }
   }
 
   rb_raise(rb_eArgError, "invalid data type string (%s) specified", RSTRING_PTR(str));
@@ -121,7 +121,7 @@ nm::dtype_t nm_dtype_from_rbsymbol(VALUE sym) {
 
   for (size_t index = 0; index < NM_NUM_DTYPES; ++index) {
     if (sym_id == rb_intern(DTYPE_NAMES[index])) {
-    	return static_cast<nm::dtype_t>(index);
+      return static_cast<nm::dtype_t>(index);
     }
   }
 
@@ -138,7 +138,7 @@ nm::stype_t nm_stype_from_rbstring(VALUE str) {
 
   for (size_t index = 0; index < NM_NUM_STYPES; ++index) {
     if (!std::strncmp(RSTRING_PTR(str), STYPE_NAMES[index], 3)) {
-    	return static_cast<nm::stype_t>(index);
+      return static_cast<nm::stype_t>(index);
     }
   }
 
@@ -153,7 +153,7 @@ nm::stype_t nm_stype_from_rbsymbol(VALUE sym) {
 
   for (size_t index = 0; index < NM_NUM_STYPES; ++index) {
     if (SYM2ID(sym) == rb_intern(STYPE_NAMES[index])) {
-    	return static_cast<nm::stype_t>(index);
+      return static_cast<nm::stype_t>(index);
     }
   }
 
@@ -169,7 +169,7 @@ nm::stype_t nm_stype_from_rbsymbol(VALUE sym) {
 static nm::io::matlab_dtype_t matlab_dtype_from_rbsymbol(VALUE sym) {
   for (size_t index = 0; index < nm::io::NUM_MATLAB_DTYPES; ++index) {
     if (SYM2ID(sym) == rb_intern(nm::io::MATLAB_DTYPE_NAMES[index])) {
-    	return static_cast<nm::io::matlab_dtype_t>(index);
+      return static_cast<nm::io::matlab_dtype_t>(index);
     }
   }
 

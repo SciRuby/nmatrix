@@ -4,7 +4,26 @@ require 'rubygems'
 require 'rubygems/package_task'
 require 'bundler'
 
-Bundler::GemHelper.install_tasks
+#Specify plugins to build on the command line like:
+#rake whatever nmatrix_plugins=atlas,lapacke
+#or
+#rake whatever nmatrix_plugins=all
+#If you want to build *only* plugins and not the core nmatrix gem:
+#rake whatever nmatrix_plugins=all nmatrix_core=false
+if ENV["nmatrix_plugins"] == "all"
+  gemspecs = Dir["*.gemspec"]
+else
+  plugins = []
+  plugins = ENV["nmatrix_plugins"].split(",") if ENV["nmatrix_plugins"]
+  gemspecs = ["nmatrix.gemspec"] #always include the main nmatrix gem
+  plugins.each do |plugin|
+    gemspecs << "nmatrix-#{plugin}.gemspec"
+  end
+end
+if ENV["nmatrix_core"] == "false"
+  gemspecs -= ["nmatrix.gemspec"]
+end
+gemspecs.map! { |gemspec| eval(IO.read(gemspec)) }
 
 begin
   Bundler.setup(:default, :development)
@@ -14,26 +33,58 @@ rescue Bundler::BundlerError => e
   exit e.status_code
 end
 
-require 'rake'
-require "rake/extensiontask"
-Rake::ExtensionTask.new do |ext|
-    ext.name = 'nmatrix'
-    ext.ext_dir = 'ext/nmatrix'
-    ext.lib_dir = 'lib/'
-    ext.source_pattern = "**/*.{c,cpp,h}"
+desc "Build and install into system gems."
+task :install => :repackage do
+  gemspecs.each do |gemspec|
+    gem_file = "pkg/#{gemspec.name}-#{gemspec.version}.gem"
+    system "gem install '#{gem_file}'"
+  end
 end
 
-gemspec = eval(IO.read("nmatrix.gemspec"))
+require 'rake'
+require "rake/extensiontask"
 
-Gem::PackageTask.new(gemspec).define
+gemspecs.each do |gemspec|
+  next unless gemspec.extensions
+  gemspec.extensions.each do |extconf|
+    ext_name = extconf.match(/ext\/(.*)\/extconf\.rb/)[1]
+    Rake::ExtensionTask.new do |ext|
+      ext.name = ext_name
+      ext.ext_dir = "ext/#{ext_name}"
+      ext.lib_dir = 'lib/'
+      ext.source_pattern = "**/*.{c,cpp,h}"
+    end
+  end
+end
+
+gemspecs.each do |gemspec|
+  Gem::PackageTask.new(gemspec).define
+end
 
 require 'rspec/core/rake_task'
 require 'rspec/core'
-require 'rspec/core/rake_task'
-RSpec::Core::RakeTask.new(:spec) do |spec|
-  spec.pattern = FileList['spec/**/*_spec.rb'].uniq
+namespace :spec do
+  #We need a separate rake task for each plugin, rather than one big task that
+  #runs all of the specs. This is because there's no way to tell rspec
+  #to run the specs in a certain order with (say) "nmatrix/atlas" require'd
+  #for some of the specs, but not for others, without splitting them up like
+  #this.
+  spec_tasks = []
+  gemspecs.each do |gemspec|
+    test_files = gemspec.test_files
+    test_files.keep_if { |file| file =~ /_spec\.rb$/ }
+    next if test_files.empty?
+    spec_tasks << gemspec.name
+    RSpec::Core::RakeTask.new(gemspec.name) do |spec|
+      spec.pattern = FileList.new(test_files)
+    end
+  end
+  task :all => spec_tasks
 end
 
+
+
+task :spec => "spec:all"
 
 BASEDIR = Pathname( __FILE__ ).dirname.relative_path_from( Pathname.pwd )
 SPECDIR = BASEDIR + 'spec'
@@ -162,14 +213,21 @@ task :leakcheck => [ :compile ] do |task|
 end
 
 namespace :clean do
+  #the generated Makefile doesn't have a soclean target, should this be removed?
   task :so do |task|
-    tmp_path = "tmp/#{RUBY_PLATFORM}/nmatrix/#{RUBY_VERSION}"
-    chdir tmp_path do
-      if RUBY_PLATFORM =~ /mswin/
-        `nmake soclean`
-      else
-        mkcmd = ENV['MAKE'] || %w[gmake make].find { |c| system("#{c} -v >> /dev/null 2>&1") }
-        `#{mkcmd} soclean`
+    gemspecs.each do |gemspec|
+      next unless gemspec.extensions
+      gemspec.extensions.each do |extconf|
+        ext_name = extconf.match(/ext\/(.*)\/extconf\.rb/)[1]
+        tmp_path = "tmp/#{RUBY_PLATFORM}/#{ext_name}/#{RUBY_VERSION}"
+        chdir tmp_path do
+          if RUBY_PLATFORM =~ /mswin/
+            `nmake soclean`
+          else
+            mkcmd = ENV['MAKE'] || %w[gmake make].find { |c| system("#{c} -v >> /dev/null 2>&1") }
+            `#{mkcmd} soclean`
+          end
+        end
       end
     end
   end
@@ -205,12 +263,38 @@ task :check_manifest do |task|
 end
 
 require "rdoc/task"
+#separate out docs for plugins?
 RDoc::Task.new do |rdoc|
   rdoc.main = "README.rdoc"
   rdoc.rdoc_files.include(%w{README.rdoc History.txt LICENSE.txt CONTRIBUTING.md lib ext})
   rdoc.options << "--exclude=ext/nmatrix/extconf.rb"
+  rdoc.options << "--exclude=ext/nmatrix_atlas/extconf.rb"
   rdoc.options << "--exclude=ext/nmatrix/ttable_helper.rb"
   rdoc.options << "--exclude=lib/nmatrix/rspec.rb"
+end
+
+namespace :travis do
+  task :env do
+    puts "\n# Build environment:"
+    %w[
+      CC CXX
+      USE_ATLAS USE_OPENBLAS USE_REF NO_EXTERNAL_LIB
+      TRAVIS_OS_NAME TRAVIS_BRANCH TRAVIS_COMMIT TRAVIS_PULL_REQUEST
+    ].each do |name|
+      puts "- #{name}: #{ENV[name]}"
+    end
+
+    require 'rbconfig'
+    puts "\n# RbConfig::MAKEFILE_CONFIG values:"
+    %w[
+      CC CXX CPPFLAGS CFLAGS CXXFLAGS
+    ].each do |name|
+      puts "- #{name}: #{RbConfig::MAKEFILE_CONFIG[name]}"
+    end
+
+    cc = RbConfig::MAKEFILE_CONFIG['CC']
+    puts "\n$ #{cc} -v\n#{`#{cc} -v 2>&1`}"
+  end
 end
 
 # vim: syntax=ruby

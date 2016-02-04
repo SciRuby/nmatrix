@@ -43,7 +43,7 @@ require_relative './io/mat5_reader'
 require_relative './io/market'
 require_relative './io/point_cloud'
 
-require_relative './lapack.rb'
+require_relative './lapack_core.rb'
 require_relative './yale_functions.rb'
 require_relative './monkeys'
 
@@ -600,13 +600,15 @@ class NMatrix
   #   - A copy of the matrix, but transposed.
   #
   def transpose(permute = nil)
-    if self.dim == 1
-      return self.clone
-    elsif self.dim == 2
-      new_shape = [self.shape[1], self.shape[0]]
-    elsif permute.nil?
-      raise(ArgumentError, "need permutation array of size #{self.dim}")
-    elsif permute.sort.uniq != (0...self.dim).to_a
+    if permute.nil?
+      if self.dim == 1
+        return self.clone
+      elsif self.dim == 2
+        new_shape = [self.shape[1], self.shape[0]]
+      else
+        raise(ArgumentError, "need permutation array of size #{self.dim}")
+      end
+    elsif !permute.is_a?(Array) || permute.sort.uniq != (0...self.dim).to_a
       raise(ArgumentError, "invalid permutation array")
     else
       # Figure out the new shape based on the permutation given as an argument.
@@ -1085,7 +1087,7 @@ protected
     ary << "shape:[#{shape.join(',')}]" << "dtype:#{dtype}" << "stype:#{stype}"
 
     if stype == :yale
-      ary <<	"capacity:#{capacity}"
+      ary << "capacity:#{capacity}"
 
       # These are enabled by the DEBUG_YALE compiler flag in extconf.rb.
       if respond_to?(:__yale_a__)
@@ -1132,7 +1134,8 @@ protected
   end
 
 
-  # Function assumes the dimensions and such have already been tested.
+  # This function assumes that the shapes of the two matrices have already
+  # been tested and are the same.
   #
   # Called from inside NMatrix: nm_eqeq
   #

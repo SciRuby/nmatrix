@@ -1,16 +1,109 @@
 language: ruby
+sudo: required
 cache: bundler
+os:
+  - linux
+  - osx
+osx_image: xcode7.2
 env:
-  - CPLUS_INCLUDE_PATH=/usr/include/atlas C_INCLUDE_PATH=/usr/include/atlas
+  - USE_ATLAS=1       # This configuration installs ATLAS, builds and tests the nmatrix, nmatrix-atlas, and nmatrix-lapacke gems
+  - USE_OPENBLAS=1    # Installs OpenBLAS and reference LAPACK, builds and tests nmatrix, nmatrix-lapacke
+  - USE_REF=1         # Installs OpenBLAS and reference LAPACK, builds and tests nmatrix, nmatrix-lapacke
+  - NO_EXTERNAL_LIB=1 # No external libraries installed, only nmatrix
 rvm:
   - 1.9.3
-  - 2.0
-  - 2.1
-  - 2.2
-before_install:
-  - gem install bundler -v '~> 1.6'
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq libatlas-base-dev
-script: bundle exec rake compile && bundle exec rake spec
+  - 2.0.0-p648
+  - 2.1.8
+  - 2.2.4
+  - 2.3.0
+  - ruby-head
+  # The latest stable and head versions built by clang
+  - 2.3.0-clang
+  - ruby-head-clang
+
+before_install: ./travis.sh before_install
+
+install: ./travis.sh install
+
+script: ./travis.sh script
+
+# Define extra configurations to add to the build matrix.
+# The idea here is that the USE_ATLAS=1 option should exercise all the ruby
+# code, so it is the only one we need to test with all versions of ruby.
+# For other configurations we only test with one version of ruby.
+matrix:
+  exclude:
+    # NOTE: The following two ruby versions on OSX are currently unavailable
+    - os: osx
+      rvm: 2.0.0-p648
+    - os: osx
+      rvm: 2.1.8
+    - os: osx
+      rvm: 2.2.4
+    - os: osx
+      rvm: 2.3.0
+    - os: osx
+      rvm: ruby-head
+    - os: osx
+      rvm: 2.3.0-clang
+    - os: osx
+      rvm: ruby-head-clang
+    # FIXME: The following configuration is unavailable because ATLAS should be built from source.
+    #        We need homebrew formula for ATLAS and its bottle.
+    - os: osx
+      env: USE_ATLAS=1
+    # FIXME: The following configuration takes too long time when installing homebrew/dupes/lapack.
+    #        We need the bottle of lapack formula.
+    - os: osx
+      env: USE_REF=1
+  include:
+    # The latest stable and head versions of ruby built by clang on OSX
+    - os: osx
+      compiler: clang
+      rvm: 2.2
+      env:
+        - ruby_version=2.4.0-dev USE_OPENBLAS=1
+    - os: osx
+      compiler: clang
+      rvm: 2.2
+      env:
+        - ruby_version=2.4.0-dev NO_EXTERNAL_LIB=1
+    - os: osx
+      compiler: clang
+      rvm: 2.2
+      env:
+        - ruby_version=2.3.0 USE_OPENBLAS=1
+    - os: osx
+      compiler: clang
+      rvm: 2.2
+      env:
+        - ruby_version=2.3.0 NO_EXTERNAL_LIB=1
+    # The latest version of Ruby 2.2.x built by clang on OSX
+    - os: osx
+      compiler: clang
+      rvm: 2.2
+      env:
+        - ruby_version=2.2.4 USE_OPENBLAS=1
+    # The latest version of Ruby 2.1.x built by clang on OSX
+    - os: osx
+      compiler: clang
+      rvm: 2.2
+      env:
+        - ruby_version=2.1.8 USE_OPENBLAS=1
+  allow_failures:
+    # Ruby versions which got EOL
+    - rvm: 1.9.3
+    # trunk
+    - env: ruby_version=2.4.0-dev USE_OPENBLAS=1
+    - env: ruby_version=2.4.0-dev NO_EXTERNAL_LIB=1
+    # linux with clang
+    - os: linux
+      rvm: 2.3.0-clang
+    - os: linux
+      rvm: ruby-head-clang
+    # For some reason this OpenBLAS configuration isn't working on travis, disable it for now.
+    - os: linux
+      env: USE_OPENBLAS=1
+
 notifications:
   irc: "chat.freenode.net#sciruby"

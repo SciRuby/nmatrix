@@ -424,6 +424,13 @@ describe 'NMatrix' do
       expect(n.reshape!([8,2]).eql?(n)).to eq(true) # because n itself changes
     end
 
+    it "should do the reshape operation in place, changing dimension" do
+      n = NMatrix.seq(4)
+      a = n.reshape!([4,2,2])
+      expect(n).to eq(NMatrix.seq([4,2,2]))
+      expect(a).to eq(NMatrix.seq([4,2,2]))
+    end
+
     it "reshape and reshape! must produce same result" do
       n = NMatrix.seq(4)+1
       a = NMatrix.seq(4)+1
@@ -432,7 +439,7 @@ describe 'NMatrix' do
 
     it "should prevent a resize in place" do
       n = NMatrix.seq(4)+1
-      expect { n.reshape([5,2]) }.to raise_error(ArgumentError)
+      expect { n.reshape!([5,2]) }.to raise_error(ArgumentError)
     end
   end
 
@@ -461,6 +468,12 @@ describe 'NMatrix' do
         expect(n.transpose).to eq n
         expect(n.transpose).not_to be n
       end
+
+      it "should check permute argument if supplied for #{stype} matrix" do
+        n = NMatrix.new([2,2], [1,2,3,4], stype: stype)
+        expect{n.transpose *4 }.to raise_error(ArgumentError)
+        expect{n.transpose [1,1,2] }.to raise_error(ArgumentError)
+      end
     end
   end
 
@@ -478,13 +491,36 @@ describe 'NMatrix' do
   context "#==" do
     [:dense, :list, :yale].each do |left|
       [:dense, :list, :yale].each do |right|
-        next if left == right
         context ("#{left}?#{right}") do
-          it "should compare two matrices of differing stypes" do
-            n = NMatrix.new([3,4], [0,0,1,2,0,0,3,4,0,0,0,0,5,6,7,0], stype: left)
-            m = NMatrix.new([3,4], [0,0,1,2,0,0,3,4,0,0,0,0,5,6,7,0], stype: right)
-            expect(n).to eq(m)
+          it "tests equality of two equal matrices" do
+            n = NMatrix.new([3,4], [0,0,1,2,0,0,3,4,0,0,0,0], stype: left)
+            m = NMatrix.new([3,4], [0,0,1,2,0,0,3,4,0,0,0,0], stype: right)
+
+            expect(n==m).to eq(true)
           end
+
+          it "tests equality of two unequal matrices" do
+            n = NMatrix.new([3,4], [0,0,1,2,0,0,3,4,0,0,0,1], stype: left)
+            m = NMatrix.new([3,4], [0,0,1,2,0,0,3,4,0,0,0,0], stype: right)
+
+            expect(n==m).to eq(false)
+          end
+
+          it "tests equality of matrices with different shapes" do
+            n = NMatrix.new([2,2], [1,2, 3,4], stype: left)
+            m = NMatrix.new([2,3], [1,2, 3,4, 5,6], stype: right)
+            x = NMatrix.new([1,4], [1,2, 3,4], stype: right)
+
+            expect{n==m}.to raise_error(ShapeError)
+            expect{n==x}.to raise_error(ShapeError)
+          end
+
+          it "tests equality of matrices with different dimension" do
+            n = NMatrix.new([2,1], [1,2], stype: left)
+            m = NMatrix.new([2], [1,2], stype: right)
+
+            expect{n==m}.to raise_error(ShapeError)
+          end if left != :yale && right != :yale # yale must have dimension 2
         end
       end
     end

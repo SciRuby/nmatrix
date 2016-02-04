@@ -105,28 +105,6 @@ inline void rot(const int N, DType* X, const int incX, DType* Y, const int incY,
   }
 }
 
-#if (defined(HAVE_CBLAS_H) || defined(HAVE_ATLAS_CBLAS_H))
-template <>
-inline void rot(const int N, float* X, const int incX, float* Y, const int incY, const float c, const float s) {
-  cblas_srot(N, X, incX, Y, incY, (float)c, (float)s);
-}
-
-template <>
-inline void rot(const int N, double* X, const int incX, double* Y, const int incY, const double c, const double s) {
-  cblas_drot(N, X, incX, Y, incY, c, s);
-}
-
-template <>
-inline void rot(const int N, Complex64* X, const int incX, Complex64* Y, const int incY, const float c, const float s) {
-  cblas_csrot(N, X, incX, Y, incY, c, s);
-}
-
-template <>
-inline void rot(const int N, Complex128* X, const int incX, Complex128* Y, const int incY, const double c, const double s) {
-  cblas_zdrot(N, X, incX, Y, incY, c, s);
-}
-#endif
-
 template <typename DType, typename CSDType>
 inline void cblas_rot(const int N, void* X, const int incX, void* Y, const int incY, const void* c, const void* s) {
   rot<DType,CSDType>(N, reinterpret_cast<DType*>(X), incX, reinterpret_cast<DType*>(Y), incY,

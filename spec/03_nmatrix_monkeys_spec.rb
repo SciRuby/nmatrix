@@ -59,7 +59,7 @@ describe Array do
 
     it "intuits shape of Array into multiple dimensions" do
       a = [[[0], [1]], [[2], [3]], [[4], [5]]]
-      expect(a.to_nm).to eq(NMatrix.new([3,1,2], a.flatten))
+      expect(a.to_nm).to eq(NMatrix.new([3,2,1], a.flatten))
       expect(a).to eq(a.to_nm.to_a)
     end
 

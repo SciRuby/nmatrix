@@ -29,6 +29,7 @@
 #ifndef YALE_ITERATORS_ROW_STORED_ND_H
 # define YALE_ITERATORS_ROW_STORED_ND_H
 
+#include <ruby.h>
 #include <type_traits>
 #include <typeinfo>
 #include <stdexcept>

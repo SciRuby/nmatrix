@@ -31,6 +31,7 @@
 #ifndef YALE_ITERATORS_ROW_H
 # define YALE_ITERATORS_ROW_H
 
+#include <ruby.h>
 #include <stdexcept>
 
 namespace nm { namespace yale_storage {

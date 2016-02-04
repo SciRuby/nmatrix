@@ -42,16 +42,16 @@ EWOPS = [
         ]
 
 LR_ALLOWED = {
-  :uint8_t	 		=> DTYPES,
-  :int8_t				=> DTYPES,
-  :int16_t			=> DTYPES,
-  :int32_t			=> DTYPES,
-  :int64_t			=> DTYPES,
-  :float32_t		=> DTYPES,
-  :float64_t		=> DTYPES,
-  :'nm::Complex64'		=> DTYPES,
-  :'nm::Complex128'		=> DTYPES,
-  :'nm::RubyObject'		=> DTYPES
+  :uint8_t       => DTYPES,
+  :int8_t        => DTYPES,
+  :int16_t      => DTYPES,
+  :int32_t      => DTYPES,
+  :int64_t      => DTYPES,
+  :float32_t    => DTYPES,
+  :float64_t    => DTYPES,
+  :'nm::Complex64'    => DTYPES,
+  :'nm::Complex128'    => DTYPES,
+  :'nm::RubyObject'    => DTYPES
 }
 
 lines =

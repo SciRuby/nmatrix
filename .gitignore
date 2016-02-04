@@ -18,6 +18,8 @@ spec/*.mtx
 *.bundle
 *.bundle.dSYM
 *.log
+*.sw?
+*~
 /tags
 *.gem
 html/

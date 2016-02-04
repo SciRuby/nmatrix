@@ -9,8 +9,8 @@
 #
 # == Copyright Information
 #
-# SciRuby is Copyright (c) 2010 - 2014, Ruby Science Foundation
-# NMatrix is Copyright (c) 2012 - 2014, John Woods and the Ruby Science Foundation
+# SciRuby is Copyright (c) 2010 - 2016, Ruby Science Foundation
+# NMatrix is Copyright (c) 2012 - 2016, John Woods and the Ruby Science Foundation
 #
 # Please see LICENSE.txt for additional copyright notices.
 #
@@ -28,9 +28,9 @@ class NMatrix
   # IO can still understand NMatrix::VERSION.
   module VERSION #:nodoc:
     MAJOR = 0
-    MINOR = 1
-    TINY = 0
-    # PRE = "rc5"
+    MINOR = 2
+    TINY = 1
+    #PRE = "a"
 
     STRING = [MAJOR, MINOR, TINY].compact.join(".")
     #STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")

@@ -42,6 +42,7 @@
  * Standard Includes
  */
 
+#include <ruby.h>
 #include <limits> // for std::numeric_limits<T>::max()
 #include <stdexcept>
 
@@ -84,15 +85,15 @@ extern "C" {
 
   YALE_STORAGE* nm_yale_storage_create(nm::dtype_t dtype, size_t* shape, size_t dim, size_t init_capacity);
   YALE_STORAGE* nm_yale_storage_create_from_old_yale(nm::dtype_t dtype, size_t* shape, char* ia, char* ja, char* a, nm::dtype_t from_dtype);
-  YALE_STORAGE*	nm_yale_storage_create_merged(const YALE_STORAGE* merge_template, const YALE_STORAGE* other);
+  YALE_STORAGE*  nm_yale_storage_create_merged(const YALE_STORAGE* merge_template, const YALE_STORAGE* other);
   void          nm_yale_storage_delete(STORAGE* s);
   void          nm_yale_storage_delete_ref(STORAGE* s);
-  void					nm_yale_storage_init(YALE_STORAGE* s, void* default_val);
-  void					nm_yale_storage_mark(STORAGE*);
+  void          nm_yale_storage_init(YALE_STORAGE* s, void* default_val);
+  void          nm_yale_storage_mark(STORAGE*);
   void          nm_yale_storage_register(const STORAGE* s);
   void          nm_yale_storage_unregister(const STORAGE* s);
-  void		nm_yale_storage_register_a(void* a, size_t size);
-  void		nm_yale_storage_unregister_a(void* a, size_t size); 
+  void    nm_yale_storage_register_a(void* a, size_t size);
+  void    nm_yale_storage_unregister_a(void* a, size_t size); 
     
   ///////////////
   // Accessors //
@@ -104,7 +105,7 @@ extern "C" {
   VALUE nm_yale_stored_nondiagonal_each_with_indices(VALUE nmatrix);
   VALUE nm_yale_each_ordered_stored_with_indices(VALUE nmatrix);
   void* nm_yale_storage_get(const STORAGE* s, SLICE* slice);
-  void*	nm_yale_storage_ref(const STORAGE* s, SLICE* slice);
+  void*  nm_yale_storage_ref(const STORAGE* s, SLICE* slice);
   void  nm_yale_storage_set(VALUE left, SLICE* slice, VALUE right);
 
   //char  nm_yale_storage_vector_insert(YALE_STORAGE* s, size_t pos, size_t* js, void* vals, size_t n, bool struct_only, nm::dtype_t dtype, nm::itype_t itype);

@@ -33,6 +33,7 @@
  * Standard Includes
  */
 
+#include <ruby.h>
 #include <type_traits>
 #include <cstdlib>
 
@@ -69,9 +70,9 @@ namespace nm { namespace list {
 // Lifecycle //
 ///////////////
 
-LIST*	create(void);
-void	del(LIST* list, size_t recursions);
-void	mark(LIST* list, size_t recursions);
+LIST*  create(void);
+void  del(LIST* list, size_t recursions);
+void  mark(LIST* list, size_t recursions);
 
 ///////////////
 // Accessors //
@@ -90,25 +91,25 @@ bool node_is_within_slice(NODE* n, size_t coord, size_t len);
 
 template <typename Type>
 inline NODE* insert_helper(LIST* list, NODE* node, size_t key, Type val) {
-	Type* val_mem = NM_ALLOC(Type);
-	*val_mem = val;
-	
-	if (node == NULL) {
-		return insert(list, false, key, val_mem);
-		
-	} else {
-		return insert_after(node, key, val_mem);
-	}
+  Type* val_mem = NM_ALLOC(Type);
+  *val_mem = val;
+  
+  if (node == NULL) {
+    return insert(list, false, key, val_mem);
+    
+  } else {
+    return insert_after(node, key, val_mem);
+  }
 }
 
 template <typename Type>
 inline NODE* insert_helper(LIST* list, NODE* node, size_t key, Type* ptr) {
-	if (node == NULL) {
-		return insert(list, false, key, ptr);
-		
-	} else {
-		return insert_after(node, key, ptr);
-	}
+  if (node == NULL) {
+    return insert(list, false, key, ptr);
+    
+  } else {
+    return insert_after(node, key, ptr);
+  }
 }
 
 ///////////

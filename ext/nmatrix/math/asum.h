@@ -57,7 +57,7 @@
  */
 
 #ifndef ASUM_H
-# define ASUM_H
+#define ASUM_H
 
 
 namespace nm { namespace math {
@@ -85,27 +85,6 @@ inline ReturnDType asum(const int N, const DType* X, const int incX) {
 }
 
 
-#if defined HAVE_CBLAS_H || defined HAVE_ATLAS_CBLAS_H
-template <>
-inline float asum(const int N, const float* X, const int incX) {
-  return cblas_sasum(N, X, incX);
-}
-
-template <>
-inline double asum(const int N, const double* X, const int incX) {
-  return cblas_dasum(N, X, incX);
-}
-
-template <>
-inline float asum(const int N, const Complex64* X, const int incX) {
-  return cblas_scasum(N, X, incX);
-}
-
-template <>
-inline double asum(const int N, const Complex128* X, const int incX) {
-  return cblas_dzasum(N, X, incX);
-}
-#else
 template <>
 inline float asum(const int N, const Complex64* X, const int incX) {
   float sum = 0;
@@ -127,7 +106,6 @@ inline double asum(const int N, const Complex128* X, const int incX) {
   }
   return sum;
 }
-#endif
 
 
 template <typename ReturnDType, typename DType>
@@ -139,4 +117,4 @@ inline void cblas_asum(const int N, const void* X, const int incX, void* sum) {
 
 }} // end of namespace nm::math
 
-#endif // NRM2_H
+#endif // ASUM_H

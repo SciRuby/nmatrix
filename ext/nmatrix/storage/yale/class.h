@@ -754,8 +754,8 @@ public:
       nm_yale_storage_register(lhs);
       for (size_t m = 0; m < size(); ++m) {
         if (Yield) {
-	  la[m] = rb_yield(nm::yale_storage::nm_rb_dereference(a(m)));
-	}
+    la[m] = rb_yield(nm::yale_storage::nm_rb_dereference(a(m)));
+  }
         else       la[m] = static_cast<E>(a(m));
       }
       nm_yale_storage_unregister(lhs);
