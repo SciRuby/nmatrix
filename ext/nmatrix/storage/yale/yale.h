@@ -121,6 +121,7 @@ extern "C" {
   ///////////
 
   bool nm_yale_storage_eqeq(const STORAGE* left, const STORAGE* right);
+  bool nm_yale_storage_is_symmetric(const YALE_STORAGE* mat); 
 
   //////////
   // Math //

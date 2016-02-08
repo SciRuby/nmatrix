@@ -1106,6 +1106,14 @@ static bool is_pos_default_value(YALE_STORAGE* s, size_t apos) {
   return y.is_pos_default_value(apos);
 }
 
+template <typename DType>
+bool is_symmetric(const YALE_STORAGE* mat) {
+  
+  std::cout << "\n\n\nImplementation goes here\n\n\n";
+
+  return true;
+}
+
 } // end of namespace nm::yale_storage
 
 } // end of namespace nm.
@@ -2069,6 +2077,11 @@ VALUE nm_yale_map_merged_stored(VALUE left, VALUE right, VALUE init) {
 VALUE nm_yale_map_stored(VALUE self) {
   NAMED_DTYPE_TEMPLATE_TABLE(ttable, nm::yale_storage::map_stored, VALUE, VALUE)
   return ttable[NM_DTYPE(self)](self);
+}
+
+bool nm_yale_storage_is_symmetric(const YALE_STORAGE* mat) {
+  DTYPE_TEMPLATE_TABLE(nm::yale_storage::is_symmetric, bool, const YALE_STORAGE*);
+  return ttable[mat->dtype](mat);
 }
 
 } // end of extern "C" block
