@@ -1109,9 +1109,11 @@ static bool is_pos_default_value(YALE_STORAGE* s, size_t apos) {
 template <typename DType>
 bool is_symmetric(const YALE_STORAGE* mat) {
   
-  std::cout << "\n\n\nImplementation goes here\n\n\n";
+  YALE_STORAGE* t = (YALE_STORAGE*)nm_yale_storage_copy_transposed((STORAGE*)mat);
+  bool symmetric = nm_yale_storage_eqeq(mat, t);
+  nm_yale_storage_delete(t);
+  return symmetric;
 
-  return true;
 }
 
 } // end of namespace nm::yale_storage
