@@ -488,7 +488,25 @@ describe "math" do
                                 stype: :list)
         expect(n.symmetric?).to be_falsy
       end
-    end    
+    end
+    
+    context "#symmetric? for #{dtype} (yale)" do
+      it "should return true for symmetric matrix" do 
+        n = NMatrix.new([3,3], [1.00000, 0.56695, 0.53374,
+                                0.56695, 1.00000, 0.77813,
+                                0.53374, 0.77813, 1.00000], dtype: dtype,
+                                stype: :yale)
+        expect(n.symmetric?).to be_truthy
+      end
+      
+      it "should return false for non symmetric matrix" do
+        n = NMatrix.new([3,3], [1.00000, 0.56695, 1.53374,
+                                0.56695, 1.00000, 0.77813,
+                                0.53374, 0.77813, 1.00000], dtype: dtype,
+                                stype: :yale)
+        expect(n.symmetric?).to be_falsy
+      end
+    end      
 
     context "#hermitian? for #{dtype} (dense)" do
       it "should return true for complex hermitian or non-complex symmetric matrix" do 
@@ -526,25 +544,33 @@ describe "math" do
                                 dtype: dtype, stype: :list) if dtype =~ /complex/
         expect(n.hermitian?).to be_falsy
       end
-    end    
+    end
     
-    context "#symmetric? for #{dtype} (yale)" do
-      it "should return true for symmetric matrix" do 
+    context "#hermitian? for #{dtype} (yale)" do
+      it "should return true for complex hermitian or non-complex symmetric matrix" do 
         n = NMatrix.new([3,3], [1.00000, 0.56695, 0.53374,
                                 0.56695, 1.00000, 0.77813,
-                                0.53374, 0.77813, 1.00000], dtype: dtype,
-                                stype: :yale)
-        expect(n.symmetric?).to be_truthy
+                                0.53374, 0.77813, 1.00000], 
+                                dtype: dtype, stype: :yale) unless dtype =~ /complex/
+        n = NMatrix.new([3,3], [1.1, Complex(1.2,1.3), Complex(1.4,1.5),
+                                Complex(1.2,-1.3), 1.9, Complex(1.8,1.7),
+                                Complex(1.4,-1.5), Complex(1.8,-1.7), 1.3], 
+                                dtype: dtype, stype: :yale) if dtype =~ /complex/
+        expect(n.hermitian?).to be_truthy
       end
-      
-      it "should return false for non symmetric matrix" do
-        n = NMatrix.new([3,3], [1.00000, 0.56695, 1.53374,
-                                0.56695, 1.00000, 0.77813,
-                                0.53374, 0.77813, 1.00000], dtype: dtype,
-                                stype: :yale)
-        expect(n.symmetric?).to be_falsy
+
+      it "should return false for complex non-hermitian or non-complex non-symmetric matrix" do 
+        n = NMatrix.new([3,3], [1.00000, 0.56695, 0.53374,
+                                0.56695, 1.00000, 1.77813,
+                                0.53374, 0.77813, 1.00000], 
+                                dtype: dtype, stype: :yale) unless dtype =~ /complex/
+        n = NMatrix.new([3,3], [1.1, Complex(1.2,1.3), Complex(1.4,-1.5),
+                                Complex(1.2,-1.3), 1.9, Complex(1.8,1.7),
+                                Complex(1.4,-1.5), Complex(1.8,-1.7), 1.3], 
+                                dtype: dtype, stype: :yale) if dtype =~ /complex/
+        expect(n.hermitian?).to be_falsy
       end
-    end    
+    end  
 
     context "#permute_columns for #{dtype}" do
       it "check that #permute_columns works correctly by considering every premutation of a 3x3 matrix" do

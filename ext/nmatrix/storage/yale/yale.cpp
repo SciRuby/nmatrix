@@ -1116,6 +1116,23 @@ bool is_symmetric(const YALE_STORAGE* mat) {
 
 }
 
+template <typename DType>
+bool is_hermitian(const YALE_STORAGE* mat) {
+
+  YALE_STORAGE* t = (YALE_STORAGE*)nm_yale_storage_copy_transposed((STORAGE*)mat);
+  int m = t->shape[0];
+  DType *value;
+  for (int i = m+1; i < t->ija[m]; i++)
+  {
+    value = ((DType*)t->a);
+    value[i].i = -value[i].i;
+  }
+  bool hermitian = nm_yale_storage_eqeq(mat, t);
+  nm_yale_storage_delete(t);
+  return hermitian;
+
+}
+
 } // end of namespace nm::yale_storage
 
 } // end of namespace nm.
@@ -2084,6 +2101,18 @@ VALUE nm_yale_map_stored(VALUE self) {
 bool nm_yale_storage_is_symmetric(const YALE_STORAGE* mat) {
   DTYPE_TEMPLATE_TABLE(nm::yale_storage::is_symmetric, bool, const YALE_STORAGE*);
   return ttable[mat->dtype](mat);
+}
+
+bool nm_yale_storage_is_hermitian(const YALE_STORAGE* mat) {
+  if (mat->dtype == nm::COMPLEX64) {
+    return nm::yale_storage::is_hermitian<nm::Complex64>(mat);
+
+  } else if (mat->dtype == nm::COMPLEX128) {
+    return nm::yale_storage::is_hermitian<nm::Complex128>(mat);
+
+  } else {
+    return nm_yale_storage_is_symmetric(mat);
+  }
 }
 
 } // end of extern "C" block

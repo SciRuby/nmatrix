@@ -2510,8 +2510,12 @@ static VALUE is_symmetric(VALUE self, bool hermitian) {
       }
       
     } else if (NM_STYPE(self) == nm::YALE_STORE) {
-      
-      is_symmetric = nm_yale_storage_is_symmetric((YALE_STORAGE*)(m->storage));
+      if (hermitian) {
+        is_symmetric = nm_yale_storage_is_hermitian((YALE_STORAGE*)(m->storage));
+
+      } else {
+        is_symmetric = nm_yale_storage_is_symmetric((YALE_STORAGE*)(m->storage));
+      }      
 
     } else {
       // TODO: Implement, at the very least, yale_is_symmetric. Model it after yale/transp.template.c.
