@@ -388,7 +388,7 @@ namespace nm {
         B[0] = A[lda+1] / det;
         B[1] = -A[1] / det;
         B[ldb] = -A[lda] / det;
-        B[ldb+1] = -A[0] / det;
+        B[ldb+1] = A[0] / det;
 
       } else if (M == 3) {
         // Calculate the exact determinant.
