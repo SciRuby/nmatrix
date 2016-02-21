@@ -94,13 +94,13 @@ matrix:
     # Ruby versions which got EOL
     - rvm: 1.9.3
     # trunk
+    - rvm: ruby-head
+    - rvm: ruby-head-clang
     - env: ruby_version=2.4.0-dev USE_OPENBLAS=1
     - env: ruby_version=2.4.0-dev NO_EXTERNAL_LIB=1
     # linux with clang
     - os: linux
       rvm: 2.3.0-clang
-    - os: linux
-      rvm: ruby-head-clang
     # For some reason this OpenBLAS configuration isn't working on travis, disable it for now.
     - os: linux
       env: USE_OPENBLAS=1

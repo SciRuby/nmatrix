@@ -337,10 +337,8 @@ class NMatrix
     when :lower_tri, :lower_triangular
       raise(ArgumentError, "lower triangular solver does not work with complex dtypes") if
         complex_dtype? or b.complex_dtype?
-      # this is a workaround; see https://github.com/SciRuby/nmatrix/issues/422
-      x = x.transpose
-      NMatrix::BLAS::cblas_trsm(:row, :right, :lower, :transpose, :nounit, nrhs, n, 1.0, self, n, x, n)
-      x.transpose
+      NMatrix::BLAS::cblas_trsm(:row, :left, :lower, false, :nounit, n, nrhs, 1.0, self, n, x, nrhs)
+      x
     when :pos_def, :positive_definite
       u, l = self.factorize_cholesky
       z = l.solve(b, form: :lower_tri)

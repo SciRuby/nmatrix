@@ -186,6 +186,56 @@ describe NMatrix do
     end
   end
 
+  context "::logspace" do
+    it "creates a logarithmically spaced vector" do
+      v = NMatrix.logspace(1, 2, 10)
+      
+      expect(v.shape.length).to eq(1)
+      
+      #Unit test taken from Matlab R2015b output of logspace(1,2,10)
+      ans = [10.0000, 12.9155, 16.6810, 21.5443, 27.8256, 35.9381, 46.4159, 59.9484, 77.4264, 100.0000]
+      
+      expect(v[0].round(4)).to be_within(0.000001).of(ans[0])
+      expect(v[1].round(4)).to be_within(0.000001).of(ans[1])
+      expect(v[2].round(4)).to be_within(0.000001).of(ans[2])
+      expect(v[3].round(4)).to be_within(0.000001).of(ans[3])
+      expect(v[4].round(4)).to be_within(0.000001).of(ans[4])
+      expect(v[5].round(4)).to be_within(0.000001).of(ans[5])
+      expect(v[6].round(4)).to be_within(0.000001).of(ans[6])
+      expect(v[7].round(4)).to be_within(0.000001).of(ans[7])
+      expect(v[8].round(4)).to be_within(0.000001).of(ans[8])
+      expect(v[9].round(4)).to be_within(0.000001).of(ans[9])
+    end
+    
+    it "creates a logarithmically spaced vector bounded by Math::PI if :pi is pre-supplied" do
+      v = NMatrix.logspace(1, :pi, 7)
+                 
+      #Unit test taken from Matlab R2015b output of logspace(1,pi,10)
+      ans = [10.0000, 8.2450, 6.7980, 5.6050, 4.6213, 3.8103, 3.1416]
+      
+      expect(v[0].round(4)).to be_within(0.000001).of(ans[0])
+      expect(v[1].round(4)).to be_within(0.000001).of(ans[1])
+      expect(v[2].round(4)).to be_within(0.000001).of(ans[2])
+      expect(v[3].round(4)).to be_within(0.000001).of(ans[3])
+      expect(v[4].round(4)).to be_within(0.000001).of(ans[4])
+      expect(v[5].round(4)).to be_within(0.000001).of(ans[5])
+      expect(v[6].round(4)).to be_within(0.000001).of(ans[6])
+    end    
+
+    it "creates a matrix of input shape with each entry logarithmically spaced in row major order" do
+      v = NMatrix.logspace(1, 2, [3,2])
+      
+      ans = [10.0, 15.8489, 25.1189, 39.8107, 63.0957, 100.0]
+      
+      expect(v[0,0].round(4)).to be_within(0.000001).of(ans[0])
+      expect(v[0,1].round(4)).to be_within(0.000001).of(ans[1])
+      expect(v[1,0].round(4)).to be_within(0.000001).of(ans[2])
+      expect(v[1,1].round(4)).to be_within(0.000001).of(ans[3])
+      expect(v[2,0].round(4)).to be_within(0.000001).of(ans[4])
+      expect(v[2,1].round(4)).to be_within(0.000001).of(ans[5])
+    end
+  end
+
   it "seq() creates a matrix of integers, sequentially" do
     m = NMatrix.seq(2) # 2x2 matrix.
     value = 0
