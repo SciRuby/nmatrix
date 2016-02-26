@@ -114,6 +114,169 @@ class NMatrix
 
   #
   # call-seq:
+  #     charpoly -> NMatrix
+  #
+  # Returns the coefficients of the characteristic polynomial of a square matrix
+  # using berkowitz algorithm.
+  #
+  # * *Returns* :
+  #   - A one dimensional nmatrix containing the coefficients of characteristic polynomial.
+  #
+  # * *Raises* :
+  #   - +ShapeError+ -> matrix must be square.
+  #
+  #  Examples:
+  #
+  #   a = N[ [1, 2], [3, 4] ]
+  #   a.charpoly                 # => 1.0 -5.0 -2.0
+  #
+  #   b = N[ [1, 0], [0, 1] ]
+  #   b.charpoly                 # => 1.0 -2.0 1.0
+  #
+  # == References
+  #
+  # * https://de.wikipedia.org/wiki/Algorithmus_von_Samuelson-Berkowitz
+  # * http://www.emis.de/journals/ELA/ela-articles/articles/vol9_pp42-54.pdf
+  #
+  def charpoly
+    raise(ShapeError, "characteristic polynomial can be calculated only for square matrices") unless self.dim == 2 && self.shape[0] == self.shape[1]
+    toeplitz = NMatrix.zeros [rows + 2, rows + 2] # A matrix in which  each descending diagonal is constant
+    toeplitz_elements = NMatrix.new([rows + 3])
+    coefficients_r_minus_one = NMatrix.new [rows + 1, rows]
+    coefficients_r = NMatrix.new [rows + 1, 1] # characteristic polynomials of submatrices
+    coefficients_r[0,0] = self[0,0]
+    coefficients_r[0..1] = [1, -self[0, 0]]
+
+    n = 2
+    (rows-1).times do
+      #Initializing the submatrices
+      row_vector = -self[n - 1 , 0..n-2]  # row vector with the components self[n -1, j] with 0 <= j <= n-2
+      column_vector = self[0..n-2, n - 1] # column vector with the components self[j , n - 1] with 0 <= j <= n-2
+      submatrix = self[0..n-2, 0..n-2]    # n-1 * n-1 Submatrix of original matrix with first n-1 rows and columns
+      e = -self[n - 1, n - 1]             # self[n-1,n-1] The last element of the submatrix
+
+      # toeplitz matrix calculation
+      toeplitz_elements[0..1] = [1,e]
+      0.upto(n) do |i|
+        toeplitz_elements[i + 2] = row_vector.dot(column_vector)
+        column_vector = submatrix.dot(column_vector)
+        0.upto(i) do |j|
+           toeplitz[i, j] = toeplitz_elements[i - j]
+        end
+      end
+
+      # Calculating the characteristic polynomial of (r+1)th term from rth term
+      if n > 1
+        coefficients_r_minus_one[0..n, 0..n-1] = toeplitz[0..n, 0..n - 1]
+        coefficients_r[0..n] = coefficients_r_minus_one[0..n, 0..n-1].dot(coefficients_r[0..n-1])
+      end
+      n = n + 1
+    end
+    coefficients_r
+  end
+
+  #
+  # call-seq:
+  #     berkowitz_det -> NMatrix
+  #
+  # Calculates the determinant using berkowitz algorithm.
+  #
+  # Works only For Square matrices with size n <= 15
+  #
+  # * *Returns* :
+  #   - The determinant of the matrix
+  #
+  # * *Raises* :
+  #   - +ShapeError+ -> matrix must be square.
+  #
+  #  Examples:
+  #
+  #   a = N[ [1, 2], [3, 4] ]
+  #   a.berkowitz_det             # => -2.0
+  #
+  #   b = N[ [1, 0], [0, 1] ]
+  #   b.berkowitz_det             # => 1.0
+  #
+  # == References
+  #
+  # * https://de.wikipedia.org/wiki/Algorithmus_von_Samuelson-Berkowitz
+  # * http://www.emis.de/journals/ELA/ela-articles/articles/vol9_pp42-54.pdf
+  #
+  def berkowitz_det
+    raise(ShapeError, "determinant can be calculated only for square matrices") unless self.dim == 2 && self.shape[0] == self.shape[1]
+    coefficients = self.charpoly
+    determinant = coefficients[coefficients.rows - 1, 0] * (-1) ** (coefficients.rows - 1)
+    determinant
+  end
+
+
+  #
+  # call-seq:
+  #     berkowitz_minors -> NMatrix
+  #
+  # Computes principal minors using Berkowitz method.
+  #
+  # * *Returns* :
+  #   - A one dimensional nmatrix containing the principal minors.
+  #
+  # * *Raises* :
+  #   - +ShapeError+ -> matrix must be square.
+  #
+  #  Examples:
+  #
+  #   a = N[ [1, 2], [3, 4] ]
+  #   a.berkowitz_minors                 # => 1.0 -2.0
+  #
+  #   b = N[ [1, 0], [0, 1] ]
+  #   b.berkowitz_minors                 # => 1.0 1.0
+  #
+  # == References
+  #
+  # * https://de.wikipedia.org/wiki/Algorithmus_von_Samuelson-Berkowitz
+  # * http://www.emis.de/journals/ELA/ela-articles/articles/vol9_pp42-54.pdf
+  #
+  def berkowitz_minors
+    raise(ShapeError, "berkowitz algorithm can only be applied on square matrices") unless self.dim == 2 && self.shape[0] == self.shape[1]
+    toeplitz = NMatrix.zeros [rows + 2, rows + 2] # A matrix in which  each descending diagonal is constant
+    toeplitz_elements = NMatrix.new([rows + 3])
+    coefficients_r_minus_one = NMatrix.new [rows + 1, rows]
+    coefficients_r = NMatrix.new [rows + 1, 1] # characteristic polynomials of submatrices
+    coefficients_r[0..1] = [1, -self[0, 0]]
+    minors = NMatrix.new [rows + 1,1]
+    minors[0, 0] = self[0, 0]
+
+    n = 2
+    (rows-1).times do
+      #Initializing the submatrices
+      row_vector = -self[n - 1 , 0..n-2]  # row vector with the components self[n -1, j] with 0 <= j <= n-2
+      column_vector = self[0..n-2, n - 1] # column vector with the components self[j , n - 1] with 0 <= j <= n-2
+      submatrix = self[0..n-2, 0..n-2]    # n-1 * n-1 Submatrix of original matrix with first n-1 rows and columns
+      e = -self[n - 1, n - 1]             # self[n-1,n-1] The last element of the submatrix
+
+      # toeplitz matrix calculation
+      toeplitz_elements[0..1] = [1,e]
+      0.upto(n) do |i|
+        toeplitz_elements[i + 2] = row_vector.dot(column_vector)
+        column_vector = submatrix.dot(column_vector)
+        0.upto(i) do |j|
+           toeplitz[i, j] = toeplitz_elements[i - j]
+        end
+      end
+
+      # Calculating the characteristic polynomial of (r+1)th term from rth term
+      if n > 1
+        coefficients_r_minus_one[0..n, 0..n-1] = toeplitz[0..n, 0..n - 1]
+        coefficients_r[0..n] = coefficients_r_minus_one[0..n, 0..n-1].dot(coefficients_r[0..n-1])
+        minors[n - 1] = ((-1) ** (n)) * coefficients_r[n, 0]
+      end
+      n = n + 1
+    end
+    minors
+  end
+
+
+  #
+  # call-seq:
   #     getrf! -> Array
   #
   # LU factorization of a general M-by-N matrix +A+ using partial pivoting with

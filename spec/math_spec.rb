@@ -332,6 +332,141 @@ describe "math" do
     end
   end
 
+  context "charpoly" do
+    data_types=[:int16,:int32,:int64,:float32,:float64]
+    data_types.each do |dtype|
+      next if dtype == :object
+      context dtype do
+        before do
+          @a = NMatrix.new([2,2], [1,2,
+                                   3,4], dtype: dtype)
+          @b = NMatrix.new([3,3], [1,2,3,
+                                   5,0,1,
+                                   4,1,3], dtype: dtype)
+          @c = NMatrix.new([4,4], [1, 0, 1, 1,
+                                   1, 2, 3, 1,
+                                   3, 3, 3, 1,
+                                   1, 2, 3, 4], dtype: dtype)
+          @err = case dtype
+                  when :float32
+                    1e-6
+                  when :float64
+                    1e-14
+                  else
+                    1e-64 # FIXME: should be 0, but be_within(0) does not work.
+                end
+        end
+        it "computes the coefficients of characteristic polynomial of 2x2 matrix" do
+          coefficients = @a.charpoly
+          result = N[1, -5 , -2]
+          0.upto(2) do |i|
+            expect(coefficients[i]).to be_within(@err).of(result[i])
+          end
+        end
+        it "computes the coefficients of characteristic polynomial of 3x3 matrix" do
+          coefficients = @b.charpoly
+          result = N[1, -4, -20, 8]
+          0.upto(3) do |i|
+            expect(coefficients[i]).to be_within(@err).of(result[i])
+          end
+        end
+        it "computes the coefficients of characteristic polynomial of 4x4 matrix" do
+          coefficients = @c.charpoly
+          result = N[1, -10, 17, 5, -18]
+          0.upto(4) do |i|
+            expect(coefficients[i]).to be_within(@err).of(result[i])
+          end
+        end
+      end
+    end
+  end
+
+  context "berkowitz determinants" do
+    data_types=[:int16,:int32,:int64,:float32,:float64]
+    data_types.each do |dtype|
+      next if dtype == :object
+      context dtype do
+        before do
+          @a = NMatrix.new([2,2], [1,2,
+                                   3,4], dtype: dtype)
+          @b = NMatrix.new([3,3], [1,2,3,
+                                   5,0,1,
+                                   4,1,3], dtype: dtype)
+          @c = NMatrix.new([4,4], [1, 0, 1, 1,
+                                   1, 2, 3, 1,
+                                   3, 3, 3, 1,
+                                   1, 2, 3, 4], dtype: dtype)
+          @err = case dtype
+                  when :float32
+                    1e-6
+                  when :float64
+                    1e-14
+                  else
+                    1e-64 # FIXME: should be 0, but be_within(0) does not work.
+                end
+        end
+        it "computes the determinant of 2x2 matrix" do
+          expect(@a.berkowitz_det).to be_within(@err).of(-2)
+        end
+        it "computes the determinant of 3x3 matrix" do
+          expect(@b.berkowitz_det).to be_within(@err).of(-8)
+        end
+        it "computes the determinant of 4x4 matrix" do
+          expect(@c.berkowitz_det).to be_within(@err).of(-18)
+        end
+      end
+    end
+  end
+
+  context "berkowitz minor" do
+    data_types=[:int16,:int32,:int64,:float32,:float64]
+    data_types.each do |dtype|
+      next if dtype == :object
+      context dtype do
+        before do
+          @a = NMatrix.new([2,2], [1,2,
+                                   3,4], dtype: dtype)
+          @b = NMatrix.new([3,3], [1,2,3,
+                                   5,0,1,
+                                   4,1,3], dtype: dtype)
+          @c = NMatrix.new([4,4], [1, 0, 1, 1,
+                                   1, 2, 3, 1,
+                                   3, 3, 3, 1,
+                                   1, 2, 3, 4], dtype: dtype)
+          @err = case dtype
+                  when :float32
+                    1e-6
+                  when :float64
+                    1e-14
+                  else
+                    1e-64 # FIXME: should be 0, but be_within(0) does not work.
+                end
+        end
+        it "computes the principle minors of 2x2 matrix" do
+          coefficients = @a.berkowitz_minors
+          result = N[1, -2]
+          0.upto(1) do |i|
+            expect(coefficients[i]).to be_within(@err).of(result[i])
+          end
+        end
+        it "computes the principle minors of 3x3 matrix" do
+          coefficients = @b.berkowitz_minors
+          result = N[1, -10, -8]
+          0.upto(2) do |i|
+            expect(coefficients[i]).to be_within(@err).of(result[i])
+          end
+        end
+        it "computes the principle minors of 4x4 matrix" do
+          coefficients = @c.berkowitz_minors
+          result = N[1, 2, -6, -18]
+          0.upto(3) do |i|
+            expect(coefficients[i]).to be_within(@err).of(result[i])
+          end
+        end
+      end
+    end
+  end
+
   # TODO: Get it working with ROBJ too
   [:byte,:int8,:int16,:int32,:int64,:float32,:float64].each do |left_dtype|
     [:byte,:int8,:int16,:int32,:int64,:float32,:float64].each do |right_dtype|
