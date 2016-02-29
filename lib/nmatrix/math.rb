@@ -847,6 +847,81 @@ class NMatrix
   end
 
 
+
+  #
+  # call-seq:
+  #   cond -> Numeric
+  #
+  #  Calculates the condition number of a 2D matrix.
+  #
+  #  The condition number of a matrix measures the sensitivity of the solution
+  #  of a system of linear equations to errors in the data. It gives an
+  #  indication of the accuracy of the results from matrix inversion and
+  #  the linear equation solution.
+  #
+  #  Requires nmatrix/atlas for calculating cond(2).
+  #
+  #  Default value is set to cond(1) as users might not
+  #  have atlas gem installed for gesvd function.
+  #
+  #  Tested mainly with dense matrices. Further checks and modifications might
+  #  be necessary for sparse matrices.
+  #
+  # * *Returns* :
+  # - The condition number of the matrix.
+  #
+  # * *Raises* :
+  # - +NotImplementedError+ -> condition number can be calculated only for 2D matrices
+  # - +ArgumentError+ -> unrecognized norm used for calculating condition number
+  #
+  def cond type = 1
+    inverse = self.invert
+    return self.matrix_norm(type) * inverse.matrix_norm(type)
+  end
+
+  #
+  # call-seq:
+  #   norm -> Numeric
+  #
+  #  Calculates the selected norm (defaults to 2-norm) of a 2D matrix.
+  #
+  #  This should be used for small or medium sized matrices.
+  #  For greater matrices, there should be a separate implementation where
+  #  the norm is estimated rather than computed, for the sake of computation speed.
+  #
+  #  Currently implemented norms are 1-norm, 2-norm, Frobenius, Infinity.
+  #  A minus on the 1, 2 and inf norms returns the minimum instead of the maximum value.
+  #
+  #  Requires nmatrix/atlas for 2-norm.
+  #
+  #  Tested mainly with dense matrices. Further checks and modifications might
+  #  be necessary for sparse matrices.
+  #
+  # * *Returns* :
+  # - The selected norm of the matrix.
+  #
+  # * *Raises* :
+  # - +NotImplementedError+ -> norm can be calculated only for 2D matrices
+  # - +ArgumentError+ -> unrecognized norm
+  #
+  def matrix_norm type = 2
+    raise(NotImplementedError, "norm can be calculated only for 2D matrices") unless self.dim == 2
+    raise(NotImplementedError, "norm only implemented for dense storage") unless self.stype == :dense
+
+    case type
+    when nil, 2, -2
+      return self.two_norm (type == -2)
+    when 1, -1
+      return self.one_norm (type == -1)
+    when :frobenius, :fro
+      return self.fro_norm
+    when :infinity, :inf, :'-inf', :'-infinity'
+      return self.inf_norm  (type == :'-inf' || type == :'-infinity')
+    else
+      raise ArgumentError.new("argument must be a valid integer or symbol")
+    end
+  end
+
   #
   # call-seq:
   #     absolute_sum -> Numeric
@@ -1098,5 +1173,54 @@ protected
     define_method("__dense_scalar_#{ewop}__") do |rhs|
       self.__dense_map__ { |l| l.send(op,rhs) }
     end
+  end
+
+  # Norm calculation methods
+  # Frobenius norm: the Euclidean norm of the matrix, treated as if it were a vector
+  def fro_norm
+    #float64 has to be used in any case, since nrm2 will not yield correct result for float32
+    self_cast = self.cast(:dtype => :float64) unless self.dtype == :float64
+
+    column_vector = self_cast.reshape([self.size, 1])
+
+    return column_vector.nrm2
+  end
+
+  # 2-norm: the largest/smallest singular value of the matrix
+  def two_norm minus = false
+    #self.dtype == :int32 ? self_cast = self.cast(:dtype => :float32) : self_cast = self.cast(:dtype => :float64)
+    self_cast = self.cast(:dtype => :float64)
+
+    #TODO: confirm if this is the desired svd calculation
+    svd = self_cast.gesvd
+    return svd[1][0, 0] unless minus
+    return svd[1][svd[1].rows-1, svd[1].cols-1]
+  end
+
+  # 1-norm: the maximum/minimum absolute column sum of the matrix
+  def one_norm minus = false
+    #TODO: change traversing method for sparse matrices
+    number_of_columns = self.cols
+    col_sums = []
+
+    number_of_columns.times do |i|
+      col_sums << self.col(i).inject(0) { |sum, number| sum += number.abs}
+    end
+
+    return col_sums.sort!.last unless minus
+    return col_sums.sort!.first
+  end
+
+  # Infinity norm: the maximum/minimum absolute row sum of the matrix
+  def inf_norm minus = false
+    number_of_rows = self.rows
+    row_sums = []
+
+    number_of_rows.times do |i|
+      row_sums << self.row(i).inject(0) { |sum, number| sum += number.abs}
+    end
+
+    return row_sums.sort!.last unless minus
+    return row_sums.sort!.first
   end
 end
