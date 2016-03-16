@@ -846,7 +846,6 @@ class NMatrix
     end.cast(self.stype, abs_dtype)
   end
 
-
   #
   # call-seq:
   #     absolute_sum -> Numeric
@@ -881,6 +880,41 @@ class NMatrix
   end
   alias :norm2 :nrm2
 
+  #
+  # call-seq:
+  #     scale! -> NMatrix
+  #
+  # == Arguments
+  #   - +alpha+ -> Scalar value used in the operation.
+  #   - +inc+ -> Increment used in the scaling function. Should generally be 1.
+  #   - +n+ -> Number of elements of +vector+.
+  #
+  # This is a destructive method, modifying the source NMatrix.  See also #scale.
+  # Return the scaling result of the matrix. BLAS scal will be invoked if provided.
+
+  def scale!(alpha, incx=1, n=nil)
+    raise(TypeError, "Invalid type of the scaling argument") unless
+        NMatrix::upcast(self.dtype, NMatrix::min_dtype(alpha)) == self.dtype
+    return NMatrix::BLAS::scal(alpha, self, incx, self.size / incx) if NMatrix::BLAS.method_defined? :scal
+    self.each_stored_with_indices do |e, i|
+      self[i] = e*alpha
+    end
+  end
+
+  #
+  # call-seq:
+  #     scale -> NMatrix
+  #
+  # == Arguments
+  #   - +alpha+ -> Scalar value used in the operation.
+  #   - +inc+ -> Increment used in the scaling function. Should generally be 1.
+  #   - +n+ -> Number of elements of +vector+.
+  #
+  # Return the scaling result of the matrix. BLAS scal will be invoked if provided.
+  
+  def scale(alpha, incx=1, n=nil)
+    return self.clone.scale!(alpha, incx, n)
+  end
 
   alias :permute_columns  :laswp
   alias :permute_columns! :laswp!
