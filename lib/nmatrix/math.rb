@@ -893,11 +893,11 @@ class NMatrix
   # Return the scaling result of the matrix. BLAS scal will be invoked if provided.
 
   def scale!(alpha, incx=1, n=nil)
-    raise(TypeError, "Invalid type of the scaling argument") unless
+    raise(DataTypeError, "Incompatible data type for the scaling factor") unless
         NMatrix::upcast(self.dtype, NMatrix::min_dtype(alpha)) == self.dtype
     return NMatrix::BLAS::scal(alpha, self, incx, self.size / incx) if NMatrix::BLAS.method_defined? :scal
-    self.each_stored_with_indices do |e, i|
-      self[i] = e*alpha
+    self.each_stored_with_indices do |e, *i|
+      self[*i] = e*alpha
     end
   end
 

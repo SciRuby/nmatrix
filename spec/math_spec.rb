@@ -702,7 +702,7 @@ describe "math" do
                                                      360, 96, 51, -14,
                                                      448,-231,-24,-87,
                                                    -1168, 595,234, 523], 
-                                                   dtype: answer_dtype, 
+                                                   dtype: answer_dtype,
                                                    stype: stype))
         end
 
@@ -799,6 +799,40 @@ describe "math" do
             expect{@a.det_exact}.to raise_error(DataTypeError)
           else
             expect(@b.det_exact).to be_within(@err).of(-8)
+          end
+        end
+      end
+    end
+  end
+
+  context "#scale and #scale!" do
+    [:dense,:list,:yale].each do |stype|
+      ALL_DTYPES.each do |dtype|
+        next if dtype == :object
+        context "for #{dtype}" do
+          before do
+            @m = NMatrix.new([3, 3], [0, 1, 2,
+                                      3, 4, 5,
+                                      6, 7, 8], stype: stype, dtype: dtype)
+          end
+          it "scales the matrix by a given factor and return the result" do
+            if integer_dtype? dtype
+              expect{@m.scale 2.0}.to raise_error(DataTypeError)
+            else
+              expect(@m.scale 2.0).to eq(NMatrix.new([3, 3], [0,  2,  4,
+                                                             6,  8,  10,
+                                                             12, 14, 16], stype: stype, dtype: dtype))
+            end
+          end
+          it "scales the matrix in place by a given factor" do
+              if dtype == :int8
+                expect{@m.scale! 2}.to raise_error(DataTypeError)
+              else
+                @m.scale! 2
+                expect(@m).to eq(NMatrix.new([3, 3], [0,  2,  4,
+                                                      6,  8,  10,
+                                                      12, 14, 16], stype: stype, dtype: dtype))
+              end
           end
         end
       end
