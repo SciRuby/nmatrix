@@ -291,7 +291,7 @@ module NMatrix::BLAS
     # call-seq:
     #     scal(alpha, vector, incx, n)
     #
-    # Calculate the 2-norm of a vector +x+ of size +n+
+    # Scale a matrix by a given scaling factor
     #
     # * *Arguments* :
     #   - +alpha+ -> a scaling factor
