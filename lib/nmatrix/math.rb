@@ -112,6 +112,71 @@ class NMatrix
   end
   alias :inverse :invert
 
+
+  #
+  # call-seq:
+  #     pinv -> NMatrix
+  #
+  # Compute the Moore-Penrose pseudo-inverse of a matrix using its
+  # singular value decomposition (SVD).
+  #
+  # This function requires the nmatrix-atlas gem installed.
+  #
+  # * *Arguments* :
+  #  - +tolerance(optional)+ -> Cutoff for small singular values.
+  #
+  # * *Returns* :
+  #   -  Pseudo-inverse matrix.
+  #
+  # * *Raises* :
+  #   - +NotImplementedError+ -> If called without nmatrix-atlas or nmatrix-lapacke gem.
+  #   - +TypeError+ -> If called without float or complex data type.
+  #
+  # * *Examples* :
+  #
+  #  a = NMatrix.new([2,2],[1,2,
+  #                         3,4], dtype: :float64)
+  #  a.pinv # => [ [-2.0000000000000018, 1.0000000000000007]
+  #                [1.5000000000000016, -0.5000000000000008] ]
+  #
+  #  b = NMatrix.new([4,1],[1,2,3,4], dtype: :float64)
+  #  b.pinv # => [ [ 0.03333333, 0.06666667, 0.99999999, 0.13333333] ]
+  #
+  # == References
+  #
+  # * https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_pseudoinverse
+  # * G. Strang, Linear Algebra and Its Applications, 2nd Ed., Orlando, FL, Academic Press
+  #
+  def pinv(tolerance = 1e-15)
+    raise DataTypeError, "pinv works only with matrices of float or complex data type" unless
+      [:float32, :float64, :complex64, :complex128].include?(dtype)
+    if self.complex_dtype?
+      u, s, vt = self.complex_conjugate.gesvd # singular value decomposition
+    else
+      u, s, vt = self.gesvd
+    end
+    rows = self.shape[0]
+    cols = self.shape[1]
+    if rows < cols
+      u_reduced = u
+      vt_reduced = vt[0..rows - 1, 0..cols - 1].transpose
+    else
+      u_reduced = u[0..rows - 1, 0..cols - 1]
+      vt_reduced = vt.transpose
+    end
+    largest_singular_value = s.max.to_f
+    cutoff = tolerance * largest_singular_value
+    (0...[rows, cols].min).each do |i|
+      s[i] = 1 / s[i] if s[i] > cutoff
+      s[i] = 0        if s[i] <= cutoff
+    end
+    multiplier = u_reduced.dot(NMatrix.diagonal(s.to_a)).transpose
+    vt_reduced.dot(multiplier)
+  end
+  alias :pseudo_inverse :pinv
+  alias :pseudoinverse :pinv
+
+
   #
   # call-seq:
   #     getrf! -> Array

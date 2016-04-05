@@ -478,6 +478,63 @@ describe "math" do
     end
   end
 
+  NON_INTEGER_DTYPES.each do |dtype|
+    next if dtype == :object
+    context dtype do
+      err = Complex(1e-3, 1e-3)
+      it "should correctly invert a 2x2 matrix" do
+        if dtype == :complex64 || dtype == :complex128
+          a = NMatrix.new([2, 2], [Complex(16, 81), Complex(91, 51), \
+                                   Complex(13, 54), Complex(71, 24)], dtype: dtype)
+          b = NMatrix.identity(2, dtype: dtype)
+
+          begin
+            expect(a.dot(a.pinv)).to be_within(err).of(b)
+          rescue NotImplementedError
+            pending "Suppressing a NotImplementedError when the atlas plugin is not available"
+          end
+
+        else
+          a = NMatrix.new([2, 2], [141, 612, 9123, 654], dtype: dtype)
+          b = NMatrix.identity(2, dtype: dtype)
+
+          begin
+            expect(a.dot(a.pinv)).to be_within(err).of(b)
+          rescue NotImplementedError
+            pending "Suppressing a NotImplementedError when the atlas plugin is not available"
+          end
+        end
+      end
+
+      it "should  verify a.dot(b.dot(a)) == a and b.dot(a.dot(b)) == b" do
+        if dtype == :complex64 || dtype == :complex128
+          a = NMatrix.new([3, 2], [Complex(94, 11), Complex(87, 51), Complex(82, 39), \
+                                   Complex(45, 16), Complex(25, 32), Complex(91, 43) ], dtype: dtype)
+
+          begin
+            b = a.pinv # pseudo inverse
+            expect(a.dot(b.dot(a))).to be_within(err).of(a)
+            expect(b.dot(a.dot(b))).to be_within(err).of(b)
+          rescue NotImplementedError
+            pending "Suppressing a NotImplementedError when the atlas plugin is not available"
+          end
+
+        else
+          a = NMatrix.new([3, 3], [9, 4, 52, 12, 52, 1, 3, 55, 6], dtype: dtype)
+
+          begin
+            b = a.pinv # pseudo inverse
+            expect(a.dot(b.dot(a))).to be_within(err).of(a)
+            expect(b.dot(a.dot(b))).to be_within(err).of(b)
+          rescue NotImplementedError
+            pending "Suppressing a NotImplementedError when the atlas plugin is not available"
+          end
+        end
+      end
+    end
+  end
+
+
   # TODO: Get it working with ROBJ too
   [:byte,:int8,:int16,:int32,:int64,:float32,:float64].each do |left_dtype|
     [:byte,:int8,:int16,:int32,:int64,:float32,:float64].each do |right_dtype|
