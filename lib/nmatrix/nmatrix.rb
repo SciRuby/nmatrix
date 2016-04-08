@@ -189,12 +189,14 @@ class NMatrix
           end
         end
       else # dim 2
-        q.group(0, "\n[\n", "]") do
-          self.each_row.with_index do |row,i|
-            q.group(1, "  [", "]") do
-              q.seplist(self.dim > 2 ? row.to_a[0] : row.to_a, lambda { q.text ", " }, :each_with_index) { |v,j| q.text v.inspect.rjust(longest[j]) }
+        q.group(0, "\n[\n ", "]") do
+          self.each_row.with_index do |row, i|
+            q.group(1, " [", "]\n") do
+              q.seplist(row.to_a, -> { q.text ", " }, :each_with_index) do |v,j|
+                q.text v.inspect.rjust(longest[j])
+              end
             end
-            q.breakable
+            q.breakable unless i + 1 == self.shape[0]
           end
         end
       end
@@ -269,14 +271,14 @@ class NMatrix
   end
 
   # Return the main diagonal or antidiagonal a matrix. Only works with 2D matrices.
-  # 
+  #
   # == Arguments
-  # 
-  # * +main_diagonal+ - Defaults to true. If passed 'false', then will return the 
+  #
+  # * +main_diagonal+ - Defaults to true. If passed 'false', then will return the
   #   antidiagonal of the matrix.
-  # 
+  #
   # == References
-  # 
+  #
   # * http://en.wikipedia.org/wiki/Main_diagonal
   def diagonal main_diagonal=true
     diag_size = [cols, rows].min
@@ -367,9 +369,9 @@ class NMatrix
 
   ##
   # call-seq:
-  # 
+  #
   # object_dtype?() -> Boolean
-  # 
+  #
   # Checks if dtype is a ruby object
   def object_dtype?
     dtype == :object
@@ -960,9 +962,9 @@ class NMatrix
     return self.map_stored.inject(sym)
   end
 
-  # Returns the index of the first occurence of the specified value. Returns 
+  # Returns the index of the first occurence of the specified value. Returns
   # an array containing the position of the value, nil in case the value is not found.
-  # 
+  #
   def index(value)
     index = nil
 
@@ -972,7 +974,7 @@ class NMatrix
         index = yields
         break
       end
-    end 
+    end
 
     index
   end
@@ -995,7 +997,7 @@ class NMatrix
   #
   # call-seq:
   #     repeat(count, axis) -> NMatrix
-  # 
+  #
   # * *Arguments* :
   #   - +count+ -> how many times NMatrix should be repeated
   #   - +axis+ -> index of axis along which NMatrix should be repeated
