@@ -338,7 +338,7 @@ class NMatrix
   #   - +TypeError+ -> c must have the same dtype as the calling NMatrix
   #
   def unmqr(tau, side=:left, transpose=false, c=nil)
-    raise(StorageTypeError, "ATLAS functions only work on dense matrices") unless self.dense?
+    raise(StorageTypeError, "LAPACK functions only work on dense matrices") unless self.dense?
     raise(TypeError, "Works only on complex matrices, use ormqr for normal floating point matrices") unless self.complex_dtype?
     raise(TypeError, "c must have the same dtype as the calling NMatrix") if c and c.dtype != self.dtype
 

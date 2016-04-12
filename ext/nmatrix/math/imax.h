@@ -9,8 +9,8 @@
 //
 // == Copyright Information
 //
-// SciRuby is Copyright (c) 2010 - 2014, Ruby Science Foundation
-// NMatrix is Copyright (c) 2012 - 2014, John Woods and the Ruby Science Foundation
+// SciRuby is Copyright (c) 2010 - present, Ruby Science Foundation
+// NMatrix is Copyright (c) 2012 - present, John Woods and the Ruby Science Foundation
 //
 // Please see LICENSE.txt for additional copyright notices.
 //
@@ -29,7 +29,10 @@
 #ifndef IMAX_H
 #define IMAX_H
 
+#include "math/magnitude.h"
+
 namespace nm { namespace math {
+
 
 template<typename DType>
 inline int imax(const int n, const DType *x, const int incx) {
@@ -41,28 +44,28 @@ inline int imax(const int n, const DType *x, const int incx) {
     return 0;
   }
 
-  DType dmax;
+  typename MagnitudeDType<DType>::type dmax;
   int imax = 0;
 
   if (incx == 1) { // if incrementing by 1
 
-    dmax = abs(x[0]);
+    dmax = magnitude(x[0]);
 
     for (int i = 1; i < n; ++i) {
-      if (std::abs(x[i]) > dmax) {
+      if (magnitude(x[i]) > dmax) {
         imax = i;
-        dmax = std::abs(x[i]);
+        dmax = magnitude(x[i]);
       }
     }
 
   } else { // if incrementing by more than 1
 
-    dmax = std::abs(x[0]);
+    dmax = magnitude(x[0]);
 
     for (int i = 1, ix = incx; i < n; ++i, ix += incx) {
-      if (std::abs(x[ix]) > dmax) {
+      if (magnitude(x[ix]) > dmax) {
         imax = i;
-        dmax = std::abs(x[ix]);
+        dmax = magnitude(x[ix]);
       }
     }
   }

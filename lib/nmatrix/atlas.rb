@@ -205,7 +205,7 @@ class NMatrix
   end
 
   def potrf!(which)
-    raise(StorageTypeError, "ATLAS functions only work on dense matrices") unless self.dense?
+    raise(StorageTypeError, "LAPACK functions only work on dense matrices") unless self.dense?
     raise(ShapeError, "Cholesky decomposition only valid for square matrices") unless self.dim == 2 && self.shape[0] == self.shape[1]
 
     NMatrix::LAPACK::clapack_potrf(:row, which, self.shape[0], self, self.shape[1])

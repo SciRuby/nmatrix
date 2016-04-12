@@ -9,8 +9,8 @@
 //
 // == Copyright Information
 //
-// SciRuby is Copyright (c) 2010 - 2014, Ruby Science Foundation
-// NMatrix is Copyright (c) 2012 - 2014, John Woods and the Ruby Science Foundation
+// SciRuby is Copyright (c) 2010 - present, Ruby Science Foundation
+// NMatrix is Copyright (c) 2012 - present, John Woods and the Ruby Science Foundation
 //
 // Please see LICENSE.txt for additional copyright notices.
 //
@@ -23,7 +23,8 @@
 //
 // == long_dtype.h
 //
-// Declarations necessary for the native versions of GEMM and GEMV.
+// Declarations necessary for the native versions of GEMM and GEMV,
+// as well as for IMAX.
 //
 
 #ifndef LONG_DTYPE_H
@@ -44,6 +45,18 @@ namespace nm { namespace math {
   template <> struct LongDType<Complex128> { typedef Complex128 type; };
   template <> struct LongDType<RubyObject> { typedef RubyObject type; };
 
+  template <typename DType> struct MagnitudeDType;
+  template <> struct MagnitudeDType<uint8_t> { typedef uint8_t type; };
+  template <> struct MagnitudeDType<int8_t> { typedef int8_t type; };
+  template <> struct MagnitudeDType<int16_t> { typedef int16_t type; };
+  template <> struct MagnitudeDType<int32_t> { typedef int32_t type; };
+  template <> struct MagnitudeDType<int64_t> { typedef int64_t type; };
+  template <> struct MagnitudeDType<float> { typedef float type; };
+  template <> struct MagnitudeDType<double> { typedef double type; };
+  template <> struct MagnitudeDType<Complex64> { typedef float type; };
+  template <> struct MagnitudeDType<Complex128> { typedef double type; };
+  template <> struct MagnitudeDType<RubyObject> { typedef RubyObject type; };
+  
 }} // end of namespace nm::math
 
 #endif

@@ -107,9 +107,9 @@ inline void cblas_rot(const int N, void* X, const int incX, void* Y, const int i
  *    complex64 -> float or double
  *    complex128 -> double
  */
-template <typename ReturnDType, typename DType>
-inline ReturnDType asum(const int N, const DType* X, const int incX) {
-  return nm::math::asum<ReturnDType,DType>(N,X,incX);
+template <typename DType, typename MDType = typename MagnitudeDType<DType>::type>
+inline MDType asum(const int N, const DType* X, const int incX) {
+  return nm::math::asum<DType,MDType>(N,X,incX);
 }
 
 
@@ -134,9 +134,9 @@ inline double asum(const int N, const Complex128* X, const int incX) {
 }
 
 
-template <typename ReturnDType, typename DType>
+template <typename DType, typename MDType = typename MagnitudeDType<DType>::type>
 inline void cblas_asum(const int N, const void* X, const int incX, void* sum) {
-  *static_cast<ReturnDType*>( sum ) = asum<ReturnDType, DType>( N, static_cast<const DType*>(X), incX );
+  *static_cast<MDType*>( sum ) = asum<DType, MDType>( N, static_cast<const DType*>(X), incX );
 }
 
 /*
@@ -149,9 +149,9 @@ inline void cblas_asum(const int N, const void* X, const int incX, void* sum) {
  *    complex64 -> float or double
  *    complex128 -> double
  */
-template <typename ReturnDType, typename DType>
+template <typename DType, typename MDType = typename MagnitudeDType<DType>::type>
 inline ReturnDType nrm2(const int N, const DType* X, const int incX) {
-  return nm::math::nrm2<ReturnDType,DType>(N, X, incX);
+  return nm::math::nrm2<DType,MDType>(N, X, incX);
 }
 
 
@@ -175,9 +175,9 @@ inline double nrm2(const int N, const Complex128* X, const int incX) {
   return cblas_dznrm2(N, X, incX);
 }
 
-template <typename ReturnDType, typename DType>
+template <typename DType, typename MDType = typename MagnitudeDType<DType>::type>
 inline void cblas_nrm2(const int N, const void* X, const int incX, void* result) {
-  *static_cast<ReturnDType*>( result ) = nrm2<ReturnDType, DType>( N, static_cast<const DType*>(X), incX );
+  *static_cast<MDType*>( result ) = nrm2<DType, MDType>( N, static_cast<const DType*>(X), incX );
 }
 
 //imax

@@ -9,8 +9,8 @@
 //
 // == Copyright Information
 //
-// SciRuby is Copyright (c) 2010 - 2014, Ruby Science Foundation
-// NMatrix is Copyright (c) 2012 - 2014, John Woods and the Ruby Science Foundation
+// SciRuby is Copyright (c) 2010 - present, Ruby Science Foundation
+// NMatrix is Copyright (c) 2012 - present, John Woods and the Ruby Science Foundation
 //
 // Please see LICENSE.txt for additional copyright notices.
 //
@@ -134,6 +134,7 @@
 #include "math/cblas_enums.h"
 
 #include "data/data.h"
+#include "math/magnitude.h"
 #include "math/imax.h"
 #include "math/scal.h"
 #include "math/laswp.h"
@@ -206,7 +207,7 @@ namespace nm {
       } else if (M == 3) {
         x = A[lda+1] * A[2*lda+2] - A[lda+2] * A[2*lda+1]; // ei - fh
         y = A[lda] * A[2*lda+2] -   A[lda+2] * A[2*lda];   // fg - di
-        x = A[0]*x - A[1]*y ; // a*(ei-fh) - b*(fg-di)
+        x = A[0]*x - A[1]*y; // a*(ei-fh) - b*(fg-di)
 
         y = A[lda] * A[2*lda+1] - A[lda+1] * A[2*lda];    // dh - eg
         *result = A[2]*y + x; // c*(dh-eg) + _
@@ -237,11 +238,14 @@ namespace nm {
       int col_index[M];
 
       for (int k = 0;k < M; ++k) {
-        DType akk = std::abs( matrix[k * (M + 1)] ) ; // diagonal element
+        typename MagnitudeDType<DType>::type akk;
+        akk = magnitude( matrix[k * (M + 1)] ); // diagonal element
+
         int interchange = k;
 
         for (int row = k + 1; row < M; ++row) {
-          DType big = std::abs( matrix[M*row + k] ); // element below the temp pivot
+          typename MagnitudeDType<DType>::type big;
+          big = magnitude( matrix[M*row + k] ); // element below the temp pivot
           
           if ( big > akk ) {
             interchange = row;
@@ -748,16 +752,16 @@ static VALUE nm_cblas_nrm2(VALUE self, VALUE n, VALUE x, VALUE incx) {
 static VALUE nm_cblas_asum(VALUE self, VALUE n, VALUE x, VALUE incx) {
 
   static void (*ttable[nm::NUM_DTYPES])(const int N, const void* X, const int incX, void* sum) = {
-      nm::math::cblas_asum<uint8_t,uint8_t>,
-      nm::math::cblas_asum<int8_t,int8_t>,
-      nm::math::cblas_asum<int16_t,int16_t>,
-      nm::math::cblas_asum<int32_t,int32_t>,
-      nm::math::cblas_asum<int64_t,int64_t>,
-      nm::math::cblas_asum<float32_t,float32_t>,
-      nm::math::cblas_asum<float64_t,float64_t>,
-      nm::math::cblas_asum<float32_t,nm::Complex64>,
-      nm::math::cblas_asum<float64_t,nm::Complex128>,
-      nm::math::cblas_asum<nm::RubyObject,nm::RubyObject>
+      nm::math::cblas_asum<uint8_t>,
+      nm::math::cblas_asum<int8_t>,
+      nm::math::cblas_asum<int16_t>,
+      nm::math::cblas_asum<int32_t>,
+      nm::math::cblas_asum<int64_t>,
+      nm::math::cblas_asum<float32_t>,
+      nm::math::cblas_asum<float64_t>,
+      nm::math::cblas_asum<nm::Complex64>,
+      nm::math::cblas_asum<nm::Complex128>,
+      nm::math::cblas_asum<nm::RubyObject>
   };
 
   nm::dtype_t dtype  = NM_DTYPE(x);

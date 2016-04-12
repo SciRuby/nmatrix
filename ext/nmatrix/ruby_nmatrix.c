@@ -2693,11 +2693,11 @@ static SLICE* get_slice(size_t dim, int argc, VALUE* arg, size_t* shape) {
       VALUE begin_end   = rb_funcall(v, rb_intern("shift"), 0); // rb_hash_shift
       nm_register_value(&begin_end);
 
-      if (rb_ary_entry(begin_end, 0) >= 0)
+      if (FIX2INT(rb_ary_entry(begin_end, 0)) >= 0)
         slice->coords[r]  = FIX2INT(rb_ary_entry(begin_end, 0));
       else
         slice->coords[r]  = shape[r] + FIX2INT(rb_ary_entry(begin_end, 0));
-      if (rb_ary_entry(begin_end, 1) >= 0)
+      if (FIX2INT(rb_ary_entry(begin_end, 1)) >= 0)
         slice->lengths[r] = FIX2INT(rb_ary_entry(begin_end, 1)) - slice->coords[r];
       else
         slice->lengths[r] = shape[r] + FIX2INT(rb_ary_entry(begin_end, 1)) - slice->coords[r];

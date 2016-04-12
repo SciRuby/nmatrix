@@ -71,6 +71,7 @@ extern ID nm_rb_dtype,
           nm_rb_sub,
           nm_rb_mul,
           nm_rb_div,
+          nm_rb_quo,
 
           nm_rb_negate,
 

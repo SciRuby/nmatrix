@@ -110,11 +110,11 @@ class Complex {
   }
 
   /*
-   * Complex inverse function -- creates a copy, but inverted.
+   * Complex inverse (reciprocal) function -- computes 1 / n.
    *
    * FIXME: Check that this doesn't duplicate functionality of NativeType / Complex<Type>
    */
-  inline Complex<Type> inverse() const {
+  inline Complex<Type> reciprocal() const {
     Complex<Type> conj = conjugate();
     Type denom = this->r * this->r + this->i * this->i;
     return Complex<Type>(conj.r / denom, conj.i / denom);

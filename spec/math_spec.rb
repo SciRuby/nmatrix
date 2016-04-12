@@ -902,8 +902,81 @@ describe "math" do
   end
 
   context "determinants" do
+    context :object do
+      before(:all) do
+        class StringWithAbs
+          def initialize contents
+            @s = contents
+          end
+          def abs
+            @s.to_r.abs.to_s
+          end
+
+          def to_r
+            @s.to_r
+          end
+
+          def * rhs
+            if rhs.is_a?(StringWithAbs)
+              @s.to_r * rhs.to_r
+            else
+              @s.to_r * rhs
+            end
+          end
+
+          def quo(rhs)
+            @s.to_r.quo(rhs.to_r)
+          end
+
+          def / rhs
+            @s.quo(rhs)
+          end
+
+          def - rhs
+            @s.to_r - rhs.to_r
+          end
+
+          def + rhs
+            @s.to_r + rhs.to_r
+          end
+        end
+        @string_ary = ["1", "0", "1", "1",
+                       "1", "2", "3", "1",
+                       "3", "3", "3", "1",
+                       "1", "2", "3", "4"]
+        @c_ary = @string_ary.map { |s| StringWithAbs.new(s) }
+        @c = NMatrix.new([4,4], @c_ary, dtype: :object)
+      end
+
+      it "raises an exception when Numeric#* is not properly defined" do
+        pending "Need to figure out how to refine Numeric in rspec"
+        class OtherStringWithAbs
+          def initialize s; @s = s; end
+          def abs; @s.to_r.abs; end
+          def to_r; @s.to_r; end
+        end
+        d = NMatrix.new([4,4], @string_ary.map { |s| OtherStringWithAbs.new(s) }, dtype: :object)
+        expect(d.det).to be_within(1e-64).of(-18)
+      end
+      
+      it "raises an exception when a quotient is not defined" do
+        expect { @c.det }.to raise_error(NoMethodError, /reciprocal/)
+      end
+
+      it "does not raise an exception when object responds to :reciprocal" do
+        pending "Need to figure out how to refine Numeric in rspec"
+        class StringWithAbs
+          def reciprocal
+            1.quo(self.to_r)
+          end
+        end
+
+        expect(@c.det).to be_within(1e-64).of(-18)
+      end
+    end
+    
     ALL_DTYPES.each do |dtype|
-      next if dtype == :object
+      #next if dtype == :object
       context dtype do
         before do
           @a = NMatrix.new([2,2], [1,2,
@@ -934,6 +1007,7 @@ describe "math" do
           expect(@c.det).to be_within(@err).of(-18)
         end
         it "computes the exact determinant of 2x2 matrix" do
+          pending if dtype == :object
           if dtype == :byte
             expect{@a.det_exact}.to raise_error(DataTypeError)
           else
@@ -941,6 +1015,7 @@ describe "math" do
           end
         end
         it "computes the exact determinant of 3x3 matrix" do
+          pending if dtype == :object
           if dtype == :byte
             expect{@a.det_exact}.to raise_error(DataTypeError)
           else

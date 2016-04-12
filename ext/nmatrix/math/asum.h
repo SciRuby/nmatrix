@@ -9,8 +9,8 @@
 //
 // == Copyright Information
 //
-// SciRuby is Copyright (c) 2010 - 2014, Ruby Science Foundation
-// NMatrix is Copyright (c) 2012 - 2014, John Woods and the Ruby Science Foundation
+// SciRuby is Copyright (c) 2010 - present, Ruby Science Foundation
+// NMatrix is Copyright (c) 2012 - present, John Woods and the Ruby Science Foundation
 //
 // Please see LICENSE.txt for additional copyright notices.
 //
@@ -60,6 +60,8 @@
 #define ASUM_H
 
 
+#include "math/magnitude.h"
+
 namespace nm { namespace math {
 
 /*
@@ -73,44 +75,21 @@ namespace nm { namespace math {
  *    complex64 -> float or double
  *    complex128 -> double
  */
-template <typename ReturnDType, typename DType>
-inline ReturnDType asum(const int N, const DType* X, const int incX) {
-  ReturnDType sum = 0;
+template <typename DType, typename MDType = typename MagnitudeDType<DType>::type>
+inline MDType asum(const int N, const DType* X, const int incX) {
+  MDType sum = 0;
   if ((N > 0) && (incX > 0)) {
     for (int i = 0; i < N; ++i) {
-      sum += std::abs(X[i*incX]);
+      sum += magnitude(X[i*incX]);
     }
   }
   return sum;
 }
 
 
-template <>
-inline float asum(const int N, const Complex64* X, const int incX) {
-  float sum = 0;
-  if ((N > 0) && (incX > 0)) {
-    for (int i = 0; i < N; ++i) {
-      sum += std::abs(X[i*incX].r) + std::abs(X[i*incX].i);
-    }
-  }
-  return sum;
-}
-
-template <>
-inline double asum(const int N, const Complex128* X, const int incX) {
-  double sum = 0;
-  if ((N > 0) && (incX > 0)) {
-    for (int i = 0; i < N; ++i) {
-      sum += std::abs(X[i*incX].r) + std::abs(X[i*incX].i);
-    }
-  }
-  return sum;
-}
-
-
-template <typename ReturnDType, typename DType>
+template <typename DType, typename MDType = typename MagnitudeDType<DType>::type>
 inline void cblas_asum(const int N, const void* X, const int incX, void* sum) {
-  *reinterpret_cast<ReturnDType*>( sum ) = asum<ReturnDType, DType>( N, reinterpret_cast<const DType*>(X), incX );
+  *reinterpret_cast<MDType*>( sum ) = asum<DType,MDType>( N, reinterpret_cast<const DType*>(X), incX );
 }
 
 

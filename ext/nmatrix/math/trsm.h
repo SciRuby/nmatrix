@@ -58,6 +58,7 @@
 #ifndef TRSM_H
 #define TRSM_H
 
+#include "math/reciprocal.h"
 
 namespace nm { namespace math {
 
@@ -189,7 +190,7 @@ inline void trsm_nothrow(const enum CBLAS_SIDE side, const enum CBLAS_UPLO uplo,
             }
           }
           if (diag == CblasNonUnit) {
-            DType temp = 1 / a[j + j * lda];
+            DType temp = reciprocal(a[j + j * lda]);
             for (int i = 1; i <= m; ++i) {
               b[i + j * ldb] = temp * b[i + j * ldb];
             }
@@ -211,7 +212,7 @@ inline void trsm_nothrow(const enum CBLAS_SIDE side, const enum CBLAS_UPLO uplo,
             }
           }
           if (diag == CblasNonUnit) {
-            DType temp = 1 / a[j + j * lda];
+            DType temp = reciprocal(a[j + j * lda]);
 
             for (int i = 1; i <= m; ++i) {
               b[i + j * ldb] = temp * b[i + j * ldb];
@@ -226,7 +227,7 @@ inline void trsm_nothrow(const enum CBLAS_SIDE side, const enum CBLAS_UPLO uplo,
       if (uplo == CblasUpper) {
         for (int k = n; k >= 1; --k) {
           if (diag == CblasNonUnit) {
-            DType temp= 1 / a[k + k * lda];
+            DType temp = reciprocal(a[k + k * lda]);
             for (int i = 1; i <= m; ++i) {
               b[i + k * ldb] = temp * b[i + k * ldb];
             }
@@ -248,7 +249,7 @@ inline void trsm_nothrow(const enum CBLAS_SIDE side, const enum CBLAS_UPLO uplo,
       } else {
         for (int k = 1; k <= n; ++k) {
           if (diag == CblasNonUnit) {
-            DType temp = 1 / a[k + k * lda];
+            DType temp = reciprocal(a[k + k * lda]);
             for (int i = 1; i <= m; ++i) {
               b[i + k * ldb] = temp * b[i + k * ldb];
             }

@@ -715,30 +715,6 @@ int getri(const int N, DType* A, const int lda, const int* ipiv, DType* wrk, con
 }
 */
 
-/*
- * Macro for declaring LAPACK specializations of the getrf function.
- *
- * type is the DType; call is the specific function to call; cast_as is what the DType* should be
- * cast to in order to pass it to LAPACK.
- */
-#define LAPACK_GETRF(type, call, cast_as)                                     \
-template <>                                                                   \
-inline int getrf(const enum CBLAS_ORDER Order, const int M, const int N, type * A, const int lda, int* ipiv) { \
-  int info = call(Order, M, N, reinterpret_cast<cast_as *>(A), lda, ipiv);    \
-  if (!info) return info;                                                     \
-  else {                                                                      \
-    rb_raise(rb_eArgError, "getrf: problem with argument %d\n", info);        \
-    return info;                                                              \
-  }                                                                           \
-}
-
-/* Specialize for ATLAS types */
-/*LAPACK_GETRF(float,      clapack_sgetrf, float)
-LAPACK_GETRF(double,     clapack_dgetrf, double)
-LAPACK_GETRF(Complex64,  clapack_cgetrf, void)
-LAPACK_GETRF(Complex128, clapack_zgetrf, void)
-*/
-
 }} // end namespace nm::math
 
 

@@ -67,6 +67,7 @@ ID  nm_rb_dtype,
     nm_rb_sub,
     nm_rb_mul,
     nm_rb_div,
+    nm_rb_quo,
     nm_rb_both,
     nm_rb_none,
 
@@ -124,6 +125,7 @@ void nm_init_ruby_constants(void) {
   nm_rb_sub                = rb_intern("-");
   nm_rb_mul                = rb_intern("*");
   nm_rb_div                = rb_intern("/");
+  nm_rb_quo                = rb_intern("quo");
 
   nm_rb_negate            = rb_intern("-@");
 

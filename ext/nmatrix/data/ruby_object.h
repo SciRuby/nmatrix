@@ -54,6 +54,12 @@
  * Classes and Functions
  */
 
+extern "C" {
+  inline VALUE quo_reciprocal(const VALUE rval) {
+    return rb_funcall(INT2FIX(1), nm_rb_quo, 1, rval);
+  }
+}
+
 namespace nm {
 template<typename T, typename U>
 struct made_from_same_template : std::false_type {}; 
@@ -125,10 +131,32 @@ class RubyObject {
   inline RubyObject(const RubyObject& other) : rval(other.rval) {}
 
   /*
-   * Inverse operator.
+   * Quotient operator (typically for rational divisions)
    */
-  inline RubyObject inverse() const {
-    rb_raise(rb_eNotImpError, "RubyObject#inverse needs to be implemented");
+  inline RubyObject quo(const RubyObject& other) const {
+    return RubyObject(rb_funcall(this->rval, nm_rb_quo, 1, other.rval));
+  }
+  
+  /*
+   * Numeric inverse (reciprocal) operator, usually used for matrix
+   * operations like getrf. For this to work, Fixnum.quo(this) must not
+   * return a TypeError.
+   */
+  inline RubyObject reciprocal() const {
+    int exception;
+
+    // Attempt to call 1.quo(this).
+    VALUE result = rb_protect(quo_reciprocal, this->rval, &exception);
+    if (exception) {
+      ID rb_reciprocal = rb_intern("reciprocal");
+      // quo failed, so let's see if the object has a reciprocal method.
+      if (rb_respond_to(this->rval, rb_reciprocal)) {
+	return RubyObject(rb_funcall(this->rval, rb_reciprocal, 0));
+      } else {
+	rb_raise(rb_eNoMethodError, "expected reciprocal method, since 1.quo(object) raises an error");
+      }
+    }
+    return result;
   }
 
   /*

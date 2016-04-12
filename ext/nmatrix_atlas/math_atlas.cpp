@@ -417,16 +417,16 @@ static VALUE nm_atlas_cblas_nrm2(VALUE self, VALUE n, VALUE x, VALUE incx) {
 static VALUE nm_atlas_cblas_asum(VALUE self, VALUE n, VALUE x, VALUE incx) {
 
   static void (*ttable[nm::NUM_DTYPES])(const int N, const void* X, const int incX, void* sum) = {
-      nm::math::atlas::cblas_asum<uint8_t,uint8_t>,
-      nm::math::atlas::cblas_asum<int8_t,int8_t>,
-      nm::math::atlas::cblas_asum<int16_t,int16_t>,
-      nm::math::atlas::cblas_asum<int32_t,int32_t>,
-      nm::math::atlas::cblas_asum<int64_t,int64_t>,
-      nm::math::atlas::cblas_asum<float32_t,float32_t>,
-      nm::math::atlas::cblas_asum<float64_t,float64_t>,
-      nm::math::atlas::cblas_asum<float32_t,nm::Complex64>,
-      nm::math::atlas::cblas_asum<float64_t,nm::Complex128>,
-      nm::math::atlas::cblas_asum<nm::RubyObject,nm::RubyObject>
+      nm::math::atlas::cblas_asum<uint8_t>,
+      nm::math::atlas::cblas_asum<int8_t>,
+      nm::math::atlas::cblas_asum<int16_t>,
+      nm::math::atlas::cblas_asum<int32_t>,
+      nm::math::atlas::cblas_asum<int64_t>,
+      nm::math::atlas::cblas_asum<float32_t>,
+      nm::math::atlas::cblas_asum<float64_t>,
+      nm::math::atlas::cblas_asum<nm::Complex64>,
+      nm::math::atlas::cblas_asum<nm::Complex128>,
+      nm::math::atlas::cblas_asum<nm::RubyObject>
   };
 
   nm::dtype_t dtype  = NM_DTYPE(x);
