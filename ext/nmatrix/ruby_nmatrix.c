@@ -1099,7 +1099,6 @@ static VALUE nm_reshape_bang(VALUE self, VALUE arg){
     size_t size = nm_storage_count_max_elements(s);
     size_t new_size = 1;
     size_t* shape = interpret_shape(shape_ary, &dim);
-    void* elem = s->elements;
     for (size_t index = 0; index < dim; ++index){
       new_size *= shape[index];}
 
