@@ -2697,10 +2697,11 @@ static SLICE* get_slice(size_t dim, int argc, VALUE* arg, size_t* shape) {
         slice->coords[r]  = FIX2INT(rb_ary_entry(begin_end, 0));
       else
         slice->coords[r]  = shape[r] + FIX2INT(rb_ary_entry(begin_end, 0));
+
       if (rb_ary_entry(begin_end, 1) >= 0)
-        slice->lengths[r] = FIX2INT(rb_ary_entry(begin_end, 1)) - slice->coords[r];
+        slice->lengths[r] = FIX2INT(rb_ary_entry(begin_end, 1)) - slice->coords[r] + 1;
       else
-        slice->lengths[r] = shape[r] + FIX2INT(rb_ary_entry(begin_end, 1)) - slice->coords[r];
+        slice->lengths[r] = shape[r] + FIX2INT(rb_ary_entry(begin_end, 1)) - slice->coords[r] + 1;
 
       if (RHASH_EMPTY_P(v)) t++; // go on to the next
       slice->single = false;

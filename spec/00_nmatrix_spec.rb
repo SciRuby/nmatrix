@@ -555,6 +555,12 @@ describe 'NMatrix' do
       expect(n[-1]).to eq(5)
       expect(n[0,0..-2]).to eq(NMatrix.new([1,4],[1,2,3,4]))
     end
+
+    it "should work for hash" do
+      n = NMatrix.new([2,5], [1,2,3,4,5,6,7,8,9,0])
+      expect(n[0 => 1,3 => 4]).to eq NMatrix.new([2,2],[4,5,9,0])
+      expect(n[0 => 0,2 => 2]).to eq NMatrix.new([1,1],[3])
+    end
   end
 
   context "#complex_conjugate!" do
