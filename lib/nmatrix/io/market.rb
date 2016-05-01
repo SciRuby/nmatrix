@@ -8,8 +8,8 @@
 #
 # == Copyright Information
 #
-# SciRuby is Copyright (c) 2010 - 2014, Ruby Science Foundation
-# NMatrix is Copyright (c) 2012 - 2014, John Woods and the Ruby Science Foundation
+# SciRuby is Copyright (c) 2010 - 2016, Ruby Science Foundation
+# NMatrix is Copyright (c) 2012 - 2016, John Woods and the Ruby Science Foundation
 #
 # Please see LICENSE.txt for additional copyright notices.
 #
@@ -47,8 +47,9 @@ module NMatrix::IO::Market
   } #:nodoc:
 
   ENTRY_TYPE = {
-    :byte => :integer, :int8 => :integer, :int16 => :integer, :int32 => :integer, :int64 => :integer,
-    :float32 => :real, :float64 => :real, :complex64 => :complex, :complex128 => :complex
+    :byte => :integer, :int8 => :integer, :int16 => :integer,
+    :int32 => :integer, :int64 => :integer,:float32 => :real,
+    :float64 => :real, :complex64 => :complex, :complex128 => :complex
   } #:nodoc:
 
   class << self
@@ -68,7 +69,8 @@ module NMatrix::IO::Market
 
       header = f.gets
       header.chomp!
-      raise(IOError, "expected type code line beginning with '%%MatrixMarket matrix'") if header !~ /^\%\%MatrixMarket\ matrix/
+      raise(IOError, "expected type code line beginning with '%%MatrixMarket matrix'") \
+       if header !~ /^\%\%MatrixMarket\ matrix/
 
       header = header.split
 
@@ -106,7 +108,8 @@ module NMatrix::IO::Market
       end
       entry_type = options[:pattern] ? :pattern : ENTRY_TYPE[matrix.dtype]
 
-      raise(ArgumentError, "expected two-dimensional NMatrix") if matrix.dim != 2
+      raise(ArgumentError, "expected two-dimensional NMatrix") \
+       if matrix.dim != 2
 
       f = File.new(filename, 'w')
 

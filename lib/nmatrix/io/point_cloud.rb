@@ -9,8 +9,8 @@
 #
 # == Copyright Information
 #
-# SciRuby is Copyright (c) 2010 - 2014, Ruby Science Foundation
-# NMatrix is Copyright (c) 2012 - 2014, John Woods and the Ruby Science Foundation
+# SciRuby is Copyright (c) 2010 - 2016, Ruby Science Foundation
+# NMatrix is Copyright (c) 2012 - 2016, John Woods and the Ruby Science Foundation
 #
 # Please see LICENSE.txt for additional copyright notices.
 #
@@ -55,15 +55,21 @@ module NMatrix::IO::PointCloud
   end
 
   class MetaReader #:nodoc:
-    ENTRIES = [:version,  :fields,           :size,  :type,            :count,  :width,  :height,  :viewpoint,  :points,  :data]
-    ASSIGNS = [:version=, :fields=,          :size=, :type=,           :count=, :width=, :height=, :viewpoint=, :points=, :data=]
-    CONVERT = [:to_s,     :downcase_to_sym,  :to_i,  :downcase_to_sym, :to_i,   :to_i,   :to_i,    :to_f,       :to_i,    :downcase_to_sym]
+    ENTRIES = [:version,  :fields,           :size,  :type,
+               :count,  :width,  :height,  :viewpoint,  :points,  :data]
+    ASSIGNS = [:version=, :fields=,          :size=, :type=,
+               :count=, :width=, :height=, :viewpoint=, :points=, :data=]
+    CONVERT = [:to_s,     :downcase_to_sym,  :to_i,  :downcase_to_sym,
+      :to_i,   :to_i,   :to_i,    :to_f,       :to_i,    :downcase_to_sym]
 
-    DTYPE_CONVERT = {:byte => :to_i, :int8 => :to_i, :int16 => :to_i, :int32 => :to_i, :float32 => :to_f, :float64 => :to_f}
+    DTYPE_CONVERT = {:byte => :to_i, :int8 => :to_i, :int16 => :to_i,
+           :int32 => :to_i, :float32 => :to_f, :float64 => :to_f}
 
     # For UINT, just add 1 to the index.
-    INT_DTYPE_BY_SIZE   = {1 => :int8,    2 => :int16,   4 => :int32,   8 => :int64,  16 => :int64}
-    FLOAT_DTYPE_BY_SIZE = {1 => :float32, 2 => :float32, 4 => :float32, 8 => :float64,16 => :float64}
+    INT_DTYPE_BY_SIZE   = {1 => :int8,    2 => :int16,   4 => :int32,
+       8 => :int64,  16 => :int64}
+    FLOAT_DTYPE_BY_SIZE = {1 => :float32, 2 => :float32, 4 => :float32,
+       8 => :float64,16 => :float64}
 
     class << self
 
@@ -101,7 +107,8 @@ module NMatrix::IO::PointCloud
         read_entry(f, entry, ASSIGNS[i], CONVERT[i])
       end
 
-      raise(NotImplementedError, "only ASCII supported currently") unless self.data.first == :ascii
+      raise(NotImplementedError, "only ASCII supported currently") \
+       unless self.data.first == :ascii
 
       @matrix = NMatrix.new(self.shape, dtype: self.dtype)
 
@@ -150,8 +157,9 @@ module NMatrix::IO::PointCloud
     end
 
 
-    # Determine the dtype for a matrix based on the types and sizes given in the PCD.
-    # Call this only after read_entry has been called.
+    # Determine the dtype for a matrix based on the types and
+    #  sizes given in the PCD.
+    #  Call this only after read_entry has been called.
     def dtype
       @dtype ||= begin
         dtypes = self.type.map.with_index do |t,k|

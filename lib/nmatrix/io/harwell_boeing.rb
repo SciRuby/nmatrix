@@ -9,8 +9,8 @@
 #
 # == Copyright Information
 #
-# SciRuby is Copyright (c) 2010 - 2014, Ruby Science Foundation
-# NMatrix is Copyright (c) 2012 - 2014, John Woods and the Ruby Science Foundation
+# SciRuby is Copyright (c) 2010 - 2016, Ruby Science Foundation
+# NMatrix is Copyright (c) 2012 - 2016, John Woods and the Ruby Science Foundation
 #
 # Please see LICENSE.txt for additional copyright notices.
 #
@@ -48,14 +48,14 @@ class NMatrix
         # == Arguments
         # 
         # * +file_path+ - Path of the Harwell Boeing file  to load.
-        # * +opts+      - Options for specifying whether you want the values and 
-        #                 header or only the header.
+        # * +opts+      - Options for specifying whether you want
+        #                 the values and  header or only the header.
         # 
         # == Options
         # 
-        # * +:header+ - If specified as *true*, will return only the header of the HB file.
-        #               Will return the NMatrix object and header as an array if 
-        #               left blank.
+        # * +:header+ - If specified as *true*, will return only the header of
+        #               the HB file.Will return the NMatrix object and
+        #               header as an array if left blank.
         # 
         # == Usage
         # 
@@ -65,8 +65,8 @@ class NMatrix
         # 
         # == Alternate Usage
         # 
-        # You can specify the file using NMatrix::IO::Reader.new("path/to/file") and
-        # then call *header* or *values* on the resulting object.
+        # You can specify the file using NMatrix::IO::Reader.new("path/to/file")
+        # and then call *header* or *values* on the resulting object.
         def load file_path, opts={}
           hb_obj = NMatrix::IO::HarwellBoeing::Reader.new(file_path)
 
@@ -103,7 +103,8 @@ class NMatrix
           @header[:valcrd] = line[42...56].strip.to_i
           @header[:rhscrd] = line[56...70].strip.to_i
 
-          raise(IOError, "Right hand sides not supported.") if @header[:rhscrd] > 0
+          raise(IOError, "Right hand sides not supported.") \
+           if @header[:rhscrd] > 0
 
           line = @file.gets
 

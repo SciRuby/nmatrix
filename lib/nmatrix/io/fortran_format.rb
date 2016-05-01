@@ -9,8 +9,8 @@
 #
 # == Copyright Information
 #
-# SciRuby is Copyright (c) 2010 - 2014, Ruby Science Foundation
-# NMatrix is Copyright (c) 2012 - 2014, John Woods and the Ruby Science Foundation
+# SciRuby is Copyright (c) 2010 - 2016, Ruby Science Foundation
+# NMatrix is Copyright (c) 2012 - 2016, John Woods and the Ruby Science Foundation
 #
 # Please see LICENSE.txt for additional copyright notices.
 #
@@ -70,7 +70,8 @@ class NMatrix
         # * +:post_decimal_width+ - Width of the numerals after the decimal point.
         # * +:exponent_width+ - Width of exponent part of the number.
         def parse
-          raise(IOError, "Left or right parentheses missing") if parentheses_missing? # change tests to handle 'raise' not return
+          raise(IOError, "Left or right parentheses missing") \
+           if parentheses_missing? # change tests to handle 'raise' not return
 
           @result = {}
           @string = @string[1..-2]
@@ -92,8 +93,10 @@ class NMatrix
         # Changing any of the following regular expressions can lead to disaster
         def valid_fortran_format?
           @mdata = @string.match(/\A(\d*)(I)(\d+)\z/) # check for integer format
-          @mdata = @string.match(/\A(\d*)(F)(\d+)\.(\d+)\z/) if @mdata.nil? # check for floating point if not integer
-          @mdata =  @string.match(/\A(\d*)(E)(\d+)\.(\d+)(E)?(\d*)\z/) if @mdata.nil? # check for exponential format if not floating point
+          @mdata = @string.match(/\A(\d*)(F)(\d+)\.(\d+)\z/) \
+           if @mdata.nil? # check for floating point if not integer
+          @mdata =  @string.match(/\A(\d*)(E)(\d+)\.(\d+)(E)?(\d*)\z/) \
+           if @mdata.nil? # check for exponential format if not floating point
 
           @mdata
         end

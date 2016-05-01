@@ -9,8 +9,8 @@
 #
 # == Copyright Information
 #
-# SciRuby is Copyright (c) 2010 - 2014, Ruby Science Foundation
-# NMatrix is Copyright (c) 2012 - 2014, John Woods and the Ruby Science Foundation
+# SciRuby is Copyright (c) 2010 - 2016, Ruby Science Foundation
+# NMatrix is Copyright (c) 2012 - 2016, John Woods and the Ruby Science Foundation
 #
 # Please see LICENSE.txt for additional copyright notices.
 #
@@ -68,10 +68,19 @@ module NMatrix::BLAS
     #   - +ArgumentError+ -> +c+ must be +nil+ or a dense matrix.
     #   - +ArgumentError+ -> The dtype of the matrices must be equal.
     #
-    def gemm(a, b, c = nil, alpha = 1.0, beta = 0.0, transpose_a = false, transpose_b = false, m = nil, n = nil, k = nil, lda = nil, ldb = nil, ldc = nil)
-      raise(ArgumentError, 'Expected dense NMatrices as first two arguments.') unless a.is_a?(NMatrix) and b.is_a?(NMatrix) and a.stype == :dense and b.stype == :dense
-      raise(ArgumentError, 'Expected nil or dense NMatrix as third argument.') unless c.nil? or (c.is_a?(NMatrix) and c.stype == :dense)
-      raise(ArgumentError, 'NMatrix dtype mismatch.')              unless a.dtype == b.dtype and (c ? a.dtype == c.dtype : true)
+    def gemm(a, b, c = nil, alpha = 1.0, beta = 0.0,
+             transpose_a = false, transpose_b = false, m = nil,
+             n = nil, k = nil, lda = nil, ldb = nil, ldc = nil)
+
+      raise(ArgumentError, 'Expected dense NMatrices as first two arguments.') \
+            unless a.is_a?(NMatrix) and b.is_a? \
+            (NMatrix) and a.stype == :dense and b.stype == :dense
+
+      raise(ArgumentError, 'Expected nil or dense NMatrix as third argument.') \
+            unless c.nil? or (c.is_a?(NMatrix)  \
+            and c.stype == :dense)
+      raise(ArgumentError, 'NMatrix dtype mismatch.') \
+            unless a.dtype == b.dtype and (c ? a.dtype == c.dtype : true)
 
       # First, set m, n, and k, which depend on whether we're taking the
       # transpose of a and b.
@@ -108,7 +117,8 @@ module NMatrix::BLAS
       end
 
       # For argument descriptions, see: http://www.netlib.org/blas/dgemm.f
-      ::NMatrix::BLAS.cblas_gemm(:row, transpose_a, transpose_b, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc)
+      ::NMatrix::BLAS.cblas_gemm(:row, transpose_a, transpose_b,
+       m, n, k, alpha, a, lda, b, ldb, beta, c, ldc)
 
       return c
     end
@@ -140,17 +150,27 @@ module NMatrix::BLAS
     # * *Raises* :
     #   - ++ ->
     #
-    def gemv(a, x, y = nil, alpha = 1.0, beta = 0.0, transpose_a = false, m = nil, n = nil, lda = nil, incx = nil, incy = nil)
-      raise(ArgumentError, 'Expected dense NMatrices as first two arguments.') unless a.is_a?(NMatrix) and x.is_a?(NMatrix) and a.stype == :dense and x.stype == :dense
-      raise(ArgumentError, 'Expected nil or dense NMatrix as third argument.') unless y.nil? or (y.is_a?(NMatrix) and y.stype == :dense)
-      raise(ArgumentError, 'NMatrix dtype mismatch.')              unless a.dtype == x.dtype and (y ? a.dtype == y.dtype : true)
+    def gemv(a, x, y = nil, alpha = 1.0, beta = 0.0,
+             transpose_a = false, m = nil, n = nil, lda = nil,
+             incx = nil, incy = nil)
+      raise(ArgumentError, 'Expected dense NMatrices as first two arguments.') \
+       unless a.is_a?(NMatrix) and x.is_a?(NMatrix) and \
+       a.stype == :dense and x.stype == :dense
+
+      raise(ArgumentError, 'Expected nil or dense NMatrix as third argument.') \
+       unless y.nil? or (y.is_a?(NMatrix) and y.stype == :dense)
+
+      raise(ArgumentError, 'NMatrix dtype mismatch.') \
+       unless a.dtype == x.dtype and (y ? a.dtype == y.dtype : true)
 
       m ||= transpose_a == :transpose ? a.shape[1] : a.shape[0]
       n ||= transpose_a == :transpose ? a.shape[0] : a.shape[1]
-      raise(ArgumentError, "dimensions don't match") unless x.shape[0] == n && x.shape[1] == 1
+      raise(ArgumentError, "dimensions don't match") \
+       unless x.shape[0] == n && x.shape[1] == 1
 
       if y
-        raise(ArgumentError, "dimensions don't match") unless y.shape[0] == m && y.shape[1] == 1
+        raise(ArgumentError, "dimensions don't match") \
+         unless y.shape[0] == m && y.shape[1] == 1
       else
         y = NMatrix.new([m,1], dtype: a.dtype)
       end
@@ -159,7 +179,8 @@ module NMatrix::BLAS
       incx ||= 1
       incy ||= 1
 
-      ::NMatrix::BLAS.cblas_gemv(transpose_a, m, n, alpha, a, lda, x, incx, beta, y, incy)
+      ::NMatrix::BLAS.cblas_gemv(transpose_a, m, n,
+       alpha, a, lda, x, incx, beta, y, incy)
 
       return y
     end
@@ -178,18 +199,27 @@ module NMatrix::BLAS
     #   - +incx+ -> stride of NMatrix +x+
     #   - +incy+ -> stride of NMatrix +y+
     #   - +n+ -> number of elements to consider in x and y
-    #   - +in_place+ -> true if it's okay to modify the supplied +x+ and +y+ parameters directly; false if not. Default is false.
+    #   - +in_place+ -> true   if it's okay to modify the supplied
+    #                           +x+ and +y+ parameters directly;
+    #                   false if not. Default is false.
     # * *Returns* :
     #   - Array with the results, in the format [xx, yy]
     # * *Raises* :
     #   - +ArgumentError+ -> Expected dense NMatrices as first two arguments.
     #   - +ArgumentError+ -> NMatrix dtype mismatch.
-    #   - +ArgumentError+ -> Need to supply n for non-standard incx, incy values.
+    #   - +ArgumentError+ -> Need to supply n for non-standard incx,
+    #                         incy values.
     #
     def rot(x, y, c, s, incx = 1, incy = 1, n = nil, in_place=false)
-      raise(ArgumentError, 'Expected dense NMatrices as first two arguments.')    unless x.is_a?(NMatrix) and y.is_a?(NMatrix) and x.stype == :dense and y.stype == :dense
-      raise(ArgumentError, 'NMatrix dtype mismatch.')                 unless x.dtype == y.dtype
-      raise(ArgumentError, 'Need to supply n for non-standard incx, incy values') if n.nil? && incx != 1 && incx != -1 && incy != 1 && incy != -1
+      raise(ArgumentError, 'Expected dense NMatrices as first two arguments.') \
+       unless x.is_a?(NMatrix) and y.is_a?(NMatrix) \
+       and x.stype == :dense and y.stype == :dense
+
+      raise(ArgumentError, 'NMatrix dtype mismatch.') \
+       unless x.dtype == y.dtype
+
+      raise(ArgumentError, 'Need to supply n for non-standard incx, incy values') \
+       if n.nil? && incx != 1 && incx != -1 && incy != 1 && incy != -1
 
       n ||= [x.size/incx.abs, y.size/incy.abs].min
 
@@ -223,9 +253,11 @@ module NMatrix::BLAS
     # call-seq:
     #     rotg(ab) -> [Numeric, Numeric]
     #
-    # Apply givens plane rotation to the coordinates (a,b), returning the cosine and sine of the angle theta.
+    # Apply givens plane rotation to the coordinates (a,b),
+    #  returning the cosine and sine of the angle theta.
     #
-    # Since the givens rotation includes a square root, integers are disallowed.
+    # Since the givens rotation includes a square root,
+    #  integers are disallowed.
     #
     # * *Arguments* :
     #   - +ab+ -> NMatrix with two elements
@@ -235,7 +267,8 @@ module NMatrix::BLAS
     #   - +ArgumentError+ -> Expected dense NMatrix of size 2
     #
     def rotg(ab)
-      raise(ArgumentError, "Expected dense NMatrix of shape [2,1] or [1,2]") unless ab.is_a?(NMatrix) && ab.stype == :dense && ab.size == 2
+      raise(ArgumentError, "Expected dense NMatrix of shape [2,1] or [1,2]") \
+       unless ab.is_a?(NMatrix) && ab.stype == :dense && ab.size == 2
 
       ::NMatrix::BLAS.cblas_rotg(ab)
     end
@@ -245,10 +278,12 @@ module NMatrix::BLAS
     # call-seq:
     #     asum(x, incx, n) -> Numeric
     #
-    # Calculate the sum of absolute values of the entries of a vector +x+ of size +n+
+    # Calculate the sum of absolute values of the entries of a
+    #  vector +x+ of size +n+
     #
     # * *Arguments* :
-    #   - +x+ -> an NMatrix (will also allow an NMatrix, but will treat it as if it's a vector )
+    #   - +x+ -> an NMatrix (will also allow an NMatrix,
+    #             but will treat it as if it's a vector )
     #   - +incx+ -> the skip size (defaults to 1)
     #   - +n+ -> the size of +x+ (defaults to +x.size / incx+)
     # * *Returns* :
@@ -259,9 +294,12 @@ module NMatrix::BLAS
     #
     def asum(x, incx = 1, n = nil)
       n ||= x.size / incx
-      raise(ArgumentError, "Expected dense NMatrix for arg 0") unless x.is_a?(NMatrix)
-      raise(RangeError, "n out of range") if n*incx > x.size || n*incx <= 0 || n <= 0
-      ::NMatrix::BLAS.cblas_asum(n, x, incx)
+      raise(ArgumentError, "Expected dense NMatrix for arg 0") \
+       unless x.is_a?(NMatrix)
+
+      raise(RangeError, "n out of range") \
+       if n*incx > x.size || n*incx <= 0 || n <= 0
+       ::NMatrix::BLAS.cblas_asum(n, x, incx)
     end
 
     #
@@ -271,7 +309,8 @@ module NMatrix::BLAS
     # Calculate the 2-norm of a vector +x+ of size +n+
     #
     # * *Arguments* :
-    #   - +x+ -> an NMatrix (will also allow an NMatrix, but will treat it as if it's a vector )
+    #   - +x+ -> an NMatrix (will also allow an
+    #             NMatrix, but will treat it as if it's a vector )
     #   - +incx+ -> the skip size (defaults to 1)
     #   - +n+ -> the size of +x+ (defaults to +x.size / incx+)
     # * *Returns* :
@@ -282,24 +321,30 @@ module NMatrix::BLAS
     #
     def nrm2(x, incx = 1, n = nil)
       n ||= x.size / incx
-      raise(ArgumentError, "Expected dense NMatrix for arg 0") unless x.is_a?(NMatrix)
-      raise(RangeError, "n out of range") if n*incx > x.size || n*incx <= 0 || n <= 0
-      ::NMatrix::BLAS.cblas_nrm2(n, x, incx)
+      raise(ArgumentError, "Expected dense NMatrix for arg 0") \
+       unless x.is_a?(NMatrix)
+
+      raise(RangeError, "n out of range") \
+       if n*incx > x.size || n*incx <= 0 || n <= 0
+       ::NMatrix::BLAS.cblas_nrm2(n, x, incx)
     end
 
     # The following are functions that used to be implemented in C, but
     # now require nmatrix-atlas or nmatrix-lapcke to run properly, so we can just
     # implemented their stubs in Ruby.
     def cblas_trmm(order, side, uplo, trans_a, diag, m, n, alpha, a, lda, b, ldb)
-      raise(NotImplementedError,"cblas_trmm requires either the nmatrix-lapacke or nmatrix-atlas gem")
+      raise(NotImplementedError,"cblas_trmm requires either the
+       nmatrix-lapacke or nmatrix-atlas gem")
     end
 
     def cblas_syrk(order, uplo, trans, n, k, alpha, a, lda, beta, c, ldc)
-      raise(NotImplementedError,"cblas_syrk requires either the nmatrix-lapacke or nmatrix-atlas gem")
+      raise(NotImplementedError,"cblas_syrk requires either the
+       nmatrix-lapacke or nmatrix-atlas gem")
     end
 
     def cblas_herk(order, uplo, trans, n, k, alpha, a, lda, beta, c, ldc)
-      raise(NotImplementedError,"cblas_herk requires either the nmatrix-lapacke or nmatrix-atlas gem")
+      raise(NotImplementedError,"cblas_herk requires either the
+       nmatrix-lapacke or nmatrix-atlas gem")
     end
   end
 end

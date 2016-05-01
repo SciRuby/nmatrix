@@ -9,8 +9,8 @@
 #
 # == Copyright Information
 #
-# SciRuby is Copyright (c) 2010 - 2014, Ruby Science Foundation
-# NMatrix is Copyright (c) 2012 - 2014, John Woods and the Ruby Science Foundation
+# SciRuby is Copyright (c) 2010 - 2016, Ruby Science Foundation
+# NMatrix is Copyright (c) 2012 - 2016, John Woods and the Ruby Science Foundation
 #
 # Please see LICENSE.txt for additional copyright notices.
 #
@@ -43,22 +43,33 @@ module NMatrix::IO::Matlab
       :miUINT16 => [Integer, {:signed    => false,   :bytes => 2}],
       :miINT32  => [Integer, {:signed    => true,    :bytes => 4}],
       :miUINT32 => [Integer, {:signed    => false,   :bytes => 4}],
-      :miSINGLE => [Float,   {:precision => :single, :bytes => 4, :endian => :native}],
-      :miDOUBLE => [Float,   {:precision => :double, :bytes => 4, :endian => :native}],
+      :miSINGLE => [Float,   {:precision => :single,
+                              :bytes => 4, :endian => :native}],
+      :miDOUBLE => [Float,   {:precision => :double,
+                              :bytes => 4, :endian => :native}],
       :miINT64  => [Integer, {:signed    => true,    :bytes => 8}],
       :miUINT64 => [Integer, {:signed    => false,   :bytes => 8}]
     }
 
     DTYPE_PACK_ARGS = {
-      :byte       => [Integer, {:signed => false,      :bytes => 1}],
-      :int8       => [Integer, {:signed => true,       :bytes => 1}],
-      :int16      => [Integer, {:signed => true,       :bytes => 2}],
-      :int32      => [Integer, {:signed => true,       :bytes => 4}],
-      :int64      => [Integer, {:signed => true,       :bytes => 8}],
-      :float32    => [Float,   {:precision => :single, :bytes => 4, :endian => :native}],
-      :float64    => [Float,   {:precision => :double, :bytes => 8, :endian => :native}],
-      :complex64  => [Float,   {:precision => :single, :bytes => 4, :endian => :native}], #2x
-      :complex128 => [Float,   {:precision => :double, :bytes => 8, :endian => :native}]
+      :byte       => [Integer, {:signed => false,
+                                :bytes => 1}],
+      :int8       => [Integer, {:signed => true,
+                                :bytes => 1}],
+      :int16      => [Integer, {:signed => true,
+                                :bytes => 2}],
+      :int32      => [Integer, {:signed => true,
+                                :bytes => 4}],
+      :int64      => [Integer, {:signed => true,
+                                :bytes => 8}],
+      :float32    => [Float,   {:precision => :single,
+                                :bytes => 4, :endian => :native}],
+      :float64    => [Float,   {:precision => :double,
+                                :bytes => 8, :endian => :native}],
+      :complex64  => [Float,   {:precision => :single,
+                                :bytes => 4, :endian => :native}], #2x
+      :complex128 => [Float,   {:precision => :double,
+                                :bytes => 8, :endian => :native}]
     }
 
     ITYPE_PACK_ARGS = {
@@ -68,7 +79,8 @@ module NMatrix::IO::Matlab
       :uint64 => [Integer, {:signed => false, :bytes => 8}],
     }
 
-    NO_REPACK = [:miINT8, :miUINT8, :miINT16, :miINT32, :miSINGLE, :miDOUBLE, :miINT64]
+    NO_REPACK = [:miINT8, :miUINT8, :miINT16,
+                 :miINT32, :miSINGLE, :miDOUBLE, :miINT64]
 
     # Convert from MATLAB dtype to NMatrix dtype.
     MDTYPE_TO_DTYPE = {
