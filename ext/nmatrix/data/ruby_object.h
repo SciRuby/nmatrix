@@ -46,9 +46,6 @@
  * Macros
  */
 #define NM_RUBYVAL_IS_NUMERIC(val)                (FIXNUM_P(val) or RB_FLOAT_TYPE_P(val) or RB_TYPE_P(val, T_COMPLEX))
-#define NMATRIX_CHECK_TYPE(val) \
-  if (TYPE(val) != T_DATA || (RDATA(val)->dfree != (RUBY_DATA_FUNC)nm_delete && RDATA(val)->dfree != (RUBY_DATA_FUNC)nm_delete_ref)) \
-    rb_raise(rb_eTypeError, "Expected NMatrix on left-hand side of operation.");
 
 /*
  * Classes and Functions
