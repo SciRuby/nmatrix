@@ -2339,7 +2339,7 @@ static VALUE elementwise_op(nm::ewop_t op, VALUE left_val, VALUE right_val) {
   CheckNMatrixType(left_val);
   UnwrapNMatrix(left_val, left);
 
-  if (TYPE(right_val) != T_DATA || (RDATA(right_val)->dfree != (RUBY_DATA_FUNC)nm_delete && RDATA(right_val)->dfree != (RUBY_DATA_FUNC)nm_delete_ref)) {
+  if (!IsNMatrixType(right_val)) {
     // This is a matrix-scalar element-wise operation.
     std::string sym;
     switch(left->stype) {
@@ -2416,7 +2416,7 @@ static VALUE noncom_elementwise_op(nm::noncom_ewop_t op, VALUE self, VALUE other
   CheckNMatrixType(self);
   UnwrapNMatrix(self, self_nm);
 
-  if (TYPE(other) != T_DATA || (RDATA(other)->dfree != (RUBY_DATA_FUNC)nm_delete && RDATA(other)->dfree != (RUBY_DATA_FUNC)nm_delete_ref)) {
+  if (!IsNMatrixType(other)) {
     // This is a matrix-scalar element-wise operation.
     std::string sym;
     switch(self_nm->stype) {

@@ -875,7 +875,7 @@ namespace nm {
  */
 std::pair<NMATRIX*,bool> interpret_arg_as_dense_nmatrix(VALUE right, nm::dtype_t dtype) {
   NM_CONSERVATIVE(nm_register_value(&right));
-  if (TYPE(right) == T_DATA && (RDATA(right)->dfree == (RUBY_DATA_FUNC)nm_delete || RDATA(right)->dfree == (RUBY_DATA_FUNC)nm_delete_ref)) {
+  if (IsNMatrixType(right)) {
     NMATRIX *r;
     if (NM_STYPE(right) != DENSE_STORE || NM_DTYPE(right) != dtype || NM_SRC(right) != NM_STORAGE(right)) {
       UnwrapNMatrix( right, r );

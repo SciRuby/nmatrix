@@ -58,6 +58,28 @@
   #include "nm_memory.h"
 #endif
 
+#ifndef RB_BUILTIN_TYPE
+# define RB_BUILTIN_TYPE(obj) BUILTIN_TYPE(obj)
+#endif
+
+#ifndef RB_FLOAT_TYPE_P
+/* NOTE: assume flonum doesn't exist */
+# define RB_FLOAT_TYPE_P(obj) ( \
+    (!SPECIAL_CONST_P(obj) && BUILTIN_TYPE(obj) == T_FLOAT))
+#endif
+
+#ifndef RB_TYPE_P
+# define RB_TYPE_P(obj, type) ( \
+    ((type) == T_FIXNUM) ? FIXNUM_P(obj) : \
+    ((type) == T_TRUE) ? ((obj) == Qtrue) : \
+    ((type) == T_FALSE) ? ((obj) == Qfalse) : \
+    ((type) == T_NIL) ? ((obj) == Qnil) : \
+    ((type) == T_UNDEF) ? ((obj) == Qundef) : \
+    ((type) == T_SYMBOL) ? SYMBOL_P(obj) : \
+    ((type) == T_FLOAT) ? RB_FLOAT_TYPE_P(obj) : \
+    (!SPECIAL_CONST_P(obj) && BUILTIN_TYPE(obj) == (type)))
+#endif
+
 #ifndef FIX_CONST_VALUE_PTR
 # if defined(__fcc__) || defined(__fcc_version) || \
     defined(__FCC__) || defined(__FCC_VERSION)
@@ -381,7 +403,8 @@ NM_DEF_STRUCT_POST(NM_GC_HOLDER);       // };
 
 #define RB_FILE_EXISTS(fn)   (rb_funcall(rb_const_get(rb_cObject, rb_intern("File")), rb_intern("exists?"), 1, (fn)) == Qtrue)
 
-#define CheckNMatrixType(v)   if (TYPE(v) != T_DATA || (RDATA(v)->dfree != (RUBY_DATA_FUNC)nm_delete && RDATA(v)->dfree != (RUBY_DATA_FUNC)nm_delete_ref)) rb_raise(rb_eTypeError, "expected NMatrix on left-hand side of operation");
+#define IsNMatrixType(v)  (RB_TYPE_P(v, T_DATA) && (RDATA(v)->dfree == (RUBY_DATA_FUNC)nm_delete || RDATA(v)->dfree == (RUBY_DATA_FUNC)nm_delete_ref))
+#define CheckNMatrixType(v)   if (!IsNMatrixType(v)) rb_raise(rb_eTypeError, "expected NMatrix on left-hand side of operation");
 
 #define NM_IsNMatrix(obj) \
   (rb_obj_is_kind_of(obj, cNMatrix) == Qtrue)
