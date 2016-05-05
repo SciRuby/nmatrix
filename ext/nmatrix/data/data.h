@@ -121,18 +121,17 @@ namespace nm {
 
   template <typename Type>
   Complex<Type>& Complex<Type>::operator=(const RubyObject& other) {
-    switch(TYPE(other.rval)) {
-    case T_COMPLEX:
+    if (RB_TYPE_P(other.rval, T_COMPLEX)) {
       this->r = NUM2DBL(rb_funcall(other.rval, rb_intern("real"), 0));
       this->i = NUM2DBL(rb_funcall(other.rval, rb_intern("imag"), 0));
-      break;
-    case T_FLOAT:
-    case T_FIXNUM:
-    case T_BIGNUM:
+    }
+    else if (RB_TYPE_P(other.rval, T_FLOAT) ||
+             RB_TYPE_P(other.rval, T_FIXNUM) ||
+             RB_TYPE_P(other.rval, T_BIGNUM)) {
       this->r = NUM2DBL(other.rval);
       this->i = 0.0;
-      break;
-    default:
+    }
+    else {
       rb_raise(rb_eTypeError, "not sure how to convert this type of VALUE to a complex");
     }
     return *this;

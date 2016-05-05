@@ -656,7 +656,7 @@ static VALUE nm_lapacke_lapacke_getri(VALUE self, VALUE order, VALUE n, VALUE a,
 
   // Allocate the C version of the pivot index array
   int* ipiv_;
-  if (TYPE(ipiv) != T_ARRAY) {
+  if (!RB_TYPE_P(ipiv, T_ARRAY)) {
     rb_raise(rb_eArgError, "ipiv must be of type Array");
   } else {
     ipiv_ = NM_ALLOCA_N(int, RARRAY_LEN(ipiv));
@@ -748,7 +748,7 @@ static VALUE nm_lapacke_lapacke_getrs(VALUE self, VALUE order, VALUE trans, VALU
 
   // Allocate the C version of the pivot index array
   int* ipiv_;
-  if (TYPE(ipiv) != T_ARRAY) {
+  if (!RB_TYPE_P(ipiv, T_ARRAY)) {
     rb_raise(rb_eArgError, "ipiv must be of type Array");
   } else {
     ipiv_ = NM_ALLOCA_N(int, RARRAY_LEN(ipiv));

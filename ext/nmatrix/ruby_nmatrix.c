@@ -1202,7 +1202,7 @@ static VALUE nm_init_new_version(int argc, VALUE* argv, VALUE self) {
       init = rubyobj_to_cval(default_val_num, dtype);
     else if (NIL_P(initial_ary))
       init = NULL;
-    else if (TYPE(initial_ary) == T_ARRAY)
+    else if (RB_TYPE_P(initial_ary, T_ARRAY))
       init = RARRAY_LEN(initial_ary) == 1 ? rubyobj_to_cval(rb_ary_entry(initial_ary, 0), dtype) : NULL;
     else
       init = rubyobj_to_cval(initial_ary, dtype);
@@ -1219,8 +1219,8 @@ static VALUE nm_init_new_version(int argc, VALUE* argv, VALUE self) {
 
   if (!NIL_P(initial_ary)) {
 
-    if (TYPE(initial_ary) == T_ARRAY)   v_size = RARRAY_LEN(initial_ary);
-    else                                v_size = 1;
+    if (RB_TYPE_P(initial_ary, T_ARRAY)) v_size = RARRAY_LEN(initial_ary);
+    else                                 v_size = 1;
 
     v = interpret_initial_value(initial_ary, dtype);
 
@@ -1368,7 +1368,7 @@ static VALUE nm_init(int argc, VALUE* argv, VALUE nm) {
   nm::stype_t stype;
   size_t  offset = 0;
 
-  if (!SYMBOL_P(argv[0]) && TYPE(argv[0]) != T_STRING) {
+  if (!SYMBOL_P(argv[0]) && !RB_TYPE_P(argv[0], T_STRING)) {
     stype = nm::DENSE_STORE;
 
   } else {
@@ -1400,7 +1400,7 @@ static VALUE nm_init(int argc, VALUE* argv, VALUE nm) {
 
   size_t init_cap = 0, init_val_len = 0;
   void* init_val  = NULL;
-  if (!SYMBOL_P(argv[1+offset]) || TYPE(argv[1+offset]) == T_ARRAY) {
+  if (!SYMBOL_P(argv[1+offset]) || RB_TYPE_P(argv[1+offset], T_ARRAY)) {
     // Initial value provided (could also be initial capacity, if yale).
 
     if (stype == nm::YALE_STORE && NM_RUBYVAL_IS_NUMERIC(argv[1+offset])) {
@@ -1410,8 +1410,8 @@ static VALUE nm_init(int argc, VALUE* argv, VALUE nm) {
       // 4: initial value / dtype
       init_val = interpret_initial_value(argv[1+offset], dtype);
 
-      if (TYPE(argv[1+offset]) == T_ARRAY)   init_val_len = RARRAY_LEN(argv[1+offset]);
-      else                                  init_val_len = 1;
+      if (RB_TYPE_P(argv[1+offset], T_ARRAY)) init_val_len = RARRAY_LEN(argv[1+offset]);
+      else                                    init_val_len = 1;
     }
 
   } else {
@@ -2060,7 +2060,7 @@ static VALUE nm_multiply(VALUE left_v, VALUE right_v) {
     return matrix_multiply_scalar(left, right_v);
   }
 
-  else if (TYPE(right_v) == T_ARRAY) {
+  else if (RB_TYPE_P(right_v, T_ARRAY)) {
     NM_CONSERVATIVE(nm_unregister_value(&left_v));
     NM_CONSERVATIVE(nm_unregister_value(&right_v));
     rb_raise(rb_eNotImpError, "please convert array to nx1 or 1xn NMatrix first");
@@ -2562,23 +2562,20 @@ nm::dtype_t nm_dtype_min_fixnum(int64_t v) {
  */
 nm::dtype_t nm_dtype_min(VALUE v) {
 
-  switch(TYPE(v)) {
-  case T_FIXNUM:
+  if (RB_TYPE_P(v, T_FIXNUM))
     return nm_dtype_min_fixnum(FIX2LONG(v));
-  case T_BIGNUM:
+  else if (RB_TYPE_P(v, T_BIGNUM))
     return nm::INT64;
-  case T_FLOAT:
+  else if (RB_TYPE_P(v, T_FLOAT))
     return nm::FLOAT32;
-  case T_COMPLEX:
+  else if (RB_TYPE_P(v, T_COMPLEX))
     return nm::COMPLEX64;
-  case T_STRING:
+  else if (RB_TYPE_P(v, T_STRING))
     return RSTRING_LEN(v) == 1 ? nm::BYTE : nm::RUBYOBJ;
-  case T_TRUE:
-  case T_FALSE:
-  case T_NIL:
-  default:
+  else if (RB_TYPE_P(v, T_TRUE) || RB_TYPE_P(v, T_FALSE) || RB_TYPE_P(v, T_NIL))
     return nm::RUBYOBJ;
-  }
+  else
+    return nm::RUBYOBJ;
 }
 
 
@@ -2588,60 +2585,39 @@ nm::dtype_t nm_dtype_min(VALUE v) {
  * TODO: Probably needs some work for Bignum.
  */
 nm::dtype_t nm_dtype_guess(VALUE v) {
-  switch(TYPE(v)) {
-  case T_TRUE:
-  case T_FALSE:
-  case T_NIL:
+  if (RB_TYPE_P(v, T_TRUE) || RB_TYPE_P(v, T_FALSE) || RB_TYPE_P(v, T_NIL))
     return nm::RUBYOBJ;
-  case T_STRING:
+  else if (RB_TYPE_P(v, T_STRING))
     return RSTRING_LEN(v) == 1 ? nm::BYTE : nm::RUBYOBJ;
-
+  else if (RB_TYPE_P(v, T_FIXNUM))
 #if SIZEOF_INT == 8
-  case T_FIXNUM:
     return nm::INT64;
-
-#else
-# if SIZEOF_INT == 4
-  case T_FIXNUM:
+#elif SIZEOF_INT == 4
     return nm::INT32;
-
 #else
-  case T_FIXNUM:
     return nm::INT16;
-
-# endif
 #endif
-
-  case T_BIGNUM:
+  else if (RB_TYPE_P(v, T_BIGNUM))
     return nm::INT64;
-
 #if SIZEOF_FLOAT == 4
-  case T_COMPLEX:
+  else if (RB_TYPE_P(v, T_COMPLEX))
     return nm::COMPLEX128;
-
-  case T_FLOAT:
+  else if (RB_TYPE_P(v, T_FLOAT))
     return nm::FLOAT64;
-
-#else
-# if SIZEOF_FLOAT == 2
-  case T_COMPLEX:
+#elif SIZEOF_FLOAT == 2
+  else if (RB_TYPE_P(v, T_COMPLEX))
     return nm::COMPLEX64;
-
-  case T_FLOAT:
+  else if (RB_TYPE_P(v, T_FLOAT))
     return nm::FLOAT32;
-# endif
 #endif
-
-  case T_ARRAY:
+  else if (RB_TYPE_P(v, T_ARRAY))
     /*
      * May be passed for dense -- for now, just look at the first element.
      *
      * TODO: Look at entire array for most specific type.
      */
-
     return nm_dtype_guess(RARRAY_AREF(v, 0));
-
-  default:
+  else {
     RB_P(v);
     rb_raise(rb_eArgError, "Unable to guess a data type from provided parameters; data type must be specified manually.");
   }
@@ -2688,7 +2664,7 @@ static SLICE* get_slice(size_t dim, int argc, VALUE* arg, size_t* shape) {
       slice->single     = false;
       t++;
 
-    } else if (TYPE(arg[t]) == T_HASH) { // 3:5 notation (inclusive)
+    } else if (RB_TYPE_P(arg[t], T_HASH)) { // 3:5 notation (inclusive)
       VALUE begin_end   = rb_funcall(v, rb_intern("shift"), 0); // rb_hash_shift
       nm_register_value(&begin_end);
 
@@ -2776,7 +2752,7 @@ static nm::dtype_t interpret_dtype(int argc, VALUE* argv, nm::stype_t stype) {
   if (SYMBOL_P(argv[offset])) {
     return nm_dtype_from_rbsymbol(argv[offset]);
 
-  } else if (TYPE(argv[offset]) == T_STRING) {
+  } else if (RB_TYPE_P(argv[offset], T_STRING)) {
     return nm_dtype_from_rbstring(StringValue(argv[offset]));
 
   } else if (stype == nm::YALE_STORE) {
@@ -2796,7 +2772,7 @@ static void* interpret_initial_value(VALUE arg, nm::dtype_t dtype) {
   unsigned int index;
   void* init_val;
 
-  if (TYPE(arg) == T_ARRAY) {
+  if (RB_TYPE_P(arg, T_ARRAY)) {
     // Array
     init_val = NM_ALLOC_N(char, DTYPE_SIZES[dtype] * RARRAY_LEN(arg));
     NM_CHECK_ALLOC(init_val);
@@ -2823,7 +2799,7 @@ static size_t* interpret_shape(VALUE arg, size_t* dim) {
   NM_CONSERVATIVE(nm_register_value(&arg));
   size_t* shape;
 
-  if (TYPE(arg) == T_ARRAY) {
+  if (RB_TYPE_P(arg, T_ARRAY)) {
     *dim = RARRAY_LEN(arg);
     shape = NM_ALLOC_N(size_t, *dim);
 
@@ -2854,7 +2830,7 @@ static nm::stype_t interpret_stype(VALUE arg) {
   if (SYMBOL_P(arg)) {
     return nm_stype_from_rbsymbol(arg);
 
-  } else if (TYPE(arg) == T_STRING) {
+  } else if (RB_TYPE_P(arg, T_STRING)) {
     return nm_stype_from_rbstring(StringValue(arg));
 
   } else {

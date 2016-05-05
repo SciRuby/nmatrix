@@ -376,7 +376,7 @@ public:
       v       = reinterpret_cast<D*>(s->elements);
       v_size  = nm_storage_count_max_elements(s);
 
-    } else if (TYPE(right) == T_ARRAY) {
+    } else if (RB_TYPE_P(right, T_ARRAY)) {
       v_size = RARRAY_LEN(right);
       v      = NM_ALLOC_N(D, v_size);
       if (dtype() == nm::RUBYOBJ) {

@@ -551,7 +551,7 @@ void set(VALUE left, SLICE* slice, VALUE right) {
     v                = reinterpret_cast<D*>(t->elements);
     v_size           = nm_storage_count_max_elements(t);
 
-  } else if (TYPE(right) == T_ARRAY) {
+  } else if (RB_TYPE_P(right, T_ARRAY)) {
     nm_register_nmatrix(nm_and_free.first);
     v_size = RARRAY_LEN(right);
     v      = NM_ALLOC_N(D, v_size);

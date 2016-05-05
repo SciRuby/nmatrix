@@ -140,7 +140,7 @@ namespace nm { namespace dense_storage {
       v                = reinterpret_cast<D*>(t->elements);
       v_size           = nm_storage_count_max_elements(t);
 
-    } else if (TYPE(right) == T_ARRAY) {
+    } else if (RB_TYPE_P(right, T_ARRAY)) {
       
       v_size = RARRAY_LEN(right);
       v      = NM_ALLOC_N(D, v_size);
@@ -888,7 +888,7 @@ std::pair<NMATRIX*,bool> interpret_arg_as_dense_nmatrix(VALUE right, nm::dtype_t
       return std::make_pair(r, false);
     }
     // Do not set v_alloc = true for either of these. It is the responsibility of r/ldtype_r
-  } else if (TYPE(right) == T_DATA) {
+  } else if (RB_TYPE_P(right, T_DATA)) {
     NM_CONSERVATIVE(nm_unregister_value(&right));
     rb_raise(rb_eTypeError, "unrecognized type for slice assignment");
   }
