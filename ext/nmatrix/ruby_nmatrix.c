@@ -2700,7 +2700,7 @@ static SLICE* get_slice(size_t dim, int argc, VALUE* arg, size_t* shape) {
 
     } else {
       NM_CONSERVATIVE(nm_unregister_values(arg, argc));
-      rb_raise(rb_eArgError, "expected Fixnum, Range, or Hash for slice component instead of %s", rb_obj_classname(v));
+      rb_raise(rb_eArgError, "expected Fixnum, Range, Hash or Symbol(:*) for slice component instead of %s", rb_obj_classname(v));
     }
 
     if (slice->coords[r] > shape[r] || slice->coords[r] + slice->lengths[r] > shape[r]) {
