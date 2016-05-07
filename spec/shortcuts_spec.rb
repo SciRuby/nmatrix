@@ -88,7 +88,7 @@ describe NMatrix do
   it "diag() creates a matrix with pre-supplied diagonal" do
     arr = [1,2,3,4]
     m = NMatrix.diag(arr)
-    expect(m.is_a?(NMatrix)).to be_true
+    expect(m.is_a?(NMatrix)).to be true
   end
 
   it "diagonals() contains the seeded values on the diagonal" do
@@ -329,19 +329,19 @@ describe NMatrix do
   it "column() returns a NMatrix" do
     m = NMatrix.random(3)
 
-    expect(m.column(2).is_a?(NMatrix)).to be_true
+    expect(m.column(2).is_a?(NMatrix)).to be true
   end
 
   it "row() returns a NMatrix" do
     m = NMatrix.random(3)
 
-    expect(m.row(2).is_a?(NMatrix)).to be_true
+    expect(m.row(2).is_a?(NMatrix)).to be true
   end
 
   it "diagonals() creates an NMatrix" do
     arr = [1,2,3,4]
     m = NMatrix.diagonals(arr)
-    expect(m.is_a?(NMatrix)).to be_true
+    expect(m.is_a?(NMatrix)).to be true
   end
 
   it "diagonals() contains the seeded values on the diagonal" do
