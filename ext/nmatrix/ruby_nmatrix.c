@@ -2664,23 +2664,6 @@ static SLICE* get_slice(size_t dim, int argc, VALUE* arg, size_t* shape) {
       slice->single     = false;
       t++;
 
-    } else if (RB_TYPE_P(arg[t], T_HASH)) { // 3:5 notation (inclusive)
-      VALUE begin_end   = rb_funcall(v, rb_intern("shift"), 0); // rb_hash_shift
-      nm_register_value(&begin_end);
-
-      if (rb_ary_entry(begin_end, 0) >= 0)
-        slice->coords[r]  = FIX2INT(rb_ary_entry(begin_end, 0));
-      else
-        slice->coords[r]  = shape[r] + FIX2INT(rb_ary_entry(begin_end, 0));
-      if (rb_ary_entry(begin_end, 1) >= 0)
-        slice->lengths[r] = FIX2INT(rb_ary_entry(begin_end, 1)) - slice->coords[r];
-      else
-        slice->lengths[r] = shape[r] + FIX2INT(rb_ary_entry(begin_end, 1)) - slice->coords[r];
-
-      if (RHASH_EMPTY_P(v)) t++; // go on to the next
-      slice->single = false;
-      nm_unregister_value(&begin_end);
-
     } else if (CLASS_OF(v) == rb_cRange) {
       rb_range_values(arg[t], &beg, &end, &excl);
 
@@ -2700,7 +2683,7 @@ static SLICE* get_slice(size_t dim, int argc, VALUE* arg, size_t* shape) {
 
     } else {
       NM_CONSERVATIVE(nm_unregister_values(arg, argc));
-      rb_raise(rb_eArgError, "expected Fixnum, Range, or Hash for slice component instead of %s", rb_obj_classname(v));
+      rb_raise(rb_eArgError, "expected Fixnum, or Range for slice component instead of %s", rb_obj_classname(v));
     }
 
     if (slice->coords[r] > shape[r] || slice->coords[r] + slice->lengths[r] > shape[r]) {
