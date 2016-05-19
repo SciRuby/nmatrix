@@ -3006,12 +3006,12 @@ static VALUE nm_det_exact(VALUE self) {
   nm::dtype_t dtype = NM_DTYPE(self);
   nm_math_det_exact(NM_SHAPE0(self), NM_STORAGE_DENSE(self)->elements, NM_SHAPE0(self), NM_DTYPE(self), result);
 
+  VALUE to_return;
   if (dtype == nm::RUBYOBJ) {
-    nm_register_values(reinterpret_cast<VALUE*>(result), 1);
-  }
-  VALUE to_return = nm::rubyobj_from_cval(result, NM_DTYPE(self)).rval;
-  if (dtype == nm::RUBYOBJ) {
-    nm_unregister_values(reinterpret_cast<VALUE*>(result), 1);
+    to_return = *reinterpret_cast<VALUE*>(result);
+
+  } else {
+    to_return = nm::rubyobj_from_cval(result, NM_DTYPE(self)).rval;
   }
   NM_CONSERVATIVE(nm_unregister_value(&self));
 
