@@ -946,7 +946,6 @@ describe "math" do
 
   context "determinants" do
     ALL_DTYPES.each do |dtype|
-      next if dtype == :object
       context dtype do
         before do
           @a = NMatrix.new([2,2], [1,2,
@@ -968,13 +967,19 @@ describe "math" do
                 end
         end
         it "computes the determinant of 2x2 matrix" do
-          expect(@a.det).to be_within(@err).of(-2)
+          if dtype != :object
+            expect(@a.det).to be_within(@err).of(-2)
+          end
         end
         it "computes the determinant of 3x3 matrix" do
-          expect(@b.det).to be_within(@err).of(-8)
+          if dtype != :object
+            expect(@b.det).to be_within(@err).of(-8)
+          end
         end
         it "computes the determinant of 4x4 matrix" do
-          expect(@c.det).to be_within(@err).of(-18)
+          if dtype != :object
+            expect(@c.det).to be_within(@err).of(-18)
+          end
         end
         it "computes the exact determinant of 2x2 matrix" do
           if dtype == :byte
