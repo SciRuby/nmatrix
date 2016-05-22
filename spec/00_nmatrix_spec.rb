@@ -541,6 +541,26 @@ describe 'NMatrix' do
       n = NMatrix.new([1,3,1], [1,2,3])
       expect(n.dconcat(n)).to eq(NMatrix.new([1,3,2], [1,1,2,2,3,3]))
     end
+
+    it "should work on matrices with different size along concat dim" do
+      n = N[[1, 2, 3],
+            [4, 5, 6]]
+      m = N[[7],
+            [8]]
+
+      expect(n.hconcat(m)).to eq N[[1, 2, 3, 7], [4, 5, 6, 8]]
+      expect(m.hconcat(n)).to eq N[[7, 1, 2, 3], [8, 4, 5, 6]]
+    end
+
+    it "should work on matrices with different size along concat dim" do
+      n = N[[1, 2, 3],
+            [4, 5, 6]]
+
+      m = N[[7, 8, 9]]
+
+      expect(n.vconcat(m)).to eq N[[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+      expect(m.vconcat(n)).to eq N[[7, 8, 9], [1, 2, 3], [4, 5, 6]]
+    end
   end
 
   context "#[]" do

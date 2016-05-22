@@ -710,16 +710,20 @@ class NMatrix
     # Do the actual construction.
     n = NMatrix.new(new_shape, opts)
 
-    # Figure out where to start and stop the concatenation. We'll use NMatrices instead of
-    # Arrays because then we can do elementwise addition.
-    ranges = self.shape.map.with_index { |s,i| 0...self.shape[i] }
+    # Figure out where to start concatenation. We don't know where it will end,
+    # because each matrix may have own size along concat dimension.
+    pos = Array.new(self.dim) { 0 }
 
     matrices.unshift(self)
     matrices.each do |m|
+      # Figure out where to start and stop the concatenation. We'll use
+      # NMatrices instead of Arrays because then we can do elementwise addition.
+      ranges = m.shape.map.with_index { |s,i| pos[i]...(pos[i] + s) }
+
       n[*ranges] = m
 
-      # move over by the requisite amount
-      ranges[rank]  = (ranges[rank].first + m.shape[rank])...(ranges[rank].last + m.shape[rank])
+      # Move over by the requisite amount
+      pos[rank] = pos[rank] + m.shape[rank]
     end
 
     n
