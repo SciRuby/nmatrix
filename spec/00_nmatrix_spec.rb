@@ -706,6 +706,11 @@ describe 'NMatrix' do
       expect(@sample_matrix.repeat(2, 0)).to eq(NMatrix.new([4, 2], [1, 2, 3, 4, 1, 2, 3, 4]))
       expect(@sample_matrix.repeat(2, 1)).to eq(NMatrix.new([2, 4], [1, 2, 1, 2, 3, 4, 3, 4]))
     end
+
+    it "preserves dtype" do
+      expect(@sample_matrix.repeat(2, 0).dtype).to eq(@sample_matrix.dtype)
+      expect(@sample_matrix.repeat(2, 1).dtype).to eq(@sample_matrix.dtype)
+    end
   end
 
   context "#meshgrid" do

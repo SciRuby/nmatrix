@@ -1021,7 +1021,7 @@ class NMatrix
     raise(ArgumentError, 'Matrix should be repeated at least 2 times.') if count < 2
     new_shape = shape
     new_shape[axis] *= count
-    new_matrix = NMatrix.new(new_shape)
+    new_matrix = NMatrix.new(new_shape, dtype: dtype)
     slice = new_shape.map { |axis_size| 0...axis_size }
     start = 0
     count.times do
