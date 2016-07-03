@@ -102,7 +102,7 @@ inline void laswp(const int N, DType* A, const int lda, const int K1, const int 
           DType *a0 = &(A[i]),
                 *a1 = &(A[ip]);
 
-          for (register int h = 32; h; h--) {
+          for (int h = 32; h; h--) {
             DType r   = *a0;
             *a0       = *a1;
             *a1       = r;
@@ -131,7 +131,7 @@ inline void laswp(const int N, DType* A, const int lda, const int K1, const int 
         DType *a0 = &(A[i]),
               *a1 = &(A[ip]);
 
-        for (register int h = mr; h; h--) {
+        for (int h = mr; h; h--) {
           DType r   = *a0;
           *a0       = *a1;
           *a1       = r;

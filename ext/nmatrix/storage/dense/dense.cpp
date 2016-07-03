@@ -1018,7 +1018,7 @@ bool eqeq(const DENSE_STORAGE* left, const DENSE_STORAGE* right) {
 template <typename DType>
 bool is_hermitian(const DENSE_STORAGE* mat, int lda) {
   unsigned int i, j;
-  register DType complex_conj;
+  DType complex_conj;
 
   const DType* els = (DType*) mat->elements;
 
