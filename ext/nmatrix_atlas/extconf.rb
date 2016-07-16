@@ -27,38 +27,6 @@
 
 require "mkmf"
 
-
-# Function derived from NArray's extconf.rb.
-def have_type(type, header=nil) #:nodoc:
-  printf "checking for %s... ", type
-  STDOUT.flush
-
-  src = <<"SRC"
-#include <ruby.h>
-SRC
-
-
-  src << <<"SRC" unless header.nil?
-#include <#{header}>
-SRC
-
-  r = try_link(src + <<"SRC")
-  int main() { return 0; }
-  int t() { #{type} a; return 0; }
-SRC
-
-  unless r
-    print "no\n"
-    return false
-  end
-
-  $defs.push(format("-DHAVE_%s", type.upcase))
-
-  print "yes\n"
-
-  return true
-end
-
 # Function derived from NArray's extconf.rb.
 def create_conf_h(file) #:nodoc:
   print "creating #{file}\n"
