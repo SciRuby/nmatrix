@@ -9,6 +9,7 @@ if [ -n "$ruby_version" -a "$TRAVIS_OS_NAME" = "osx" ]; then
     eval "$(rbenv init -)"
   fi
   export RBENV_VERSION=$ruby_version
+  unset GEM_PATH GEM_HOME
 fi
 
 if [ "$1" = "install" ]
