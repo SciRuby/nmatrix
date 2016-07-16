@@ -43,6 +43,8 @@ then
       CONFIGURE_OPTS="--disable-install-doc --with-out-ext=tk,tk/tkutil --with-opt-dir=/usr/local"
       rbenv install $ruby_version
     )
+
+    gem pristine --all
     gem update --no-document --system
     gem update --no-document
   fi
