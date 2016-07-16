@@ -107,6 +107,12 @@ def gplusplus_version
   "#{major}.#{minor}.#{patch}"
 end
 
+if CONFIG['CC'] == 'clang' && CONFIG['CXX'] != 'clang++'
+  puts "WARNING: CONFIG['CXX'] is not 'clang++' in spite of CONFIG['CC'] is 'clang'.",
+       "WARNING: Force to use clang++ together with clang."
+
+  CONFIG['CXX'] = 'clang++'
+end
 
 if CONFIG['CXX'] == 'clang++'
   $CXX_STANDARD = 'c++11'
