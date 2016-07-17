@@ -25,42 +25,11 @@
 # This file checks for ATLAS and other necessary headers, and
 # generates a Makefile for compiling NMatrix.
 
-require "mkmf"
+require "nmatrix/mkmf"
 
-# Function derived from NArray's extconf.rb.
-def create_conf_h(file) #:nodoc:
-  print "creating #{file}\n"
-  File.open(file, 'w') do |hfile|
-    header_guard = file.upcase.sub(/\s|\./, '_')
-
-    hfile.puts "#ifndef #{header_guard}"
-    hfile.puts "#define #{header_guard}"
-    hfile.puts
-
-    # FIXME: Find a better way to do this:
-    hfile.puts "#define RUBY_2 1" if RUBY_VERSION >= '2.0'
-
-    for line in $defs
-      line =~ /^-D(.*)/
-      hfile.printf "#define %s 1\n", $1
-    end
-
-    hfile.puts
-    hfile.puts "#endif"
-  end
-end
-
-if RUBY_VERSION < '1.9'
-  raise(NotImplementedError, "Sorry, you need at least Ruby 1.9!")
-else
-  #$INSTALLFILES = [['nmatrix.h', '$(archdir)'], ['nmatrix.hpp', '$(archdir)'], ['nmatrix_config.h', '$(archdir)'], ['nm_memory.h', '$(archdir)']]
-  if /cygwin|mingw/ =~ RUBY_PLATFORM
-    #$INSTALLFILES << ['libnmatrix.a', '$(archdir)']
-  end
-end
-
+#$INSTALLFILES = [['nmatrix.h', '$(archdir)'], ['nmatrix.hpp', '$(archdir)'], ['nmatrix_config.h', '$(archdir)'], ['nm_memory.h', '$(archdir)']]
 if /cygwin|mingw/ =~ RUBY_PLATFORM
-  CONFIG["DLDFLAGS"] << " --output-lib libnmatrix.a"
+  #$INSTALLFILES << ['libnmatrix.a', '$(archdir)']
 end
 
 $DEBUG = true
@@ -75,56 +44,6 @@ basenames = %w{nmatrix_lapacke math_lapacke lapacke}
 $objs = basenames.map { |b| "#{b}.o"   }
 $srcs = basenames.map { |b| "#{b}.cpp" }
 
-def find_newer_gplusplus #:nodoc:
-  print "checking for apparent GNU g++ binary with C++0x/C++11 support... "
-  [9,8,7,6,5,4,3].each do |minor|
-    ver = "4.#{minor}"
-    gpp = "g++-#{ver}"
-    result = `which #{gpp}`
-    next if result.empty?
-    CONFIG['CXX'] = gpp
-    puts ver
-    return CONFIG['CXX']
-  end
-  false
-end
-
-def gplusplus_version
-  cxxvar = proc { |n| `#{CONFIG['CXX']} -E -dM - </dev/null | grep #{n}`.chomp.split(' ')[2] }
-  major = cxxvar.call('__GNUC__')
-  minor = cxxvar.call('__GNUC_MINOR__')
-  patch = cxxvar.call('__GNUC_PATCHLEVEL__')
-
-  raise("unable to determine g++ version (match to get version was nil)") if major.nil? || minor.nil? || patch.nil?
-
-  "#{major}.#{minor}.#{patch}"
-end
-
-
-if CONFIG['CXX'] == 'clang++'
-  $CXX_STANDARD = 'c++11'
-
-else
-  version = gplusplus_version
-  if version < '4.3.0' && CONFIG['CXX'] == 'g++'  # see if we can find a newer G++, unless it's been overridden by user
-    if !find_newer_gplusplus
-      raise("You need a version of g++ which supports -std=c++0x or -std=c++11. If you're on a Mac and using Homebrew, we recommend using mac-brew-gcc.sh to install a more recent g++.")
-    end
-    version = gplusplus_version
-  end
-
-  if version < '4.7.0'
-    $CXX_STANDARD = 'c++0x'
-  else
-    $CXX_STANDARD = 'c++11'
-  end
-  puts "using C++ standard... #{$CXX_STANDARD}"
-  puts "g++ reports version... " + `#{CONFIG['CXX']} --version|head -n 1|cut -f 3 -d " "`
-end
-
-# add smmp in to get generic transp; remove smmp2 to eliminate funcptr transp
-
-
 # For some reason, if we try to look for /usr/lib64/atlas on a Mac OS X Mavericks system, and the directory does not
 # exist, it will give a linker error -- even if the lib dir is already correctly included with -L. So we need to check
 # that Dir.exists?(d) for each.
@@ -138,31 +57,11 @@ unless have_library("lapack")
   dir_config("lapack", idefaults[:lapack], ldefaults[:lapack])
 end
 
-
-
-#have_func("rb_scan_args", "ruby.h")
-
 # Order matters here: ATLAS has to go after LAPACK: http://mail.scipy.org/pipermail/scipy-user/2007-January/010717.html
 $libs += " -llapack "
 #To use the Intel MKL, comment out the line above, and also comment out the bit above with have_library and dir_config for lapack.
 #Then add something like the line below (for exactly what linker flags to use see https://software.intel.com/en-us/articles/intel-mkl-link-line-advisor ):
 #$libs += " -L${MKLROOT}/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_sequential "
-
-
-# For release, these next two should both be changed to -O3.
-$CFLAGS += " -O3" #" -O0 -g "
-#$CFLAGS += " -static -O0 -g "
-$CXXFLAGS += " -O3 -std=#{$CXX_STANDARD}" #" -O0 -g -std=#{$CXX_STANDARD} " #-fmax-errors=10 -save-temps
-#$CPPFLAGS += " -static -O0 -g -std=#{$CXX_STANDARD} "
-
-CONFIG['warnflags'].gsub!('-Wshorten-64-to-32', '') # doesn't work except in Mac-patched gcc (4.2)
-CONFIG['warnflags'].gsub!('-Wdeclaration-after-statement', '')
-CONFIG['warnflags'].gsub!('-Wimplicit-function-declaration', '')
-
-have_func("rb_array_const_ptr", "ruby.h")
-have_macro("FIX_CONST_VALUE_PTR", "ruby.h")
-have_macro("RARRAY_CONST_PTR", "ruby.h")
-have_macro("RARRAY_AREF", "ruby.h")
 
 create_conf_h("nmatrix_lapacke_config.h")
 create_makefile("nmatrix_lapacke")
