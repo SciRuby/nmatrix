@@ -25,7 +25,7 @@
 # This file checks for ATLAS and other necessary headers, and
 # generates a Makefile for compiling NMatrix.
 
-require "nmatrix/mkmf"
+require File.expand_path("../../../lib/nmatrix/mkmf", __FILE__)
 
 $INSTALLFILES = [
   ['nmatrix.h'       , '$(archdir)'], 
