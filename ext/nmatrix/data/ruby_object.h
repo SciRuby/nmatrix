@@ -110,7 +110,7 @@ class RubyObject {
   inline operator VALUE() const { return rval; }
   //inline operator uint32_t() const { return NUM2ULONG(this->rval);      }
   inline operator int64_t() const { RETURN_OBJ2NUM(NUM2LONG)        }
-  inline operator uint64_t() const { RETURN_OBJ2NUM(NUM2ULONG)      }
+  //inline operator uint64_t() const { RETURN_OBJ2NUM(NUM2ULONG)      }
   inline operator double()   const { RETURN_OBJ2NUM(NUM2DBL)        }
   inline operator float()  const { RETURN_OBJ2NUM(NUM2DBL)          }
 
