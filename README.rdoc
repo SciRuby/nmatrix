@@ -122,7 +122,7 @@ Create a new NMatrix using the +N+ shortcut:
 The above output requires that you have a pretty-print-enabled console
 such as Pry; otherwise, you'll see the output given by +inspect+.
 
-If you want to learn more about how to create a matrix, {read the guide in our wiki}[https://github.com/SciRuby/nmatrix/wiki/How-to-create-a-NMatrix].
+If you want to learn more about how to create a matrix, {read the guide in our wiki}[https://github.com/SciRuby/nmatrix/wiki/How-to-create-an-NMatrix].
 
 Again, you can find the complete API documentation {on our website}[http://sciruby.com/nmatrix/docs/].
 
