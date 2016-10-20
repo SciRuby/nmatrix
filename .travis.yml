@@ -11,7 +11,6 @@ env:
   - USE_REF=1         # Installs OpenBLAS and reference LAPACK, builds and tests nmatrix, nmatrix-lapacke
   - NO_EXTERNAL_LIB=1 # No external libraries installed, only nmatrix
 rvm:
-  - 1.9.3
   - 2.0.0-p648
   - 2.1.8
   - 2.2.4
@@ -91,8 +90,6 @@ matrix:
       env:
         - ruby_version=2.1.8 USE_OPENBLAS=1
   allow_failures:
-    # Ruby versions which got EOL
-    - rvm: 1.9.3
     # trunk
     - rvm: ruby-head
     - rvm: ruby-head-clang
