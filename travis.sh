@@ -37,7 +37,7 @@ then
 
     # Install ruby
     (
-      brew install bison openssl readline libyaml
+      brew install bison openssl readline
       brew link --force openssl
       RBENV_VERSION=system
       MAKEOPTS='-j 4'
