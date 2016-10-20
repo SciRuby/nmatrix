@@ -103,9 +103,6 @@ matrix:
       rvm: 2.2
       env:
         - ruby_version=2.4.0-dev NO_EXTERNAL_LIB=1
-    # For some reason this OpenBLAS configuration isn't working on travis, disable it for now.
-    - os: linux
-      env: USE_OPENBLAS=1
 
 notifications:
   irc: "chat.freenode.net#sciruby"
