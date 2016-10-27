@@ -19,6 +19,10 @@ rvm:
   # The latest stable and head versions built by clang
   - 2.3.0-clang
   - ruby-head-clang
+  # JRuby versions --- experimental, pending merging Prasun's GSoC project.
+  # - jruby-9.0.0.0 # earliest supported version (uncomment when jruby-head is passing)
+  - jruby-head    # latest supported JRuby
+  # Make sure to add exclude lines for new JRuby versions below.
 
 before_install: ./travis.sh before_install
 
@@ -32,6 +36,17 @@ script: ./travis.sh script
 # For other configurations we only test with one version of ruby.
 matrix:
   exclude:
+    - rvm: jruby-head
+      env: USE_ATLAS=1
+    - rvm: jruby-head
+      env: USE_OPENBLAS=1
+    - rvm: jruby-head
+      env: USE_REF=1
+    #- rvm: jruby-9.0.0.0
+    #  env:
+    #    - USE_ATLAS=1
+    #    - USE_OPENBLAS=1
+    #    - USE_REF=1      
     # NOTE: The following two ruby versions on OSX are currently unavailable
     - os: osx
       rvm: 2.0.0-p648
@@ -91,6 +106,8 @@ matrix:
         - ruby_version=2.1.8 USE_OPENBLAS=1
   allow_failures:
     # trunk
+    - rvm: jruby-head
+    #- rvm: jruby-9.0.0.0
     - rvm: ruby-head
     - rvm: ruby-head-clang
     - os: osx
