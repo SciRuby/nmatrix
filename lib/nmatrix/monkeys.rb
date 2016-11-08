@@ -26,8 +26,6 @@
 # Ruby core extensions for NMatrix.
 #++
 
-require 'nmatrix/math'
-
 #######################
 # Classes and Modules #
 #######################
@@ -38,9 +36,9 @@ class Array
   # You must provide a shape for the matrix as the first argument.
   #
   # == Arguments:
-  # <tt>shape</tt> :: Array describing matrix dimensions (or Fixnum for square). 
+  # <tt>shape</tt> :: Array describing matrix dimensions (or Fixnum for square).
   #   If not provided, will be intuited through #shape.
-  # <tt>dtype</tt> :: Override data type (e.g., to store a Float as :float32 
+  # <tt>dtype</tt> :: Override data type (e.g., to store a Float as :float32
   #   instead of :float64) -- optional.
   # <tt>stype</tt> :: Optional storage type (defaults to :dense)
   def to_nm(shape = nil, dtype = nil, stype = :dense)

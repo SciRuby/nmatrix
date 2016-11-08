@@ -273,6 +273,50 @@ RDoc::Task.new do |rdoc|
   rdoc.options << "--exclude=lib/nmatrix/rspec.rb"
 end
 
+# jruby tasks
+
+namespace :jruby do
+
+  PROJECT_DIR = File.expand_path(".",Dir.pwd)
+
+  BUILD_DIR = "build"
+  CLASSES_DIR = "../build/classes"
+  TEST_CLASSES_DIR = "build/testClasses"
+
+  JRUBY_DIR = "#{PROJECT_DIR}/ext/nmatrix_java"
+  VENDOR_DIR = "#{JRUBY_DIR}/vendor"
+  TARGET_DIR = "#{JRUBY_DIR}/target"
+
+  jars = Dir["#{VENDOR_DIR}/*.jar"]
+
+  desc 'Compile java classes'
+  task :javac do
+    unless RUBY_PLATFORM == 'java'
+      abort 'Please run with JRuby'
+    end
+    sh "mkdir -p #{JRUBY_DIR}/build/classes"
+    Dir.chdir("#{JRUBY_DIR}/nmatrix")
+    classes    = Dir['**/*.java']
+    sh "javac -classpath #{jars.join(':')} -d #{CLASSES_DIR} #{classes.join(' ')}"
+  end
+
+  desc 'Package java classes in a jar file'
+  task :jar do
+    unless RUBY_PLATFORM == 'java'
+      abort 'Please run with JRuby'
+    end
+    sh "mkdir -p #{TARGET_DIR}"
+    Dir.chdir("#{JRUBY_DIR}/build/classes")
+    classes = Dir['**/*.class']
+    sh "jar -cf #{TARGET_DIR}/nmatrix.jar #{classes.join(' ')}"
+  end
+
+  task :all => [:javac, :jar]
+end
+
+desc "Compile java classes and Package them in a jar file"
+task :jruby => 'jruby:all'
+
 namespace :travis do
   task :env do
     puts "\n# Build environment:"

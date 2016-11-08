@@ -25,7 +25,7 @@
 # Test of slice operations. High priority tests since reference
 # slicing is needed for pretty_print.
 #
-require 'spec_helper'
+require_relative 'spec_helper'
 
 describe "Slice operation" do
   include RSpec::Longrun::DSL

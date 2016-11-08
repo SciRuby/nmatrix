@@ -30,21 +30,32 @@
 #++
 
 # For some reason nmatrix.so ends up in a different place during gem build.
-if File.exist?("lib/nmatrix/nmatrix.so") #|| File.exist?("lib/nmatrix/nmatrix.bundle")
-  # Development
-  require "nmatrix/nmatrix.so"
-else
-  # Gem
-  require "nmatrix.so"
+
+# Detect java
+def jruby?
+  /java/ === RUBY_PLATFORM
 end
 
-require_relative './io/mat_reader'
-require_relative './io/mat5_reader'
-require_relative './io/market'
-require_relative './io/point_cloud'
+if jruby?
+  require_relative 'jruby/nmatrix_java'
+else
+  if File.exist?("lib/nmatrix/nmatrix.so") #|| File.exist?("lib/nmatrix/nmatrix.bundle")
+    # Development
+    require_relative "nmatrix/nmatrix.so"
+  else
+    # Gem
+    require_relative "../nmatrix.so"
+    require_relative './math.rb'
+    require_relative './io/mat_reader'
+    require_relative './io/mat5_reader'
+    require_relative './io/market'
+    require_relative './io/point_cloud'
 
-require_relative './lapack_core.rb'
-require_relative './yale_functions.rb'
+    require_relative './lapack_core.rb'
+    require_relative './yale_functions.rb'
+  end
+end
+
 require_relative './monkeys'
 
 # NMatrix is a matrix class that supports both multidimensional arrays
@@ -647,7 +658,15 @@ class NMatrix
       t
     else
       # Call C versions of Yale and List transpose, which do their own copies
-      self.clone_transpose
+      if jruby?
+        nmatrix = NMatrix.new :copy
+        nmatrix.shape = [@shape[1],@shape[0]]
+        twoDMat = self.twoDMat.transpose
+        nmatrix.s = ArrayRealVector.new(ArrayGenerator.getArrayDouble(twoDMat.getData(), shape[1],shape[0]))
+        return nmatrix
+      else
+        self.clone_transpose
+      end
     end
   end
 
@@ -869,7 +888,17 @@ class NMatrix
   #   - A NMatrix representing the requested layer as a layer vector.
   #
   def layer(layer_number, get_by = :copy)
-    rank(2, layer_number, get_by)
+    layer = rank(2, layer_number, get_by)
+
+    if jruby?
+      nmatrix = NMatrix.new :copy
+      nmatrix.shape = layer.shape
+      nmatrix.s = layer.s
+      return nmatrix
+    else
+      layer
+    end
+
   end
 
 
@@ -1139,7 +1168,6 @@ protected
 end
 
 require_relative './shortcuts.rb'
-require_relative './math.rb'
 require_relative './enumerate.rb'
 
 require_relative './version.rb'

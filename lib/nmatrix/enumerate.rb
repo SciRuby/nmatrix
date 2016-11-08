@@ -71,7 +71,8 @@ class NMatrix
   #
   def map(&bl)
     return enum_for(:map) unless block_given?
-    cp = self.cast(dtype: :object)
+    # NMatrix-jruby currently supports only doubles
+    cp  = jruby? ? self : self.cast(dtype: :object)
     cp.map!(&bl)
     cp
   end
@@ -220,7 +221,7 @@ class NMatrix
 
     return enum_for(:inject_rank, dimen, initial, dtype) unless block_given?
 
-    new_shape = shape
+    new_shape = shape.dup
     new_shape[dimen] = 1
 
     first_as_acc = false

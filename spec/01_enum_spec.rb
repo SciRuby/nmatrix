@@ -25,7 +25,7 @@
 # Enumerator tests for NMatrix. These should load early, as they
 # test functionality essential to matrix printing.
 #
-require 'spec_helper'
+require_relative 'spec_helper'
 
 describe "NMatrix enumeration for" do
   [:dense, :yale, :list].each do |stype|
