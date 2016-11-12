@@ -80,7 +80,13 @@ class NMatrix
     raise(DataTypeError, "Cannot invert an integer matrix in-place") if self.integer_dtype?
 
     #No internal implementation of getri, so use this other function
-    __inverse__(self, true)
+    n= self.shape[0]
+    if n<4
+      __inverse_exact__(self, n,n)
+    else
+      __inverse__(self,true)
+      
+    end
   end
 
   #
@@ -1392,3 +1398,4 @@ protected
     end
   end
 end
+

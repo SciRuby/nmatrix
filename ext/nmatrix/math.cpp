@@ -389,10 +389,11 @@ namespace nm {
           rb_raise(nm_eNotInvertibleError, 
               "matrix must have non-zero determinant to be invertible (not getting this error does not mean matrix is invertible if you're dealing with floating points)");
         }
+        DType index= A[0];
         B[0] = A[lda+1] / det;
         B[1] = -A[1] / det;
         B[ldb] = -A[lda] / det;
-        B[ldb+1] = -A[0] / det;
+        B[ldb+1] = index/ det;
 
       } else if (M == 3) {
         // Calculate the exact determinant.
@@ -402,16 +403,24 @@ namespace nm {
           rb_raise(nm_eNotInvertibleError, 
               "matrix must have non-zero determinant to be invertible (not getting this error does not mean matrix is invertible if you're dealing with floating points)");
         }
-
+        DType a1= A[0];
+        DType b1= A[1];
+        DType c1= A[2];
+        DType d1= A[lda];
+        DType e1= A[lda+1];
+        DType f1= A[lda+2];
+        DType g1= A[2*lda];
+        DType h1= A[2*lda+1];
+        DType i1= A[2*lda+2];
         B[0]      = (  A[lda+1] * A[2*lda+2] - A[lda+2] * A[2*lda+1]) / det; // A = ei - fh
-        B[1]      = (- A[1]     * A[2*lda+2] + A[2]     * A[2*lda+1]) / det; // D = -bi + ch
-        B[2]      = (  A[1]     * A[lda+2]   - A[2]     * A[lda+1])   / det; // G = bf - ce
-        B[ldb]    = (- A[lda]   * A[2*lda+2] + A[lda+2] * A[2*lda])   / det; // B = -di + fg
-        B[ldb+1]  = (  A[0]     * A[2*lda+2] - A[2]     * A[2*lda])   / det; // E = ai - cg
-        B[ldb+2]  = (- A[0]     * A[lda+2]   + A[2]     * A[lda])     / det; // H = -af + cd
-        B[2*ldb]  = (  A[lda]   * A[2*lda+1] - A[lda+1] * A[2*lda])   / det; // C = dh - eg
-        B[2*ldb+1]= ( -A[0]     * A[2*lda+1] + A[1]     * A[2*lda])   / det; // F = -ah + bg
-        B[2*ldb+2]= (  A[0]     * A[lda+1]   - A[1]     * A[lda])     / det; // I = ae - bd
+        B[1]      = (- A[1]     * i1 + A[2]     * h1) / det; // D = -bi + ch
+        B[2]      = (  b1     * f1   - c1     * e1)   / det; // G = bf - ce
+        B[ldb]    = (- d1   * i1 + f1 * g1)   / det; // B = -di + fg
+        B[ldb+1]  = (  a1     * i1 - c1     * g1)   / det; // E = ai - cg
+        B[ldb+2]  = (- a1     * f1   + c1     * d1)     / det; // H = -af + cd
+        B[2*ldb]  = (  d1   * h1 - e1 * g1)   / det; // C = dh - eg
+        B[2*ldb+1]= ( -a1     * h1 + b1     * g1)   / det; // F = -ah + bg
+        B[2*ldb+2]= (  a1     * e1   - b1     * d1)     / det; // I = ae - bd
       } else if (M == 1) {
         B[0] = 1 / A[0];
       } else {
@@ -1125,3 +1134,4 @@ void nm_math_transpose_generic(const size_t M, const size_t N, const void* A, co
 
 
 } // end of extern "C" block
+
