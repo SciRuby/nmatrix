@@ -34,6 +34,7 @@
 #include <iostream>
 #include <vector>
 #include <list>
+#include <map>
 
 /*
  * Project Includes
@@ -601,6 +602,84 @@ template <typename D>
 void init_default(LIST_STORAGE* s) {
   s->default_val = NM_ALLOC(D);
   *reinterpret_cast<D*>(s->default_val) = 0;
+}
+
+template <typename DType>
+bool is_symmetric(const LIST_STORAGE* s) {
+  
+  NODE *i_curr, *j_curr;
+  size_t count = 0;
+  std::map<std::pair<int, int>, DType> my_dict;
+  std::pair<int, int> key;
+  DType value;
+ 
+  if (s->dim != 2) {
+    rb_raise(rb_eNotImpError, "is_symmetric only defined for dim = 2");
+  }
+
+  for (i_curr = s->rows->first; i_curr; i_curr = i_curr->next) {
+    int i = i_curr->key - s->offset[0];
+    if (i < 0 || i >= (int)s->shape[0]) continue;
+
+    for (j_curr = ((LIST*)(i_curr->val))->first; j_curr; j_curr = j_curr->next) {
+      int j = j_curr->key - s->offset[1];
+      if (j < 0 || j >= (int)s->shape[1]) continue;
+      if (i != j) {
+        value = *((DType*)j_curr->val);
+        key = std::make_pair(i, j);
+        if( my_dict.count(key) == 1 ) {
+            if (my_dict[key] != value) {
+              return false;
+            }
+        }
+        else {
+            key = std::make_pair(j, i);
+            my_dict.insert(std::make_pair(key,value));
+        }
+      }
+    }
+  }
+
+  return true;
+}
+
+template <typename DType>
+bool is_hermitian(const LIST_STORAGE* s) {
+  
+  NODE *i_curr, *j_curr;
+  size_t count = 0;
+  std::map<std::pair<int, int>, DType> my_dict;
+  std::pair<int, int> key;
+  DType value;
+ 
+  if (s->dim != 2) {
+    rb_raise(rb_eNotImpError, "hermitian? only defined for dim = 2");
+  }
+
+  for (i_curr = s->rows->first; i_curr; i_curr = i_curr->next) {
+    int i = i_curr->key - s->offset[0];
+    if (i < 0 || i >= (int)s->shape[0]) continue;
+
+    for (j_curr = ((LIST*)(i_curr->val))->first; j_curr; j_curr = j_curr->next) {
+      int j = j_curr->key - s->offset[1];
+      if (j < 0 || j >= (int)s->shape[1]) continue;
+      if (i != j) {
+        value = *((DType*)j_curr->val);
+        key = std::make_pair(i, j);
+        if( my_dict.count(key) == 1 ) {
+            if (my_dict[key] != value) {
+              return false;
+            }
+        }
+        else {
+            key = std::make_pair(j, i);
+            value.i = -value.i;
+            my_dict.insert(std::make_pair(key,value));
+        }
+      }
+    }
+  }
+  return true;
 }
 
 
@@ -1624,5 +1703,23 @@ extern "C" {
     VALUE to_return = (NM_DTYPE(self) == nm::RUBYOBJ) ? *reinterpret_cast<VALUE*>(NM_DEFAULT_VAL(self)) : nm::rubyobj_from_cval(NM_DEFAULT_VAL(self), NM_DTYPE(self)).rval;
     NM_CONSERVATIVE(nm_unregister_value(&self));
     return to_return;
+  }
+  
+  bool nm_list_storage_is_symmetric(const LIST_STORAGE* mat) {
+    DTYPE_TEMPLATE_TABLE(nm::list_storage::is_symmetric, bool, const LIST_STORAGE*);
+
+    return ttable[mat->dtype](mat);
+  }
+  
+  bool nm_list_storage_is_hermitian(const LIST_STORAGE* mat) {
+    if (mat->dtype == nm::COMPLEX64) {
+      return nm::list_storage::is_hermitian<nm::Complex64>(mat);
+  
+    } else if (mat->dtype == nm::COMPLEX128) {
+      return nm::list_storage::is_hermitian<nm::Complex128>(mat);
+  
+    } else {
+      return nm_list_storage_is_symmetric(mat);
+    }
   }
 } // end of extern "C" block
