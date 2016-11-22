@@ -25,7 +25,7 @@
 # Element-wise operation tests.
 #
 
-require 'spec_helper'
+require_relative 'spec_helper'
 
 describe NMatrix do
   context "yale" do

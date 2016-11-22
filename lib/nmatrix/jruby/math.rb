@@ -80,7 +80,7 @@ class NMatrix
     raise(DataTypeError, "Cannot invert an integer matrix in-place") if self.integer_dtype?
 
     #No internal implementation of getri, so use this other function
-    __inverse__(self, true)
+    __inverse__!
   end
 
   #
@@ -102,13 +102,7 @@ class NMatrix
   def invert
     #write this in terms of invert! so plugins will only have to overwrite
     #invert! and not invert
-    if self.integer_dtype?
-      cloned = self.cast(dtype: :float64)
-      cloned.invert!
-    else
-      cloned = self.clone
-      cloned.invert!
-    end
+    __inverse__
   end
   alias :inverse :invert
 
@@ -182,23 +176,7 @@ class NMatrix
   #   - +StorageTypeError+ -> ATLAS functions only work on dense matrices.
   #
   def getrf!
-    raise(StorageTypeError, "ATLAS functions only work on dense matrices") unless self.dense?
-
-    #For row-major matrices, clapack_getrf uses a different convention than
-    #described above (U has unit diagonal elements instead of L and columns
-    #are interchanged rather than rows). For column-major matrices, clapack
-    #uses the stanard conventions. So we just transpose the matrix before
-    #and after calling clapack_getrf.
-    #Unfortunately, this is not a very good way, uses a lot of memory.
-    temp = self.transpose
-    ipiv = NMatrix::LAPACK::clapack_getrf(:col, self.shape[0], self.shape[1], temp, self.shape[0])
-    temp = temp.transpose
-    self[0...self.shape[0], 0...self.shape[1]] = temp
-
-    #for some reason, in clapack_getrf, the indices in ipiv start from 0
-    #instead of 1 as in LAPACK.
-    ipiv.each_index { |i| ipiv[i]+=1 }
-
+    ipiv = LUDecomposition.new(self.twoDMat).getPivot.to_a
     return ipiv
   end
 
@@ -325,7 +303,18 @@ class NMatrix
   #
   def potrf!(which)
     # The real implementation is in the plugin files.
-    raise(NotImplementedError, "potrf! requires either the nmatrix-atlas or nmatrix-lapacke gem")
+    cholesky = CholeskyDecomposition.new(self.twoDMat)
+    if which == :upper
+      u = create_dummy_nmatrix
+      twoDMat = cholesky.getLT
+      u.s = ArrayRealVector.new(ArrayGenerator.getArrayDouble(twoDMat.getData, @shape[0], @shape[1]))
+      return u
+    else
+      l = create_dummy_nmatrix
+      twoDMat = cholesky.getL
+      l.s = ArrayRealVector.new(ArrayGenerator.getArrayDouble(twoDMat.getData, @shape[0], @shape[1]))
+      return l
+    end
   end
 
   def potrf_upper!
@@ -349,10 +338,15 @@ class NMatrix
   # symmetric or Hermitian. However, it is still your responsibility to make
   # sure it is positive-definite.
   def factorize_cholesky
-    raise "Matrix must be symmetric/Hermitian for Cholesky factorization" unless self.hermitian?
-    l = self.clone.potrf_lower!.tril!
-    u = l.conjugate_transpose
-    [u,l]
+    # raise "Matrix must be symmetric/Hermitian for Cholesky factorization" unless self.hermitian?
+    cholesky = CholeskyDecomposition.new(self.twoDMat)
+    l = create_dummy_nmatrix
+    twoDMat = cholesky.getL
+    l.s = ArrayRealVector.new(ArrayGenerator.getArrayDouble(twoDMat.getData, @shape[0], @shape[1]))
+    u = create_dummy_nmatrix
+    twoDMat = cholesky.getLT
+    u.s = ArrayRealVector.new(ArrayGenerator.getArrayDouble(twoDMat.getData, @shape[0], @shape[1]))
+    return [u,l]
   end
 
   #
@@ -371,12 +365,11 @@ class NMatrix
   def factorize_lu with_permutation_matrix=nil
     raise(NotImplementedError, "only implemented for dense storage") unless self.stype == :dense
     raise(NotImplementedError, "matrix is not 2-dimensional") unless self.dimensions == 2
-
-    t     = self.clone
-    pivot = t.getrf!
-    return t unless with_permutation_matrix
-
-    [t, FactorizeLUMethods.permutation_matrix_from(pivot)]
+    t = self.clone
+    pivot = create_dummy_nmatrix
+    twoDMat = LUDecomposition.new(self.twoDMat).getP
+    pivot.s = ArrayRealVector.new(ArrayGenerator.getArrayDouble(twoDMat.getData, @shape[0], @shape[1]))
+    return [t,pivot]
   end
 
   #
@@ -397,26 +390,20 @@ class NMatrix
   #   - +ShapeError+ -> Input must be a 2-dimensional matrix to have a QR decomposition.
   #
   def factorize_qr
+
     raise(NotImplementedError, "only implemented for dense storage") unless self.stype == :dense
     raise(ShapeError, "Input must be a 2-dimensional matrix to have a QR decomposition") unless self.dim == 2
+    qrdecomp = QRDecomposition.new(self.twoDMat)
 
-    rows, columns = self.shape
-    r = self.clone
-    tau =  r.geqrf!
+    qmat = create_dummy_nmatrix
+    qtwoDMat = qrdecomp.getQ
+    qmat.s = ArrayRealVector.new(ArrayGenerator.getArrayDouble(qtwoDMat.getData, @shape[0], @shape[1]))
 
-    #Obtain Q
-    q = self.complex_dtype? ? r.unmqr(tau) : r.ormqr(tau)
+    rmat = create_dummy_nmatrix
+    rtwoDMat = qrdecomp.getR
+    rmat.s = ArrayRealVector.new(ArrayGenerator.getArrayDouble(rtwoDMat.getData, @shape[0], @shape[1]))
+    return [qmat,rmat]
 
-    #Obtain R
-    if rows <= columns
-      r.upper_triangle!
-    #Need to account for upper trapezoidal structure if R is a tall rectangle (rows > columns)
-    else
-      r[0...columns, 0...columns].upper_triangle!
-      r[columns...rows, 0...columns] = 0
-    end
-
-    [q,r]
   end
 
   # Reduce self to upper hessenberg form using householder transforms.
@@ -499,107 +486,21 @@ class NMatrix
     n    = self.shape[0]
     nrhs = b.shape[1]
 
+    nmatrix = create_dummy_nmatrix
     case opts[:form]
-    when :general
-      clone = self.clone
-      ipiv = NMatrix::LAPACK.clapack_getrf(:row, n, n, clone, n)
-      # When we call clapack_getrs with :row, actually only the first matrix
-      # (i.e. clone) is interpreted as row-major, while the other matrix (x)
-      # is interpreted as column-major. See here: http://math-atlas.sourceforge.net/faq.html#RowSolve
-      # So we must transpose x before and after
-      # calling it.
-      x = x.transpose
-      NMatrix::LAPACK.clapack_getrs(:row, :no_transpose, n, nrhs, clone, n, ipiv, x, n)
-      x.transpose
-    when :upper_tri, :upper_triangular
-      raise(ArgumentError, "upper triangular solver does not work with complex dtypes") if
-        complex_dtype? or b.complex_dtype?
-      # this is the correct function call; see https://github.com/SciRuby/nmatrix/issues/374
-      NMatrix::BLAS::cblas_trsm(:row, :left, :upper, false, :nounit, n, nrhs, 1.0, self, n, x, nrhs)
-      x
-    when :lower_tri, :lower_triangular
-      raise(ArgumentError, "lower triangular solver does not work with complex dtypes") if
-        complex_dtype? or b.complex_dtype?
-      NMatrix::BLAS::cblas_trsm(:row, :left, :lower, false, :nounit, n, nrhs, 1.0, self, n, x, nrhs)
-      x
+    when :general, :upper_tri, :upper_triangular, :lower_tri, :lower_triangular
+      #LU solver
+      solver = LUDecomposition.new(self.twoDMat).getSolver
+      nmatrix.s = solver.solve(b.s)
+      return nmatrix
     when :pos_def, :positive_definite
-      u, l = self.factorize_cholesky
-      z = l.solve(b, form: :lower_tri)
-      u.solve(z, form: :upper_tri)
+      solver = Choleskyecomposition.new(self.twoDMat).getSolver
+      nmatrix.s = solver.solve(b.s)
+      return nmatrix
     else
       raise(ArgumentError, "#{opts[:form]} is not a valid form option")
     end
-  end
 
-  #
-  # call-seq:
-  #     least_squares(b) -> NMatrix
-  #     least_squares(b, tolerance: 10e-10) -> NMatrix
-  #
-  # Provides the linear least squares approximation of an under-determined system  
-  # using QR factorization provided that the matrix is not rank-deficient.
-  #
-  # Only works for dense matrices.
-  #
-  # * *Arguments* :
-  #   - +b+ -> The solution column vector NMatrix of A * X = b.
-  #   - +tolerance:+ -> Absolute tolerance to check if a diagonal element in A = QR is near 0 
-  #              
-  # * *Returns* :
-  #   - NMatrix that is a column vector with the LLS solution
-  #
-  # * *Raises* :
-  #   - +ArgumentError+ -> least squares approximation only works for non-complex types
-  #   - +ShapeError+ -> system must be under-determined ( rows > columns )
-  #
-  # Examples :-
-  #
-  #   a = NMatrix.new([3,2], [2.0, 0, -1, 1, 0, 2]) 
-  #   
-  #   b = NMatrix.new([3,1], [1.0, 0, -1])
-  #
-  #   a.least_squares(b)
-  #     =>[
-  #         [ 0.33333333333333326 ]
-  #         [ -0.3333333333333334 ]
-  #       ]
-  #
-  def least_squares(b, tolerance: 10e-6)  
-    raise(ArgumentError, "least squares approximation only works for non-complex types") if 
-      self.complex_dtype?
-    
-    rows, columns = self.shape
-
-    raise(ShapeError, "system must be under-determined ( rows > columns )") unless 
-      rows > columns
-   
-    #Perform economical QR factorization
-    r = self.clone
-    tau = r.geqrf!
-    q_transpose_b = r.ormqr(tau, :left, :transpose, b)
-    
-    #Obtain R from geqrf! intermediate
-    r[0...columns, 0...columns].upper_triangle!
-    r[columns...rows, 0...columns] = 0
-    
-    diagonal = r.diagonal
-
-    raise(ArgumentError, "rank deficient matrix") if diagonal.any? { |x| x == 0 }
-  
-    if diagonal.any? { |x| x.abs < tolerance }
-      warn "warning: A diagonal element of R in A = QR is close to zero ;" << 
-           " indicates a possible loss of precision"
-    end
-
-    # Transform the system A * X = B to R1 * X = B2 where B2 = Q1_t * B
-    r1 = r[0...columns, 0...columns]
-    b2 = q_transpose_b[0...columns]
-
-    nrhs = b2.shape[1]
-
-    #Solve the upper triangular system
-    NMatrix::BLAS::cblas_trsm(:row, :left, :upper, false, :nounit, r1.shape[0], nrhs, 1.0, r1, r1.shape[0], b2, nrhs)
-    b2
   end
 
   #
@@ -765,27 +666,7 @@ class NMatrix
   #
   def det
     raise(ShapeError, "determinant can be calculated only for square matrices") unless self.dim == 2 && self.shape[0] == self.shape[1]
-
-    # Cast to a dtype for which getrf is implemented
-    new_dtype = self.integer_dtype? ? :float64 : self.dtype
-    copy = self.cast(:dense, new_dtype)
-
-    # Need to know the number of permutations. We'll add up the diagonals of
-    # the factorized matrix.
-    pivot = copy.getrf!
-
-    num_perm = 0 #number of permutations
-    pivot.each_with_index do |swap, i|
-      #pivot indexes rows starting from 1, instead of 0, so need to subtract 1 here
-      num_perm += 1 if swap-1 != i
-    end
-    prod = num_perm % 2 == 1 ? -1 : 1 # odd permutations => negative
-    [shape[0],shape[1]].min.times do |i|
-      prod *= copy[i,i]
-    end
-
-    # Convert back to an integer if necessary
-    new_dtype != self.dtype ? prod.round : prod #prevent rounding errors
+    self.det_exact
   end
 
   #
@@ -1133,8 +1014,7 @@ class NMatrix
   #
   # Return the 2-norm of the vector. This is the BLAS nrm2 routine.
   def nrm2 incx=1, n=nil
-    return method_missing(:nrm2, incx, n) unless vector?
-    NMatrix::BLAS::nrm2(self, incx, self.size / incx)
+    self.twoDMat.getFrobeniusNorm()
   end
   alias :norm2 :nrm2
 
@@ -1153,10 +1033,8 @@ class NMatrix
   def scale!(alpha, incx=1, n=nil)
     raise(DataTypeError, "Incompatible data type for the scaling factor") unless
         NMatrix::upcast(self.dtype, NMatrix::min_dtype(alpha)) == self.dtype
-    return NMatrix::BLAS::scal(alpha, self, incx, self.size / incx) if NMatrix::BLAS.method_defined? :scal
-    self.each_stored_with_indices do |e, *i|
-      self[*i] = e*alpha
-    end
+    @s.mapMultiplyToSelf(alpha)
+    return self
   end
 
   #
@@ -1171,7 +1049,12 @@ class NMatrix
   # Return the scaling result of the matrix. BLAS scal will be invoked if provided.
 
   def scale(alpha, incx=1, n=nil)
-    return self.clone.scale!(alpha, incx, n)
+    raise(DataTypeError, "Incompatible data type for the scaling factor") unless
+        NMatrix::upcast(self.dtype, NMatrix::min_dtype(alpha)) == self.dtype
+    nmatrix = NMatrix.new :copy
+    nmatrix.shape = @shape.clone
+    nmatrix.s = ArrayRealVector.new(@s.toArray.clone).mapMultiplyToSelf(alpha)
+    return nmatrix
   end
 
   alias :permute_columns  :laswp
@@ -1392,3 +1275,4 @@ protected
     end
   end
 end
+

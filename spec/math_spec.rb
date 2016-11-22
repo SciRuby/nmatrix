@@ -26,7 +26,7 @@
 # versions of unfriendly BLAS and LAPACK functions.
 #
 
-require 'spec_helper'
+require_relative 'spec_helper'
 
 describe "math" do
   context "elementwise math functions" do

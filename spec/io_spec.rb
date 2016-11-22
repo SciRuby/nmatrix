@@ -25,8 +25,8 @@
 # Basic tests for NMatrix::IO.
 #
 require "tmpdir" # Used to avoid cluttering the repository.
-require 'spec_helper'
-require "./lib/nmatrix"
+require_relative 'spec_helper'
+require_relative "../lib/nmatrix"
 
 describe NMatrix::IO do
   let(:tmp_dir)  { Dir.mktmpdir }

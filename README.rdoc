@@ -67,6 +67,15 @@ To install:
 
     bundle exec rake install
 
+*JRuby*
+
+    mkdir ext/nmatrix_java/vendor
+    Download commons_math.3.6.1 jar and place it in ext/nmatrix_java/vendor directory
+    mkdir -p ext/nmatrix_java/build/class
+    mkdir ext/nmatrix_java/target
+    rake compile
+    rake jar
+
 The commands above build and install only the core +nmatrix+ gem.  If
 you want to build one or more of the plugin gems (+nmatrix-atlas+,
 +nmatrix-lapacke+) in addition to the core nmatrix gem, use the

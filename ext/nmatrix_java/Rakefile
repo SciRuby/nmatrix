@@ -1,0 +1,68 @@
+PROJECT_DIR = File.expand_path(".",Dir.pwd)
+# puts PROJECT_DIR
+
+BUILD_DIR = "build"
+CLASSES_DIR = "../build/classes"
+TEST_CLASSES_DIR = "build/testClasses"
+
+VENDOR_DIR = "#{PROJECT_DIR}/vendor"
+TARGET_DIR = "#{PROJECT_DIR}/target"
+# puts VENDOR_DIR
+
+jars = Dir["#{VENDOR_DIR}/*.jar"]
+# puts jars
+
+unless RUBY_PLATFORM == 'java'
+  abort 'Please run with JRuby'
+end
+
+#-----------------------------------------------------------------------------------------
+
+desc 'Compile java classes'
+task :compile do
+
+  Dir.chdir("nmatrix")
+  classes    = Dir['**/*.java']
+  sh "javac -classpath #{jars.join(':')} -d #{CLASSES_DIR} #{classes.join(' ')}"
+  # sh "javac -d #{CLASSES_DIR} #{classes.join(' ')}"
+
+end
+
+#-----------------------------------------------------------------------------------------
+desc 'Make jar file'
+task :jar do
+
+  Dir.chdir("build/classes")
+  classes = Dir['**/*.class']
+  # p classes
+  sh "jar -cf #{TARGET_DIR}/nmatrix.jar #{classes.join(' ')}"
+
+end
+
+#-----------------------------------------------------------------------------------------
+
+
+desc 'Compile test classes'
+task :compileTest do
+
+  classes    = Dir['**/*.java']
+  sh "javac -classpath #{jars.join(':')} -d #{TEST_CLASSES_DIR} #{classes.join(' ')}"
+  # sh "javac -d #{CLASSES_DIR} #{classes.join(' ')}"
+
+end
+
+#-----------------------------------------------------------------------------------------
+
+desc 'Run junit tests'
+task :test do
+
+  Dir.chdir("build/classes")
+  classes = Dir['**/*.class']
+  # p classes
+  sh "javac -classpath #{TARGET_DIR}/nmatrix.jar -d #{classes.join(' ')}"
+
+end
+
+#-----------------------------------------------------------------------------------------
+
+task :default => :compile

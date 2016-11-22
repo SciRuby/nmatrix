@@ -27,3 +27,9 @@ doc/
 docs/
 pkg/
 .autotest
+ext/nmatrix_java/vendor/
+ext/nmatrix_java/target/
+ext/nmatrix_java/build/
+ext/nmatrix_java/target/
+*.class
+*.jar

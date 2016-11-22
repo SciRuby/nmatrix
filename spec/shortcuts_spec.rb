@@ -25,7 +25,7 @@
 # Specs for the shortcuts used in NMatrix and in NVector.
 #
 
-require 'spec_helper'
+require_relative 'spec_helper'
 require 'pry'
 
 describe NMatrix do

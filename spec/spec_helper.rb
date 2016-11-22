@@ -27,8 +27,8 @@
 require "rspec/longrun"
 #require "narray/narray"
 
-require "./lib/nmatrix"
-require "./lib/nmatrix/rspec"
+require "../lib/nmatrix"
+require "../lib/nmatrix/rspec"
 
 ALL_DTYPES = [:byte,:int8,:int16,:int32,:int64, :float32,:float64, :object,
   :complex64, :complex128]

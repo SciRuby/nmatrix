@@ -62,6 +62,17 @@ $ rake spec
 This will install all dependencies, compile the extension and run the
 specs.
 
+For **JRuby**
+
+```bash
+$ mkdir ext/nmatrix_java/vendor
+Download commons_math.3.6.1 jar and place it in ext/nmatrix_java/vendor directory
+$ mkdir -p ext/nmatrix_java/build/class
+$ mkdir ext/nmatrix_java/target
+$ rake compile
+$ rake jar
+```
+
 If everything's fine until now, you can create a new branch to work on
 your feature:
 

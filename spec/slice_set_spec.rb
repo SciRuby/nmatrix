@@ -24,7 +24,7 @@
 #
 # Test of slice set operations.
 
-require 'spec_helper'
+require_relative 'spec_helper'
 require 'pry'
 
 describe "Set slice operation" do

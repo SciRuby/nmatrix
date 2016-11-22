@@ -24,7 +24,7 @@
 #
 # A spec for testing monkey patches to RSpec for NMatrix.
 #
-require 'spec_helper'
+require_relative 'spec_helper'
 
 describe "RSpec" do
   it "should permit #be_within to be used on a dense NMatrix" do

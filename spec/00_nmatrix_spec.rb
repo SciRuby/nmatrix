@@ -25,7 +25,7 @@
 # Basic tests for NMatrix. These should load first, as they're
 # essential to NMatrix operation.
 #
-require 'spec_helper'
+require_relative 'spec_helper'
 
 describe NMatrix do
   it "creates a matrix with the new constructor" do
@@ -78,7 +78,11 @@ describe NMatrix do
 
   it "fills dense Ruby object matrix with nil" do
     n = NMatrix.new([4,3], dtype: :object)
-    expect(n[0,0]).to eq(nil)
+    if jruby?
+      expect(n[0,0]).to eq(0.0)
+    else
+      expect(n[0,0]).to eq(nil)
+    end
   end
 
   it "fills dense with individual assignments" do

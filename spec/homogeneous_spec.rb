@@ -25,8 +25,8 @@
 # Specs for the homogeneous transformation matrix methods.
 #
 
-require 'spec_helper'
-require "./lib/nmatrix/homogeneous.rb"
+require_relative 'spec_helper'
+require_relative "../lib/nmatrix/homogeneous.rb"
 
 require 'pry'
 
