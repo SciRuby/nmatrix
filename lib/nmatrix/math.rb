@@ -991,7 +991,7 @@ class NMatrix
       sum + sub_mat
     end
   end
-
+  alias :cumsum :sum
 
   ##
   # call-seq:
