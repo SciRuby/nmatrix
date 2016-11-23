@@ -602,6 +602,14 @@ void init_default(LIST_STORAGE* s) {
   s->default_val = NM_ALLOC(D);
   *reinterpret_cast<D*>(s->default_val) = 0;
 }
+  
+template <typename DType>
+bool is_symmetric(const LIST_STORAGE* mat) {
+  
+  std::cout << "\n\n\nImplementation goes here\n\n\n";
+
+  return true;
+}
 
 
 }} // end of namespace list_storage
@@ -1625,4 +1633,11 @@ extern "C" {
     NM_CONSERVATIVE(nm_unregister_value(&self));
     return to_return;
   }
+  
+  bool nm_list_storage_is_symmetric(const LIST_STORAGE* mat) {
+  DTYPE_TEMPLATE_TABLE(nm::list_storage::is_symmetric, bool, const LIST_STORAGE*);
+
+  return ttable[mat->dtype](mat);
+  }
 } // end of extern "C" block
+

@@ -97,6 +97,7 @@ extern "C" {
   ///////////
 
   bool nm_list_storage_eqeq(const STORAGE* left, const STORAGE* right);
+  bool nm_list_storage_is_symmetric(const LIST_STORAGE* mat);
 
   //////////
   // Math //
