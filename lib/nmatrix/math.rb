@@ -984,13 +984,19 @@ class NMatrix
   #   sum(dimen) -> NMatrix
   #
   # Calculates the sum along the specified dimension.
+  
+  # call-seq:
+  #   cumsum() -> NMatrix
+  #   cumsum(dimen) -> NMatrix
   #
+  # Calculates the cumulative sum along the specified dimension.
   # @see #inject_rank
   def sum(dimen=0)
     inject_rank(dimen, 0.0) do |sum, sub_mat|
       sum + sub_mat
     end
   end
+  alias :cumsum :sum
 
 
   ##
