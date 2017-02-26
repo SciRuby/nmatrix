@@ -188,7 +188,7 @@ extern "C" {
 // Math Functions //
 ////////////////////
 
-namespace nm { 
+namespace nm {
   namespace math {
 
     /*
@@ -246,18 +246,18 @@ namespace nm {
         for (int row = k + 1; row < M; ++row) {
           typename MagnitudeDType<DType>::type big;
           big = magnitude( matrix[M*row + k] ); // element below the temp pivot
-          
+
           if ( big > akk ) {
             interchange = row;
-            akk = big; 
+            akk = big;
           }
-        } 
+        }
 
         if (interchange != k) { // check if rows need flipping
           DType temp;
 
           for (int col = 0; col < M; ++col) {
-            NM_SWAP(matrix[interchange*M + col], matrix[k*M + col], temp);            
+            NM_SWAP(matrix[interchange*M + col], matrix[k*M + col], temp);
           }
         }
 
@@ -271,7 +271,7 @@ namespace nm {
         DType pivot = matrix[k * (M + 1)];
         matrix[k * (M + 1)] = (DType)(1); // set diagonal as 1 for in-place inversion
 
-        for (int col = 0; col < M; ++col) { 
+        for (int col = 0; col < M; ++col) {
           // divide each element in the kth row with the pivot
           matrix[k*M + col] = matrix[k*M + col] / pivot;
         }
@@ -280,7 +280,7 @@ namespace nm {
           if (kk == k) continue;
 
           DType dum = matrix[k + M*kk];
-          matrix[k + M*kk] = (DType)(0); // prepare for inplace inversion 
+          matrix[k + M*kk] = (DType)(0); // prepare for inplace inversion
           for (int col = 0; col < M; ++col) {
             matrix[M*kk + col] = matrix[M*kk + col] - matrix[M*k + col] * dum;
           }
@@ -295,7 +295,7 @@ namespace nm {
 
           for (int row = 0; row < M; ++row) {
             NM_SWAP(matrix[row * M + row_index[k]], matrix[row * M + col_index[k]],
-              temp);  
+              temp);
           }
         }
       }
@@ -321,14 +321,14 @@ namespace nm {
       DType sum_of_squares, *p_row, *psubdiag, *p_a, scale, innerproduct;
       int i, k, col;
 
-      // For each column use a Householder transformation to zero all entries 
+      // For each column use a Householder transformation to zero all entries
       // below the subdiagonal.
-      for (psubdiag = a + nrows, col = 0; col < nrows - 2; psubdiag += nrows + 1, 
+      for (psubdiag = a + nrows, col = 0; col < nrows - 2; psubdiag += nrows + 1,
         col++) {
         // Calculate the signed square root of the sum of squares of the
         // elements below the diagonal.
 
-        for (p_a = psubdiag, sum_of_squares = 0.0, i = col + 1; i < nrows; 
+        for (p_a = psubdiag, sum_of_squares = 0.0, i = col + 1; i < nrows;
           p_a += nrows, i++) {
           sum_of_squares += *p_a * *p_a;
         }
@@ -358,7 +358,7 @@ namespace nm {
             *p_a -= u[k] * innerproduct;
           }
         }
-           
+
         // Postmultiply QA by Q
         for (p_row = a, i = 0; i < nrows; p_row += nrows, i++) {
           for (innerproduct = 0.0, k = col + 1; k < nrows; k++) {
@@ -386,7 +386,7 @@ namespace nm {
       if (M == 2) {
         DType det = A[0] * A[lda+1] - A[1] * A[lda];
         if (det == 0) {
-          rb_raise(nm_eNotInvertibleError, 
+          rb_raise(nm_eNotInvertibleError,
               "matrix must have non-zero determinant to be invertible (not getting this error does not mean matrix is invertible if you're dealing with floating points)");
         }
         DType index= A[0];
@@ -400,27 +400,18 @@ namespace nm {
         DType det;
         det_exact<DType>(M, A_elements, lda, reinterpret_cast<void*>(&det));
         if (det == 0) {
-          rb_raise(nm_eNotInvertibleError, 
+          rb_raise(nm_eNotInvertibleError,
               "matrix must have non-zero determinant to be invertible (not getting this error does not mean matrix is invertible if you're dealing with floating points)");
         }
-        DType a1= A[0];
-        DType b1= A[1];
-        DType c1= A[2];
-        DType d1= A[lda];
-        DType e1= A[lda+1];
-        DType f1= A[lda+2];
-        DType g1= A[2*lda];
-        DType h1= A[2*lda+1];
-        DType i1= A[2*lda+2];
         B[0]      = (  A[lda+1] * A[2*lda+2] - A[lda+2] * A[2*lda+1]) / det; // A = ei - fh
-        B[1]      = (- A[1]     * i1 + A[2]     * h1) / det; // D = -bi + ch
-        B[2]      = (  b1     * f1   - c1     * e1)   / det; // G = bf - ce
-        B[ldb]    = (- d1   * i1 + f1 * g1)   / det; // B = -di + fg
-        B[ldb+1]  = (  a1     * i1 - c1     * g1)   / det; // E = ai - cg
-        B[ldb+2]  = (- a1     * f1   + c1     * d1)     / det; // H = -af + cd
-        B[2*ldb]  = (  d1   * h1 - e1 * g1)   / det; // C = dh - eg
-        B[2*ldb+1]= ( -a1     * h1 + b1     * g1)   / det; // F = -ah + bg
-        B[2*ldb+2]= (  a1     * e1   - b1     * d1)     / det; // I = ae - bd
+        B[1]      = (- A[1]     * A[2*lda+2] + A[2]     * A[2*lda+1]) / det; // D = -bi + ch
+        B[2]      = (  A[1]     * A[lda+2]   - A[2]     * A[lda+1])   / det; // G = bf - ce
+        B[ldb]    = (- A[lda]   * A[2*lda+2] + A[lda+2] * A[2*lda])   / det; // B = -di + fg
+        B[ldb+1]  = (  A[0]     * A[2*lda+2] - A[2]     * A[2*lda])   / det; // E = ai - cg
+        B[ldb+2]  = (- A[0]     * A[lda+2]   + A[2]     * A[lda])     / det; // H = -af + cd
+        B[2*ldb]  = (  A[lda]   * A[2*lda+1] - A[lda+1] * A[2*lda])   / det; // C = dh - eg
+        B[2*ldb+1]= ( -A[0]     * A[2*lda+1] + A[1]     * A[2*lda])   / det; // F = -ah + bg
+        B[2*ldb+2]= (  A[0]     * A[lda+1]   - A[1]     * A[lda])     / det; // I = ae -bd
       } else if (M == 1) {
         B[0] = 1 / A[0];
       } else {
@@ -1096,7 +1087,7 @@ void nm_math_hessenberg(VALUE a) {
       NULL, NULL, // does not support Complex
       NULL // no support for Ruby Object
   };
-    
+
   ttable[NM_DTYPE(a)](NM_SHAPE0(a), NM_STORAGE_DENSE(a)->elements);
 }
 /*
@@ -1134,4 +1125,3 @@ void nm_math_transpose_generic(const size_t M, const size_t N, const void* A, co
 
 
 } // end of extern "C" block
-
