@@ -65,8 +65,8 @@ class NMatrix
   # call-seq:
   #     invert! -> NMatrix
   #
-  # Use LAPACK to calculate the inverse of the matrix (in-place) if available. 
-  # Only works on dense matrices. Alternatively uses in-place Gauss-Jordan 
+  # Use LAPACK to calculate the inverse of the matrix (in-place) if available.
+  # Only works on dense matrices. Alternatively uses in-place Gauss-Jordan
   # elimination.
   #
   # * *Raises* :
@@ -116,8 +116,8 @@ class NMatrix
   # call-seq:
   #     adjugate! -> NMatrix
   #
-  # Calculate the adjugate of the matrix (in-place). 
-  # Only works on dense matrices. 
+  # Calculate the adjugate of the matrix (in-place).
+  # Only works on dense matrices.
   #
   # * *Raises* :
   #   - +StorageTypeError+ -> only implemented on dense matrices.
@@ -130,7 +130,7 @@ class NMatrix
     raise(DataTypeError, "Cannot calculate adjugate of an integer matrix in-place") if self.integer_dtype?
     d = self.det
     self.invert!
-    self.map! { |e| e * d } 
+    self.map! { |e| e * d }
     self
   end
   alias :adjoint! :adjugate!
@@ -139,13 +139,13 @@ class NMatrix
   # call-seq:
   #     adjugate -> NMatrix
   #
-  # Make a copy of the matrix and calculate the adjugate of the matrix. 
-  # Only works on dense matrices. 
+  # Make a copy of the matrix and calculate the adjugate of the matrix.
+  # Only works on dense matrices.
   #
   # * *Returns* :
   #   - A dense NMatrix. Will be the same type as the input NMatrix,
   #   except if the input is an integral dtype, in which case it will be a
-  #   :float64 NMatrix. 
+  #   :float64 NMatrix.
   #
   # * *Raises* :
   #   - +StorageTypeError+ -> only implemented on dense matrices.
@@ -156,8 +156,8 @@ class NMatrix
     raise(ShapeError, "Cannot calculate adjugate of a non-square matrix") unless self.dim == 2 && self.shape[0] == self.shape[1]
     d = self.det
     mat = self.invert
-    mat.map! { |e| e * d }    
-    mat 
+    mat.map! { |e| e * d }
+    mat
   end
   alias :adjoint :adjugate
 
@@ -204,13 +204,13 @@ class NMatrix
 
   #
   # call-seq:
-  #     geqrf! -> shape.min x 1 NMatrix 
+  #     geqrf! -> shape.min x 1 NMatrix
   #
-  # QR factorization of a general M-by-N matrix +A+. 
+  # QR factorization of a general M-by-N matrix +A+.
   #
   # The QR factorization is A = QR, where Q is orthogonal and R is Upper Triangular
-  # +A+ is overwritten with the elements of R and Q with Q being represented by the 
-  # elements below A's diagonal and an array of scalar factors in the output NMatrix. 
+  # +A+ is overwritten with the elements of R and Q with Q being represented by the
+  # elements below A's diagonal and an array of scalar factors in the output NMatrix.
   #
   # The matrix Q is represented as a product of elementary reflectors
   #     Q = H(1) H(2) . . . H(k), where k = min(m,n).
@@ -220,7 +220,7 @@ class NMatrix
   #     H(i) = I - tau * v * v'
   #
   # http://www.netlib.org/lapack/explore-html/d3/d69/dgeqrf_8f.html
-  # 
+  #
   # Only works for dense matrices.
   #
   # * *Returns* :
@@ -232,29 +232,29 @@ class NMatrix
     # The real implementation is in lib/nmatrix/lapacke.rb
     raise(NotImplementedError, "geqrf! requires the nmatrix-lapacke gem")
   end
-  
+
   #
   # call-seq:
   #     ormqr(tau) -> NMatrix
   #     ormqr(tau, side, transpose, c) -> NMatrix
   #
-  # Returns the product Q * c or c * Q after a call to geqrf! used in QR factorization. 
-  # +c+ is overwritten with the elements of the result NMatrix if supplied. Q is the orthogonal matrix 
+  # Returns the product Q * c or c * Q after a call to geqrf! used in QR factorization.
+  # +c+ is overwritten with the elements of the result NMatrix if supplied. Q is the orthogonal matrix
   # represented by tau and the calling NMatrix
-  # 
+  #
   # Only works on float types, use unmqr for complex types.
   #
   # == Arguments
   #
   # * +tau+ - vector containing scalar factors of elementary reflectors
   # * +side+ - direction of multiplication [:left, :right]
-  # * +transpose+ - apply Q with or without transpose [false, :transpose] 
+  # * +transpose+ - apply Q with or without transpose [false, :transpose]
   # * +c+ - NMatrix multplication argument that is overwritten, no argument assumes c = identity
   #
   # * *Returns* :
   #
-  #   - Q * c or c * Q Where Q may be transposed before multiplication. 
-  #    
+  #   - Q * c or c * Q Where Q may be transposed before multiplication.
+  #
   #
   # * *Raises* :
   #   - +StorageTypeError+ -> LAPACK functions only work on dense matrices.
@@ -264,7 +264,7 @@ class NMatrix
   def ormqr(tau, side=:left, transpose=false, c=nil)
     # The real implementation is in lib/nmatrix/lapacke.rb
     raise(NotImplementedError, "ormqr requires the nmatrix-lapacke gem")
-  
+
   end
 
   #
@@ -272,23 +272,23 @@ class NMatrix
   #     unmqr(tau) -> NMatrix
   #     unmqr(tau, side, transpose, c) -> NMatrix
   #
-  # Returns the product Q * c or c * Q after a call to geqrf! used in QR factorization. 
-  # +c+ is overwritten with the elements of the result NMatrix if it is supplied. Q is the orthogonal matrix 
+  # Returns the product Q * c or c * Q after a call to geqrf! used in QR factorization.
+  # +c+ is overwritten with the elements of the result NMatrix if it is supplied. Q is the orthogonal matrix
   # represented by tau and the calling NMatrix
-  # 
+  #
   # Only works on complex types, use ormqr for float types.
   #
   # == Arguments
   #
   # * +tau+ - vector containing scalar factors of elementary reflectors
   # * +side+ - direction of multiplication [:left, :right]
-  # * +transpose+ - apply Q as Q or its complex conjugate [false, :complex_conjugate] 
+  # * +transpose+ - apply Q as Q or its complex conjugate [false, :complex_conjugate]
   # * +c+ - NMatrix multplication argument that is overwritten, no argument assumes c = identity
   #
   # * *Returns* :
   #
-  #   - Q * c or c * Q Where Q may be transformed to its complex conjugate before multiplication. 
-  #    
+  #   - Q * c or c * Q Where Q may be transformed to its complex conjugate before multiplication.
+  #
   #
   # * *Raises* :
   #   - +StorageTypeError+ -> LAPACK functions only work on dense matrices.
@@ -361,13 +361,13 @@ class NMatrix
   #
   # LU factorization of a matrix. Optionally return the permutation matrix.
   #   Note that computing the permutation matrix will introduce a slight memory
-  #   and time overhead. 
-  # 
+  #   and time overhead.
+  #
   # == Arguments
-  # 
-  # +with_permutation_matrix+ - If set to *true* will return the permutation 
+  #
+  # +with_permutation_matrix+ - If set to *true* will return the permutation
   #   matrix alongwith the LU factorization as a second return value.
-  # 
+  #
   def factorize_lu with_permutation_matrix=nil
     raise(NotImplementedError, "only implemented for dense storage") unless self.stype == :dense
     raise(NotImplementedError, "matrix is not 2-dimensional") unless self.dimensions == 2
@@ -383,9 +383,9 @@ class NMatrix
   # call-seq:
   #     factorize_qr -> [Q,R]
   #
-  # QR factorization of a matrix without column pivoting. 
-  # Q is orthogonal and R is upper triangular if input is square or upper trapezoidal if 
-  # input is rectangular.  
+  # QR factorization of a matrix without column pivoting.
+  # Q is orthogonal and R is upper triangular if input is square or upper trapezoidal if
+  # input is rectangular.
   #
   # Only works for dense matrices.
   #
@@ -403,11 +403,11 @@ class NMatrix
     rows, columns = self.shape
     r = self.clone
     tau =  r.geqrf!
-    
-    #Obtain Q 
+
+    #Obtain Q
     q = self.complex_dtype? ? r.unmqr(tau) : r.ormqr(tau)
-    
-    #Obtain R    
+
+    #Obtain R
     if rows <= columns
       r.upper_triangle!
     #Need to account for upper trapezoidal structure if R is a tall rectangle (rows > columns)
@@ -420,7 +420,7 @@ class NMatrix
   end
 
   # Reduce self to upper hessenberg form using householder transforms.
-  # 
+  #
   # == References
   #
   # * http://en.wikipedia.org/wiki/Hessenberg_matrix
@@ -431,12 +431,12 @@ class NMatrix
 
   # Destructive version of #hessenberg
   def hessenberg!
-    raise ShapeError, "Trying to reduce non 2D matrix to hessenberg form" if 
+    raise ShapeError, "Trying to reduce non 2D matrix to hessenberg form" if
       shape.size != 2
-    raise ShapeError, "Trying to reduce non-square matrix to hessenberg form" if 
+    raise ShapeError, "Trying to reduce non-square matrix to hessenberg form" if
       shape[0] != shape[1]
     raise StorageTypeError, "Matrix must be dense" if stype != :dense
-    raise TypeError, "Works with float matrices only" unless 
+    raise TypeError, "Works with float matrices only" unless
       [:float64,:float32].include?(dtype)
 
     __hessenberg__(self)
@@ -446,7 +446,7 @@ class NMatrix
   # Solve the matrix equation AX = B, where A is +self+, B is the first
   # argument, and X is returned. A must be a nxn square matrix, while B must be
   # nxm. Only works with dense matrices and non-integer, non-object data types.
-  # 
+  #
   # == Arguments
   #
   # * +b+ - the right hand side
@@ -454,20 +454,20 @@ class NMatrix
   # == Options
   #
   # * +form+ - Signifies the form of the matrix A in the linear system AX=B.
-  #   If not set then it defaults to +:general+, which uses an LU solver. 
+  #   If not set then it defaults to +:general+, which uses an LU solver.
   #   Other possible values are +:lower_tri+, +:upper_tri+ and +:pos_def+ (alternatively,
-  #   non-abbreviated symbols +:lower_triangular+, +:upper_triangular+, 
-  #   and +:positive_definite+ can be used. 
-  #   If +:lower_tri+ or +:upper_tri+ is set, then a specialized linear solver for linear 
-  #   systems AX=B with a lower or upper triangular matrix A is used. If +:pos_def+ is chosen, 
+  #   non-abbreviated symbols +:lower_triangular+, +:upper_triangular+,
+  #   and +:positive_definite+ can be used.
+  #   If +:lower_tri+ or +:upper_tri+ is set, then a specialized linear solver for linear
+  #   systems AX=B with a lower or upper triangular matrix A is used. If +:pos_def+ is chosen,
   #   then the linear system is solved via the Cholesky factorization.
   #   Note that when +:lower_tri+ or +:upper_tri+ is used, then the algorithm just assumes that
   #   all entries in the lower/upper triangle of the matrix are zeros without checking (which
   #   can be useful in certain applications).
-  #     
+  #
   #
   # == Usage
-  # 
+  #
   #   a = NMatrix.new [2,2], [3,1,1,2], dtype: dtype
   #   b = NMatrix.new [2,1], [9,8], dtype: dtype
   #   a.solve(b)
@@ -488,10 +488,10 @@ class NMatrix
   #
   def solve(b, opts = {})
     raise(ShapeError, "Must be called on square matrix") unless self.dim == 2 && self.shape[0] == self.shape[1]
-    raise(ShapeError, "number of rows of b must equal number of cols of self") if 
+    raise(ShapeError, "number of rows of b must equal number of cols of self") if
       self.shape[1] != b.shape[0]
     raise(ArgumentError, "only works with dense matrices") if self.stype != :dense
-    raise(ArgumentError, "only works for non-integer, non-object dtypes") if 
+    raise(ArgumentError, "only works for non-integer, non-object dtypes") if
       integer_dtype? or object_dtype? or b.integer_dtype? or b.object_dtype?
 
     opts = { form: :general }.merge(opts)
@@ -499,7 +499,7 @@ class NMatrix
     n    = self.shape[0]
     nrhs = b.shape[1]
 
-    case opts[:form] 
+    case opts[:form]
     when :general
       clone = self.clone
       ipiv = NMatrix::LAPACK.clapack_getrf(:row, n, n, clone, n)
@@ -536,15 +536,15 @@ class NMatrix
   #     least_squares(b) -> NMatrix
   #     least_squares(b, tolerance: 10e-10) -> NMatrix
   #
-  # Provides the linear least squares approximation of an under-determined system  
+  # Provides the linear least squares approximation of an under-determined system
   # using QR factorization provided that the matrix is not rank-deficient.
   #
   # Only works for dense matrices.
   #
   # * *Arguments* :
   #   - +b+ -> The solution column vector NMatrix of A * X = b.
-  #   - +tolerance:+ -> Absolute tolerance to check if a diagonal element in A = QR is near 0 
-  #              
+  #   - +tolerance:+ -> Absolute tolerance to check if a diagonal element in A = QR is near 0
+  #
   # * *Returns* :
   #   - NMatrix that is a column vector with the LLS solution
   #
@@ -554,8 +554,8 @@ class NMatrix
   #
   # Examples :-
   #
-  #   a = NMatrix.new([3,2], [2.0, 0, -1, 1, 0, 2]) 
-  #   
+  #   a = NMatrix.new([3,2], [2.0, 0, -1, 1, 0, 2])
+  #
   #   b = NMatrix.new([3,1], [1.0, 0, -1])
   #
   #   a.least_squares(b)
@@ -564,30 +564,30 @@ class NMatrix
   #         [ -0.3333333333333334 ]
   #       ]
   #
-  def least_squares(b, tolerance: 10e-6)  
-    raise(ArgumentError, "least squares approximation only works for non-complex types") if 
+  def least_squares(b, tolerance: 10e-6)
+    raise(ArgumentError, "least squares approximation only works for non-complex types") if
       self.complex_dtype?
-    
+
     rows, columns = self.shape
 
-    raise(ShapeError, "system must be under-determined ( rows > columns )") unless 
+    raise(ShapeError, "system must be under-determined ( rows > columns )") unless
       rows > columns
-   
+
     #Perform economical QR factorization
     r = self.clone
     tau = r.geqrf!
     q_transpose_b = r.ormqr(tau, :left, :transpose, b)
-    
+
     #Obtain R from geqrf! intermediate
     r[0...columns, 0...columns].upper_triangle!
     r[columns...rows, 0...columns] = 0
-    
+
     diagonal = r.diagonal
 
     raise(ArgumentError, "rank deficient matrix") if diagonal.any? { |x| x == 0 }
-  
+
     if diagonal.any? { |x| x.abs < tolerance }
-      warn "warning: A diagonal element of R in A = QR is close to zero ;" << 
+      warn "warning: A diagonal element of R in A = QR is close to zero ;" <<
            " indicates a possible loss of precision"
     end
 
@@ -669,28 +669,28 @@ class NMatrix
   #
   # In-place permute the columns of a dense matrix using LASWP according to the order given as an array +ary+.
   #
-  # If +:convention+ is +:lapack+, then +ary+ represents a sequence of pair-wise permutations which are 
-  # performed successively. That is, the i'th entry of +ary+ is the index of the column to swap 
-  # the i'th column with, having already applied all earlier swaps. 
+  # If +:convention+ is +:lapack+, then +ary+ represents a sequence of pair-wise permutations which are
+  # performed successively. That is, the i'th entry of +ary+ is the index of the column to swap
+  # the i'th column with, having already applied all earlier swaps.
   #
-  # If +:convention+ is +:intuitive+, then +ary+ represents the order of columns after the permutation. 
-  # That is, the i'th entry of +ary+ is the index of the column that will be in position i after the 
+  # If +:convention+ is +:intuitive+, then +ary+ represents the order of columns after the permutation.
+  # That is, the i'th entry of +ary+ is the index of the column that will be in position i after the
   # reordering (Matlab-like behaviour). This is the default.
   #
-  # Not yet implemented for yale or list. 
+  # Not yet implemented for yale or list.
   #
   # == Arguments
   #
   # * +ary+ - An Array specifying the order of the columns. See above for details.
-  # 
+  #
   # == Options
-  # 
+  #
   # * +:covention+ - Possible values are +:lapack+ and +:intuitive+. Default is +:intuitive+. See above for details.
   #
   def laswp!(ary, opts={})
     raise(StorageTypeError, "ATLAS functions only work on dense matrices") unless self.dense?
     opts = { convention: :intuitive }.merge(opts)
-    
+
     if opts[:convention] == :intuitive
       if ary.length != ary.uniq.length
         raise(ArgumentError, "No duplicated entries in the order array are allowed under convention :intuitive")
@@ -716,22 +716,22 @@ class NMatrix
   #
   # Permute the columns of a dense matrix using LASWP according to the order given in an array +ary+.
   #
-  # If +:convention+ is +:lapack+, then +ary+ represents a sequence of pair-wise permutations which are 
-  # performed successively. That is, the i'th entry of +ary+ is the index of the column to swap 
+  # If +:convention+ is +:lapack+, then +ary+ represents a sequence of pair-wise permutations which are
+  # performed successively. That is, the i'th entry of +ary+ is the index of the column to swap
   # the i'th column with, having already applied all earlier swaps. This is the default.
   #
-  # If +:convention+ is +:intuitive+, then +ary+ represents the order of columns after the permutation. 
-  # That is, the i'th entry of +ary+ is the index of the column that will be in position i after the 
-  # reordering (Matlab-like behaviour). 
+  # If +:convention+ is +:intuitive+, then +ary+ represents the order of columns after the permutation.
+  # That is, the i'th entry of +ary+ is the index of the column that will be in position i after the
+  # reordering (Matlab-like behaviour).
   #
-  # Not yet implemented for yale or list. 
+  # Not yet implemented for yale or list.
   #
   # == Arguments
   #
   # * +ary+ - An Array specifying the order of the columns. See above for details.
-  # 
+  #
   # == Options
-  # 
+  #
   # * +:covention+ - Possible values are +:lapack+ and +:intuitive+. Default is +:lapack+. See above for details.
   #
   def laswp(ary, opts={})
@@ -810,23 +810,23 @@ class NMatrix
   end
 
   # Calculate the variance co-variance matrix
-  # 
+  #
   # == Options
-  # 
+  #
   # * +:for_sample_data+ - Default true. If set to false will consider the denominator for
   #   population data (i.e. N, as opposed to N-1 for sample data).
-  # 
+  #
   # == References
-  # 
+  #
   # * http://stattrek.com/matrix-algebra/covariance-matrix.aspx
   def cov(opts={})
     raise TypeError, "Only works for non-integer dtypes" if integer_dtype?
      opts = {
       for_sample_data: true
     }.merge(opts)
-    
+
     denominator      = opts[:for_sample_data] ? rows - 1 : rows
-    ones             = NMatrix.ones [rows,1] 
+    ones             = NMatrix.ones [rows,1]
     deviation_scores = self - ones.dot(ones.transpose).dot(self) / rows
     deviation_scores.transpose.dot(deviation_scores) / denominator
   end
@@ -840,24 +840,24 @@ class NMatrix
 
   # Raise a square matrix to a power. Be careful of numeric overflows!
   # In case *n* is 0, an identity matrix of the same dimension is returned. In case
-  # of negative *n*, the matrix is inverted and the absolute value of *n* taken 
+  # of negative *n*, the matrix is inverted and the absolute value of *n* taken
   # for computing the power.
-  # 
+  #
   # == Arguments
-  # 
+  #
   # * +n+ - Integer to which self is to be raised.
-  # 
+  #
   # == References
-  # 
-  # * R.G Dromey - How to Solve it by Computer. Link - 
+  #
+  # * R.G Dromey - How to Solve it by Computer. Link -
   #     http://www.amazon.com/Solve-Computer-Prentice-Hall-International-Science/dp/0134340019/ref=sr_1_1?ie=UTF8&qid=1422605572&sr=8-1&keywords=how+to+solve+it+by+computer
   def pow n
-    raise ShapeError, "Only works with 2D square matrices." if 
+    raise ShapeError, "Only works with 2D square matrices." if
       shape[0] != shape[1] or shape.size != 2
     raise TypeError, "Only works with integer powers" unless n.is_a?(Integer)
 
     sequence = (integer_dtype? ? self.cast(dtype: :int64) : self).clone
-    product  = NMatrix.eye shape[0], dtype: sequence.dtype, stype: sequence.stype 
+    product  = NMatrix.eye shape[0], dtype: sequence.dtype, stype: sequence.stype
 
     if n == 0
       return NMatrix.eye(shape, dtype: dtype, stype: stype)
@@ -885,8 +885,8 @@ class NMatrix
   #
   #   * +mat+ - A 2D NMatrix object
   #
-  # === Usage 
-  #  
+  # === Usage
+  #
   #  a = NMatrix.new([2,2],[1,2,
   #                         3,4])
   #  b = NMatrix.new([2,3],[1,1,1,
@@ -895,7 +895,7 @@ class NMatrix
   #                        [1.0, 1.0, 1.0, 2.0, 2.0, 2.0]
   #                        [3.0, 3.0, 3.0, 4.0, 4.0, 4.0]
   #                        [3.0, 3.0, 3.0, 4.0, 4.0, 4.0] ]
-  #    
+  #
   def kron_prod(mat)
     unless self.dimensions==2 and mat.dimensions==2
       raise ShapeError, "Implemented for 2D NMatrix objects only."
@@ -920,7 +920,7 @@ class NMatrix
       end
     end
 
-    NMatrix.new([n,m], kron_prod_array) 
+    NMatrix.new([n,m], kron_prod_array)
   end
 
   #
@@ -1169,13 +1169,43 @@ class NMatrix
   #   - +n+ -> Number of elements of +vector+.
   #
   # Return the scaling result of the matrix. BLAS scal will be invoked if provided.
-  
+
   def scale(alpha, incx=1, n=nil)
     return self.clone.scale!(alpha, incx, n)
   end
 
   alias :permute_columns  :laswp
   alias :permute_columns! :laswp!
+
+  #
+  #call-seq:
+  #    positive_semidefinite? -> boolean
+  #
+  # A matrix is positive semidefinite if all of its eigenvalues are non-negative.
+  #
+  # * *Returns* :
+  #   - A booloean value telling if the NMatrix is positive semidefinite or not.
+  # * *Raises* :
+  #   - +ShapeError+ -> Must be used on square matrices
+  #
+  def positive_semidefinite?
+    raised(ShapeError, "positive semidefinite calculated only for square matrices")unless
+      self.dim == 2 && self.shape[0] == self.shape[1]
+    # Cast to a dtype for which geev is implemented
+    new_dtype = self.integer_dtype? ? :float64 : self.dtype
+    copy = self.cast(:dense, new_dtype)
+    eigenvalues = NMatrix::LAPACK.geev(copy, :left)
+    ans = true
+    ind = 0
+    while ind != self.dim
+      if eigenvalues[0][ind].real < 0
+        ans = false
+        break
+      end
+      ind =ind + 1
+    end
+    ans
+  end
 
 protected
   # Define the element-wise operations for lists. Note that the __list_map_merged_stored__ iterator returns a Ruby Object
