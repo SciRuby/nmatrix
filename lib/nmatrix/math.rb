@@ -767,7 +767,7 @@ class NMatrix
     raise(ShapeError, "determinant can be calculated only for square matrices") unless self.dim == 2 && self.shape[0] == self.shape[1]
 
     # Cast to a dtype for which getrf is implemented
-    new_dtype = self.integer_dtype? ? :float64 : self.dtype
+    new_dtype = self.integer_dtype? || self.object_dtype? ? :float64 : self.dtype
     copy = self.cast(:dense, new_dtype)
 
     # Need to know the number of permutations. We'll add up the diagonals of
