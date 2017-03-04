@@ -1101,4 +1101,16 @@ describe "math" do
       end
     end
   end
+
+  context "#positive_semidefinite? " do
+    it "should return true for positive_semidefinite? matrix" do
+      n = NMatrix.new([2,2], [1, 2,
+                              -2, 1])
+      begin
+        expect(n.positive_semidefinite?).to be_truthy
+      rescue NotImplementedError => e
+        pending e.to_s
+      end
+    end
+  end
 end
