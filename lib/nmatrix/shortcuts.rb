@@ -533,13 +533,13 @@ class NMatrix
     #
     #   NMatrix.random([2, 2], :dtype => :byte, :scale => 255) # => [ [252, 108] [44, 12] ]
     #
-    def random(shape, seed=nil, opts={})
+    def random(shape, opts={})
       scale = opts.delete(:scale) || 1.0
 
-      if seed == nil
+      if opts[:seed] == nil
         rng = Random.new
       else
-        rng = Random.new(seed)
+        rng = Random.new(opts[:seed])
       end
       
 
