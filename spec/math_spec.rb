@@ -488,6 +488,21 @@ describe "math" do
 
         expect(a.invert).to be_within(err).of(b)
       end
+
+      it "should correctly find exact inverse" do
+        a = NMatrix.new(:dense, 3, [1,2,3,0,1,4,5,6,0], dtype)
+        b = NMatrix.new(:dense, 3, [-24,18,5,20,-15,-4,-5,4,1], dtype)
+
+        expect(a.invert_exact).to be_within(err).of(b)
+      end
+
+      it "should correctly find exact inverse" do
+        a = NMatrix.new(:dense, 2, [1,3,3,8,], dtype)
+        b = NMatrix.new(:dense, 2, [-8,3,3,-1], dtype)
+
+        expect(a.invert_exact).to be_within(err).of(b)
+      end
+
     end
   end
 

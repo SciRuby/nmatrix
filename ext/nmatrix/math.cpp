@@ -188,7 +188,7 @@ extern "C" {
 // Math Functions //
 ////////////////////
 
-namespace nm { 
+namespace nm {
   namespace math {
 
     /*
@@ -246,18 +246,18 @@ namespace nm {
         for (int row = k + 1; row < M; ++row) {
           typename MagnitudeDType<DType>::type big;
           big = magnitude( matrix[M*row + k] ); // element below the temp pivot
-          
+
           if ( big > akk ) {
             interchange = row;
-            akk = big; 
+            akk = big;
           }
-        } 
+        }
 
         if (interchange != k) { // check if rows need flipping
           DType temp;
 
           for (int col = 0; col < M; ++col) {
-            NM_SWAP(matrix[interchange*M + col], matrix[k*M + col], temp);            
+            NM_SWAP(matrix[interchange*M + col], matrix[k*M + col], temp);
           }
         }
 
@@ -271,7 +271,7 @@ namespace nm {
         DType pivot = matrix[k * (M + 1)];
         matrix[k * (M + 1)] = (DType)(1); // set diagonal as 1 for in-place inversion
 
-        for (int col = 0; col < M; ++col) { 
+        for (int col = 0; col < M; ++col) {
           // divide each element in the kth row with the pivot
           matrix[k*M + col] = matrix[k*M + col] / pivot;
         }
@@ -280,7 +280,7 @@ namespace nm {
           if (kk == k) continue;
 
           DType dum = matrix[k + M*kk];
-          matrix[k + M*kk] = (DType)(0); // prepare for inplace inversion 
+          matrix[k + M*kk] = (DType)(0); // prepare for inplace inversion
           for (int col = 0; col < M; ++col) {
             matrix[M*kk + col] = matrix[M*kk + col] - matrix[M*k + col] * dum;
           }
@@ -295,7 +295,7 @@ namespace nm {
 
           for (int row = 0; row < M; ++row) {
             NM_SWAP(matrix[row * M + row_index[k]], matrix[row * M + col_index[k]],
-              temp);  
+              temp);
           }
         }
       }
@@ -321,14 +321,14 @@ namespace nm {
       DType sum_of_squares, *p_row, *psubdiag, *p_a, scale, innerproduct;
       int i, k, col;
 
-      // For each column use a Householder transformation to zero all entries 
+      // For each column use a Householder transformation to zero all entries
       // below the subdiagonal.
-      for (psubdiag = a + nrows, col = 0; col < nrows - 2; psubdiag += nrows + 1, 
+      for (psubdiag = a + nrows, col = 0; col < nrows - 2; psubdiag += nrows + 1,
         col++) {
         // Calculate the signed square root of the sum of squares of the
         // elements below the diagonal.
 
-        for (p_a = psubdiag, sum_of_squares = 0.0, i = col + 1; i < nrows; 
+        for (p_a = psubdiag, sum_of_squares = 0.0, i = col + 1; i < nrows;
           p_a += nrows, i++) {
           sum_of_squares += *p_a * *p_a;
         }
@@ -358,7 +358,7 @@ namespace nm {
             *p_a -= u[k] * innerproduct;
           }
         }
-           
+
         // Postmultiply QA by Q
         for (p_row = a, i = 0; i < nrows; p_row += nrows, i++) {
           for (innerproduct = 0.0, k = col + 1; k < nrows; k++) {
@@ -386,20 +386,20 @@ namespace nm {
       if (M == 2) {
         DType det = A[0] * A[lda+1] - A[1] * A[lda];
         if (det == 0) {
-          rb_raise(nm_eNotInvertibleError, 
+          rb_raise(nm_eNotInvertibleError,
               "matrix must have non-zero determinant to be invertible (not getting this error does not mean matrix is invertible if you're dealing with floating points)");
         }
         B[0] = A[lda+1] / det;
         B[1] = -A[1] / det;
         B[ldb] = -A[lda] / det;
-        B[ldb+1] = -A[0] / det;
+        B[ldb+1] = A[0] / det;
 
       } else if (M == 3) {
         // Calculate the exact determinant.
         DType det;
         det_exact<DType>(M, A_elements, lda, reinterpret_cast<void*>(&det));
         if (det == 0) {
-          rb_raise(nm_eNotInvertibleError, 
+          rb_raise(nm_eNotInvertibleError,
               "matrix must have non-zero determinant to be invertible (not getting this error does not mean matrix is invertible if you're dealing with floating points)");
         }
 
@@ -1087,7 +1087,7 @@ void nm_math_hessenberg(VALUE a) {
       NULL, NULL, // does not support Complex
       NULL // no support for Ruby Object
   };
-    
+
   ttable[NM_DTYPE(a)](NM_SHAPE0(a), NM_STORAGE_DENSE(a)->elements);
 }
 /*

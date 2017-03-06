@@ -114,6 +114,62 @@ class NMatrix
 
   #
   # call-seq:
+  #     invert_exact! -> NMatrix
+  #
+  # Calulates inverse_exact of a matrix of size 2 or 3.
+  # Only works on dense matrices.
+  #
+  # * *Raises* :
+  #   - +StorageTypeError+ -> only implemented on dense matrices.
+  #   - +ShapeError+ -> matrix must be square.
+  #   - +DataTypeError+ -> cannot invert an integer matrix in-place.
+  #   - +NotImplementedError+ -> cannot find exact inverse of matrix with size greater than 3
+  #
+  def invert_exact!
+    raise(StorageTypeError, "invert only works on dense matrices currently") unless self.dense?
+    raise(ShapeError, "Cannot invert non-square matrix") unless self.dim == 2 && self.shape[0] == self.shape[1]
+    raise(DataTypeError, "Cannot invert an integer matrix in-place") if self.integer_dtype?
+    #No internal implementation of getri, so use this other function
+    n = self.shape[0]
+    if n>3
+      raise(NotImplementedError, "Cannot find exact inverse of matrix of size greater than 3")
+    else
+      clond=self.clone
+      __inverse_exact__(clond, n, n)
+    end
+  end
+
+  #
+  # call-seq:
+  #     invert_exact -> NMatrix
+  #
+  # Make a copy of the matrix, then invert using exact_inverse
+  #
+  # * *Returns* :
+  #   - A dense NMatrix. Will be the same type as the input NMatrix,
+  #   except if the input is an integral dtype, in which case it will be a
+  #   :float64 NMatrix.
+  #
+  # * *Raises* :
+  #   - +StorageTypeError+ -> only implemented on dense matrices.
+  #   - +ShapeError+ -> matrix must be square.
+  #   - +NotImplementedError+ -> cannot find exact inverse of matrix with size greater than 3
+  #
+  def invert_exact
+    #write this in terms of invert_exact! so plugins will only have to overwrite
+    #invert_exact! and not invert_exact
+    if self.integer_dtype?
+      cloned = self.cast(dtype: :float64)
+      cloned.invert_exact!
+    else
+      cloned = self.clone
+      cloned.invert_exact!
+    end
+  end
+  alias :inverse_exact :invert_exact
+
+  #
+  # call-seq:
   #     adjugate! -> NMatrix
   #
   # Calculate the adjugate of the matrix (in-place).
