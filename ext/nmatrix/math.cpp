@@ -540,7 +540,7 @@ namespace nm {
         }
 
       } else if (M == 3) {
-        DType A[lda*3];
+        DType *A = new DType[lda*3];
         for (int i = 0; i < lda; ++i) {
           A[i*3+i] = a[i];
           switch (ija[i+1] - ija[i]) {
@@ -566,7 +566,7 @@ namespace nm {
         - A[0] * A[lda+2] * A[2*lda+1] - A[1] * A[lda] * A[2*lda+2] - A[2] * A[lda+1] * A[2*lda];
         if (det == 0) { raise_not_invertible_error(); }
 
-        DType B[3*ldb];
+        DType *B = new DType[3*ldb];
         B[0]      = (  A[lda+1] * A[2*lda+2] - A[lda+2] * A[2*lda+1]) / det; // A = ei - fh
         B[1]      = (- A[1]     * A[2*lda+2] + A[2]     * A[2*lda+1]) / det; // D = -bi + ch
         B[2]      = (  A[1]     * A[lda+2]   - A[2]     * A[lda+1])   / det; // G = bf - ce
@@ -607,6 +607,8 @@ namespace nm {
         }
         b[3] = 0;
         ijb[3] = col_pos;
+        delete [] B;
+        delete [] A;
       } else if (M == 1) {
         b[0] = 1 / a[0];
       } else {
