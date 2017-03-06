@@ -60,23 +60,25 @@ describe NMatrix do
   end
 
   it "calculates inverse exact determinants on small dense matrices" do
-      a = NMatrix.new(3, [1,2,3,0,1,4,5,6,0], stype: :dense, dtype: :int64)
-      inversed = a.method(:__inverse_exact__).call(a.clone, 3, 3)
-      b = NMatrix.new(3, [-24,18,5,20,-15,-4,-5,4,1], stype: :dense, dtype: :int64)
-      expect(inversed).to eq(b)
+    pending("not yet implemented for NMatrix-JRuby") if jruby?
+    a = NMatrix.new(3, [1,2,3,0,1,4,5,6,0], stype: :dense, dtype: :int64)
+    inversed = a.method(:__inverse_exact__).call(a.clone, 3, 3)
+    b = NMatrix.new(3, [-24,18,5,20,-15,-4,-5,4,1], stype: :dense, dtype: :int64)
+    expect(inversed).to eq(b)
 
-      c = NMatrix.new(3, [1,0,3,0,0,1,0,6,0], stype: :dense, dtype: :int64)
-      inversed = c.method(:__inverse_exact__).call(c.clone, 3, 3)
-      d = NMatrix.new(3, [1,-3,0,0,0,0,0,1,0], stype: :dense, dtype: :int64)
-      expect(inversed).to eq(d)
+    c = NMatrix.new(3, [1,0,3,0,0,1,0,6,0], stype: :dense, dtype: :int64)
+    inversed = c.method(:__inverse_exact__).call(c.clone, 3, 3)
+    d = NMatrix.new(3, [1,-3,0,0,0,0,0,1,0], stype: :dense, dtype: :int64)
+    expect(inversed).to eq(d)
 
-      e = NMatrix.new(2, [3,1,2,1], stype: :dense, dtype: :int64)
-      inversed = e.method(:__inverse_exact__).call(e.clone, 2, 2)
-      f = NMatrix.new(2, [1,-1,-2,-3], stype: :dense, dtype: :int64)
-      expect(inversed).to eq(f)
+    e = NMatrix.new(2, [3,1,2,1], stype: :dense, dtype: :int64)
+    inversed = e.method(:__inverse_exact__).call(e.clone, 2, 2)
+    f = NMatrix.new(2, [1,-1,-2,-3], stype: :dense, dtype: :int64)
+    expect(inversed).to eq(f)
   end
 
   it "calculates inverse exact determinants on small yale matrices" do
+    pending("not yet implemented for NMatrix-JRuby") if jruby?
     a = NMatrix.new(3, [1,2,3,0,1,4,5,6,0], stype: :yale, dtype: :int64)
     inversed = a.method(:__inverse_exact__).call(a.clone, 3, 3)
     b = NMatrix.new(3, [-24,18,5,20,-15,-4,-5,4,1], stype: :yale, dtype: :int64)
@@ -94,6 +96,7 @@ describe NMatrix do
   end
 
   it "calculates inverse exact determinants on small list matrices" do
+    pending("not yet implemented for NMatrix-JRuby") if jruby?
     a = NMatrix.new(3, [1,2,3,0,1,4,5,6,0], stype: :list, dtype: :int64)
     inversed = a.method(:__inverse_exact__).call(a.clone, 3, 3)
     b = NMatrix.new(3, [-24,18,5,20,-15,-4,-5,4,1], stype: :list, dtype: :int64)
