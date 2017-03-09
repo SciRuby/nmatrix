@@ -477,7 +477,7 @@ describe "math" do
         end
       end
 
-      it "should correctly invert a matrix out-of-place" do
+      it "should correctly invert a dense matrix out-of-place" do
         a = NMatrix.new(:dense, 3, [1,2,3,0,1,4,5,6,0], dtype)
 
         if a.integer_dtype?
