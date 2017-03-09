@@ -490,6 +490,7 @@ describe "math" do
       end
 
       it "should correctly find exact inverse" do
+        pending("not yet implemented for NMatrix-JRuby") if jruby?
         a = NMatrix.new(:dense, 3, [1,2,3,0,1,4,5,6,0], dtype)
         b = NMatrix.new(:dense, 3, [-24,18,5,20,-15,-4,-5,4,1], dtype)
 
@@ -497,6 +498,7 @@ describe "math" do
       end
 
       it "should correctly find exact inverse" do
+        pending("not yet implemented for NMatrix-JRuby") if jruby?
         a = NMatrix.new(:dense, 2, [1,3,3,8,], dtype)
         b = NMatrix.new(:dense, 2, [-8,3,3,-1], dtype)
 
