@@ -143,12 +143,7 @@ describe NMatrix do
       m3 = NMatrix.random(2,:seed => 65)
 
       expect(m1.stype).to eq(:dense)
-      expect(m1.dtype).to eq(:float64)
       
-      expect(m2.stype).to eq(:dense)
-      expect(m2.dtype).to eq(:float64)
-      
-      expect(m3.stype).to eq(:dense)
       expect(m3.dtype).to eq(:float64)
 
       expect(m1).to eq(m2)
