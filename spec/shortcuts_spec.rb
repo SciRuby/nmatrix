@@ -137,6 +137,20 @@ describe NMatrix do
       expect(m.dtype).to eq(:float64)
     end
 
+    it "creates a matrix of random numbers with defined seed value" do
+      m1 = NMatrix.random(2,:seed => 62)
+      m2 = NMatrix.random(2,:seed => 62)
+      m3 = NMatrix.random(2,:seed => 65)
+
+      expect(m1.stype).to eq(:dense)
+      
+      expect(m3.dtype).to eq(:float64)
+
+      expect(m1).to eq(m2)
+      expect(m1).not_to eq(m3)
+
+    end
+
     it "creates a complex matrix of random numbers" do
       m = NMatrix.random(2, :dtype => :complex128)
     end

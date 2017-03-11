@@ -536,7 +536,12 @@ class NMatrix
     def random(shape, opts={})
       scale = opts.delete(:scale) || 1.0
 
-      rng = Random.new
+      if opts[:seed].nil?
+        rng = Random.new
+      else
+        rng = Random.new(opts[:seed])
+      end
+      
 
       random_values = []
 
