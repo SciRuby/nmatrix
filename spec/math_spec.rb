@@ -462,9 +462,9 @@ describe "math" do
 
       it "should correctly invert a matrix in place (bang)" do
         pending("not yet implemented for :object dtype") if dtype == :object
-        a = NMatrix.new(:dense, 5, [1, 8,-9, 7, 5, 
-                                    0, 1, 0, 4, 4, 
-                                    0, 0, 1, 2, 5, 
+        a = NMatrix.new(:dense, 5, [1, 8,-9, 7, 5,
+                                    0, 1, 0, 4, 4,
+                                    0, 0, 1, 2, 5,
                                     0, 0, 0, 1,-5,
                                     0, 0, 0, 0, 1 ], dtype)
         b = NMatrix.new(:dense, 5, [1,-8, 9, 7, 17,
@@ -495,6 +495,22 @@ describe "math" do
 
         expect(a.invert).to be_within(err).of(b)
       end
+
+      it "should correctly find exact inverse" do
+        pending("not yet implemented for NMatrix-JRuby") if jruby?
+        a = NMatrix.new(:dense, 3, [1,2,3,0,1,4,5,6,0], dtype)
+        b = NMatrix.new(:dense, 3, [-24,18,5,20,-15,-4,-5,4,1], dtype)
+
+        expect(a.invert_exact).to be_within(err).of(b)
+      end
+
+      it "should correctly find exact inverse" do
+        pending("not yet implemented for NMatrix-JRuby") if jruby?
+        a = NMatrix.new(:dense, 2, [1,3,3,8,], dtype)
+        b = NMatrix.new(:dense, 2, [-8,3,3,-1], dtype)
+
+        expect(a.invert_exact).to be_within(err).of(b)
+      end      
     end
   end
 
@@ -1148,7 +1164,7 @@ describe "math" do
                                       3, 4, 5,
                                       6, 7, 8], stype: stype, dtype: dtype)
           end
-          
+
           it "scales the matrix by a given factor and return the result" do
             pending("not yet implemented for :object dtype") if dtype == :object
             if integer_dtype? dtype
@@ -1160,7 +1176,7 @@ describe "math" do
                                                              12, 14, 16], stype: stype, dtype: dtype))
             end
           end
-          
+
           it "scales the matrix in place by a given factor" do
             pending("not yet implemented for :object dtype") if dtype == :object
             if dtype == :int8
