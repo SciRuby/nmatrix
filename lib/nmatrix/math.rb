@@ -119,11 +119,9 @@ class NMatrix
   # Only works on dense matrices.
   #
   # * *Raises* :
-  #   - +StorageTypeError+ -> only implemented on dense matrices.
   #   - +DataTypeError+ -> cannot invert an integer matrix in-place.
   #   - +NotImplementedError+ -> cannot find exact inverse of matrix with size greater than 3  #
   def invert_exact!
-    raise(StorageTypeError, "invert only works on dense matrices currently") unless self.dense?
     raise(ShapeError, "Cannot invert non-square matrix") unless self.dim == 2 && self.shape[0] == self.shape[1]
     raise(DataTypeError, "Cannot invert an integer matrix in-place") if self.integer_dtype?
     #No internal implementation of getri, so use this other function
