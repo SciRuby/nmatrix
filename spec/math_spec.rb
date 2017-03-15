@@ -1190,6 +1190,7 @@ describe "math" do
         end
 
         it "should default to 2-matrix_norm" do
+          pending("not yet implemented for NMatrix-JRuby") if jruby?
           if(dtype == :byte)
             expect{@n.matrix_norm}.to raise_error(ArgumentError)
           else
@@ -1203,11 +1204,13 @@ describe "math" do
         end
 
         it "should reject invalid arguments" do
+          pending("not yet implemented for NMatrix-JRuby") if jruby?
 
           expect{@n.matrix_norm(0.5)}.to raise_error(ArgumentError)
         end
 
         it "should calculate 1 and 2(minus) matrix_norms correctly" do
+          pending("not yet implemented for NMatrix-JRuby") if jruby?
           if(dtype == :byte)
               expect{@n.matrix_norm(1)}.to raise_error(ArgumentError)
               expect{@n.matrix_norm(-2)}.to raise_error(ArgumentError)
@@ -1227,6 +1230,7 @@ describe "math" do
         end
 
         it "should calculate infinity matrix_norms correctly" do
+          pending("not yet implemented for NMatrix-JRuby") if jruby?
           if(dtype == :byte)
             expect{@n.matrix_norm(:inf)}.to raise_error(ArgumentError)
             expect{@n.matrix_norm(:'-inf')}.to raise_error(ArgumentError)
@@ -1237,6 +1241,7 @@ describe "math" do
         end
 
         it "should calculate frobenius matrix_norms correctly" do
+          pending("not yet implemented for NMatrix-JRuby") if jruby?
           if(dtype == :byte)
             expect{@n.matrix_norm(:fro)}.to raise_error(ArgumentError)
           else
