@@ -73,7 +73,7 @@ describe NMatrix do
 
     e = NMatrix.new(2, [3,1,2,1], stype: :dense, dtype: :int64)
     inversed = e.method(:__inverse_exact__).call(e.clone, 2, 2)
-    f = NMatrix.new(2, [1,-1,-2,-3], stype: :dense, dtype: :int64)
+    f = NMatrix.new(2, [1,-1,-2,3], stype: :dense, dtype: :int64)
     expect(inversed).to eq(f)
   end
 
@@ -91,7 +91,7 @@ describe NMatrix do
 
     e = NMatrix.new(2, [3,1,2,1], stype: :yale, dtype: :int64)
     inversed = e.method(:__inverse_exact__).call(e.clone, 2, 2)
-    f = NMatrix.new(2, [1,-1,-2,-3], stype: :yale, dtype: :int64)
+    f = NMatrix.new(2, [1,-1,-2,3], stype: :yale, dtype: :int64)
     expect(inversed).to eq(f)
   end
 
@@ -104,7 +104,7 @@ describe NMatrix do
 
     c = NMatrix.new(2, [3,1,2,1], stype: :list, dtype: :int64)
     inversed = c.method(:__inverse_exact__).call(c.clone, 2, 2)
-    d = NMatrix.new(2, [1,-1,-2,-3], stype: :list, dtype: :int64)
+    d = NMatrix.new(2, [1,-1,-2,3], stype: :list, dtype: :int64)
     expect(inversed).to eq(d)
   end
 

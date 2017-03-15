@@ -188,7 +188,7 @@ extern "C" {
 // Math Functions //
 ////////////////////
 
-namespace nm { 
+namespace nm {
   namespace math {
 
     /*
@@ -232,8 +232,8 @@ namespace nm {
       DType* a = reinterpret_cast<DType*>(storage->a);
       IType col_pos = storage->shape[0] + 1;
       if (M == 2) {
-        if (ija[2] - ija[0] == 2) { 
-          *result = a[0] * a[1] - a[col_pos] * a[col_pos+1]; 
+        if (ija[2] - ija[0] == 2) {
+          *result = a[0] * a[1] - a[col_pos] * a[col_pos+1];
         }
         else { *result = a[0] * a[1]; }
       } else if (M == 3) {
@@ -258,7 +258,7 @@ namespace nm {
             rb_raise(rb_eArgError, "some value in IJA is incorrect!");
           }
         }
-        *result = 
+        *result =
           m[0][0] * m[1][1] * m[2][2] + m[0][1] * m[1][2] * m[2][0] + m[0][2] * m[1][0] * m[2][1]
         - m[0][0] * m[1][2] * m[2][1] - m[0][1] * m[1][0] * m[2][2] - m[0][2] * m[1][1] * m[2][0];
 
@@ -270,13 +270,13 @@ namespace nm {
     }
 
     /*
-     * Solve a system of linear equations using forward-substution followed by 
+     * Solve a system of linear equations using forward-substution followed by
      * back substution from the LU factorization of the matrix of co-efficients.
      * Replaces x_elements with the result. Works only with non-integer, non-object
      * data types.
      *
      * args - r           -> The number of rows of the matrix.
-     *        lu_elements -> Elements of the LU decomposition of the co-efficients 
+     *        lu_elements -> Elements of the LU decomposition of the co-efficients
      *                       matrix, as a contiguos array.
      *        b_elements  -> Elements of the the right hand sides, as a contiguous array.
      *        x_elements  -> The array that will contain the results of the computation.
@@ -291,7 +291,7 @@ namespace nm {
       const DType* b      = reinterpret_cast<const DType*>(b_elements);
       DType* x            = reinterpret_cast<DType*>(x_elements);
 
-      for (int i = 0; i < r; ++i) { x[i] = b[i]; } 
+      for (int i = 0; i < r; ++i) { x[i] = b[i]; }
       for (int i = 0; i < r; ++i) { // forward substitution loop
         ip = pivot[i];
         sum = x[ip];
@@ -335,18 +335,18 @@ namespace nm {
         for (int row = k + 1; row < M; ++row) {
           typename MagnitudeDType<DType>::type big;
           big = magnitude( matrix[M*row + k] ); // element below the temp pivot
-          
+
           if ( big > akk ) {
             interchange = row;
-            akk = big; 
+            akk = big;
           }
-        } 
+        }
 
         if (interchange != k) { // check if rows need flipping
           DType temp;
 
           for (int col = 0; col < M; ++col) {
-            NM_SWAP(matrix[interchange*M + col], matrix[k*M + col], temp);            
+            NM_SWAP(matrix[interchange*M + col], matrix[k*M + col], temp);
           }
         }
 
@@ -360,7 +360,7 @@ namespace nm {
         DType pivot = matrix[k * (M + 1)];
         matrix[k * (M + 1)] = (DType)(1); // set diagonal as 1 for in-place inversion
 
-        for (int col = 0; col < M; ++col) { 
+        for (int col = 0; col < M; ++col) {
           // divide each element in the kth row with the pivot
           matrix[k*M + col] = matrix[k*M + col] / pivot;
         }
@@ -369,7 +369,7 @@ namespace nm {
           if (kk == k) continue;
 
           DType dum = matrix[k + M*kk];
-          matrix[k + M*kk] = (DType)(0); // prepare for inplace inversion 
+          matrix[k + M*kk] = (DType)(0); // prepare for inplace inversion
           for (int col = 0; col < M; ++col) {
             matrix[M*kk + col] = matrix[M*kk + col] - matrix[M*k + col] * dum;
           }
@@ -384,7 +384,7 @@ namespace nm {
 
           for (int row = 0; row < M; ++row) {
             NM_SWAP(matrix[row * M + row_index[k]], matrix[row * M + col_index[k]],
-              temp);  
+              temp);
           }
         }
       }
@@ -410,14 +410,14 @@ namespace nm {
       DType sum_of_squares, *p_row, *psubdiag, *p_a, scale, innerproduct;
       int i, k, col;
 
-      // For each column use a Householder transformation to zero all entries 
+      // For each column use a Householder transformation to zero all entries
       // below the subdiagonal.
-      for (psubdiag = a + nrows, col = 0; col < nrows - 2; psubdiag += nrows + 1, 
+      for (psubdiag = a + nrows, col = 0; col < nrows - 2; psubdiag += nrows + 1,
         col++) {
         // Calculate the signed square root of the sum of squares of the
         // elements below the diagonal.
 
-        for (p_a = psubdiag, sum_of_squares = 0.0, i = col + 1; i < nrows; 
+        for (p_a = psubdiag, sum_of_squares = 0.0, i = col + 1; i < nrows;
           p_a += nrows, i++) {
           sum_of_squares += *p_a * *p_a;
         }
@@ -447,7 +447,7 @@ namespace nm {
             *p_a -= u[k] * innerproduct;
           }
         }
-           
+
         // Postmultiply QA by Q
         for (p_row = a, i = 0; i < nrows; p_row += nrows, i++) {
           for (innerproduct = 0.0, k = col + 1; k < nrows; k++) {
@@ -465,7 +465,7 @@ namespace nm {
     }
 
     void raise_not_invertible_error() {
-        rb_raise(nm_eNotInvertibleError, 
+        rb_raise(nm_eNotInvertibleError,
             "matrix must have non-zero determinant to be invertible (not getting this error does not mean matrix is invertible if you're dealing with floating points)");
     }
 
@@ -473,7 +473,7 @@ namespace nm {
      * Calculate the exact inverse for a dense matrix (A [elements]) of size 2 or 3. Places the result in B_elements.
      */
     template <typename DType>
-    void inverse_exact_from_dense(const int M, const void* A_elements, 
+    void inverse_exact_from_dense(const int M, const void* A_elements,
         const int lda, void* B_elements, const int ldb) {
 
       const DType* A = reinterpret_cast<const DType*>(A_elements);
@@ -485,7 +485,7 @@ namespace nm {
         B[0] = A[lda+1] / det;
         B[1] = -A[1] / det;
         B[ldb] = -A[lda] / det;
-        B[ldb+1] = -A[0] / det;
+        B[ldb+1] = A[0] / det;
 
       } else if (M == 3) {
         // Calculate the exact determinant.
@@ -510,7 +510,7 @@ namespace nm {
     }
 
     template <typename DType>
-    void inverse_exact_from_yale(const int M, const YALE_STORAGE* storage, 
+    void inverse_exact_from_yale(const int M, const YALE_STORAGE* storage,
         const int lda, YALE_STORAGE* inverse, const int ldb) {
 
       // inverse is a clone of storage
@@ -524,18 +524,18 @@ namespace nm {
 
       if (M == 2) {
         IType ndnz = ija[2] - ija[0];
-        if (ndnz == 2) { 
-          det = a[0] * a[1] - a[col_pos] * a[col_pos+1]; 
+        if (ndnz == 2) {
+          det = a[0] * a[1] - a[col_pos] * a[col_pos+1];
         }
         else { det = a[0] * a[1]; }
         if (det == 0) { raise_not_invertible_error(); }
         b[0] = a[1] / det;
-        b[1] = -a[0] / det;
-        if (ndnz == 2) { 
+        b[1] = a[0] / det;
+        if (ndnz == 2) {
           b[col_pos] = -a[col_pos] / det;
           b[col_pos+1] = -a[col_pos+1] / det;
         }
-        else if (ndnz == 1) { 
+        else if (ndnz == 1) {
           b[col_pos] = -a[col_pos] / det;
         }
 
@@ -561,7 +561,7 @@ namespace nm {
             rb_raise(rb_eArgError, "some value in IJA is incorrect!");
           }
         }
-        det = 
+        det =
           A[0] * A[lda+1] * A[2*lda+2] + A[1] * A[lda+2] * A[2*lda] + A[2] * A[lda] * A[2*lda+1]
         - A[0] * A[lda+2] * A[2*lda+1] - A[1] * A[lda] * A[2*lda+2] - A[2] * A[lda+1] * A[2*lda];
         if (det == 0) { raise_not_invertible_error(); }
@@ -1267,9 +1267,9 @@ static VALUE nm_clapack_laswp(VALUE self, VALUE n, VALUE a, VALUE lda, VALUE k1,
 /*
  * C accessor for calculating an exact determinant. Dense matrix version.
  */
-void nm_math_det_exact_from_dense(const int M, const void* elements, const int lda, 
+void nm_math_det_exact_from_dense(const int M, const void* elements, const int lda,
         nm::dtype_t dtype, void* result) {
-  NAMED_DTYPE_TEMPLATE_TABLE(ttable, nm::math::det_exact_from_dense, void, const int M, 
+  NAMED_DTYPE_TEMPLATE_TABLE(ttable, nm::math::det_exact_from_dense, void, const int M,
           const void* A_elements, const int lda, void* result_arg);
 
   ttable[dtype](M, elements, lda, result);
@@ -1278,27 +1278,27 @@ void nm_math_det_exact_from_dense(const int M, const void* elements, const int l
 /*
  * C accessor for calculating an exact determinant. Yale matrix version.
  */
-void nm_math_det_exact_from_yale(const int M, const YALE_STORAGE* storage, const int lda, 
+void nm_math_det_exact_from_yale(const int M, const YALE_STORAGE* storage, const int lda,
         nm::dtype_t dtype, void* result) {
-  NAMED_DTYPE_TEMPLATE_TABLE(ttable, nm::math::det_exact_from_yale, void, const int M, 
+  NAMED_DTYPE_TEMPLATE_TABLE(ttable, nm::math::det_exact_from_yale, void, const int M,
           const YALE_STORAGE* storage, const int lda, void* result_arg);
 
   ttable[dtype](M, storage, lda, result);
 }
 
 /*
- * C accessor for solving a system of linear equations. 
+ * C accessor for solving a system of linear equations.
  */
 void nm_math_solve(VALUE lu, VALUE b, VALUE x, VALUE ipiv) {
   int* pivot = new int[RARRAY_LEN(ipiv)];
 
   for (int i = 0; i < RARRAY_LEN(ipiv); ++i) {
-    pivot[i] = FIX2INT(rb_ary_entry(ipiv, i));  
+    pivot[i] = FIX2INT(rb_ary_entry(ipiv, i));
   }
 
   NAMED_DTYPE_TEMPLATE_TABLE(ttable, nm::math::solve, void, const int, const void*, const void*, void*, const int*);
 
-  ttable[NM_DTYPE(x)](NM_SHAPE0(b), NM_STORAGE_DENSE(lu)->elements, 
+  ttable[NM_DTYPE(x)](NM_SHAPE0(b), NM_STORAGE_DENSE(lu)->elements,
     NM_STORAGE_DENSE(b)->elements, NM_STORAGE_DENSE(x)->elements, pivot);
 }
 
@@ -1313,7 +1313,7 @@ void nm_math_hessenberg(VALUE a) {
       NULL, NULL, // does not support Complex
       NULL // no support for Ruby Object
   };
-    
+
   ttable[NM_DTYPE(a)](NM_SHAPE0(a), NM_STORAGE_DENSE(a)->elements);
 }
 /*
@@ -1328,10 +1328,10 @@ void nm_math_inverse(const int M, void* a_elements, nm::dtype_t dtype) {
 /*
  * C accessor for calculating an exact inverse. Dense matrix version.
  */
-void nm_math_inverse_exact_from_dense(const int M, const void* A_elements, 
+void nm_math_inverse_exact_from_dense(const int M, const void* A_elements,
     const int lda, void* B_elements, const int ldb, nm::dtype_t dtype) {
 
-  NAMED_DTYPE_TEMPLATE_TABLE(ttable, nm::math::inverse_exact_from_dense, void, 
+  NAMED_DTYPE_TEMPLATE_TABLE(ttable, nm::math::inverse_exact_from_dense, void,
       const int, const void*, const int, void*, const int);
 
   ttable[dtype](M, A_elements, lda, B_elements, ldb);
@@ -1340,10 +1340,10 @@ void nm_math_inverse_exact_from_dense(const int M, const void* A_elements,
 /*
  * C accessor for calculating an exact inverse. Yale matrix version.
  */
-void nm_math_inverse_exact_from_yale(const int M, const YALE_STORAGE* storage, 
+void nm_math_inverse_exact_from_yale(const int M, const YALE_STORAGE* storage,
     const int lda, YALE_STORAGE* inverse, const int ldb, nm::dtype_t dtype) {
 
-  NAMED_DTYPE_TEMPLATE_TABLE(ttable, nm::math::inverse_exact_from_yale, void, 
+  NAMED_DTYPE_TEMPLATE_TABLE(ttable, nm::math::inverse_exact_from_yale, void,
       const int, const YALE_STORAGE*, const int, YALE_STORAGE*, const int);
 
   ttable[dtype](M, storage, lda, inverse, ldb);
