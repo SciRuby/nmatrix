@@ -462,9 +462,9 @@ describe "math" do
 
       it "should correctly invert a matrix in place (bang)" do
         pending("not yet implemented for :object dtype") if dtype == :object
-        a = NMatrix.new(:dense, 5, [1, 8,-9, 7, 5, 
-                                    0, 1, 0, 4, 4, 
-                                    0, 0, 1, 2, 5, 
+        a = NMatrix.new(:dense, 5, [1, 8,-9, 7, 5,
+                                    0, 1, 0, 4, 4,
+                                    0, 0, 1, 2, 5,
                                     0, 0, 0, 1,-5,
                                     0, 0, 0, 0, 1 ], dtype)
         b = NMatrix.new(:dense, 5, [1,-8, 9, 7, 17,
@@ -1148,7 +1148,7 @@ describe "math" do
                                       3, 4, 5,
                                       6, 7, 8], stype: stype, dtype: dtype)
           end
-          
+
           it "scales the matrix by a given factor and return the result" do
             pending("not yet implemented for :object dtype") if dtype == :object
             if integer_dtype? dtype
@@ -1160,7 +1160,7 @@ describe "math" do
                                                              12, 14, 16], stype: stype, dtype: dtype))
             end
           end
-          
+
           it "scales the matrix in place by a given factor" do
             pending("not yet implemented for :object dtype") if dtype == :object
             if dtype == :int8
@@ -1172,6 +1172,75 @@ describe "math" do
                                                     6,  8,  10,
                                                     12, 14, 16], stype: stype, dtype: dtype))
             end
+          end
+        end
+      end
+    end
+  end
+  context "matrix_norm" do
+    ALL_DTYPES.each do |dtype|
+      context dtype do
+        pending("not yet implemented for :object dtype") if dtype == :object
+        before do
+          @n = NMatrix.new([3,3], [-4,-3,-2,
+                                   -1, 0, 1,
+                                    2, 3, 4], dtype: dtype)
+
+          @matrix_norm_TOLERANCE = 1.0e-10
+        end
+
+        it "should default to 2-matrix_norm" do
+          if(dtype == :byte)
+            expect{@n.matrix_norm}.to raise_error(ArgumentError)
+          else
+            begin
+              expect(@n.matrix_norm).to be_within(@matrix_norm_TOLERANCE).of(7.348469228349535)
+
+              rescue NotImplementedError
+                pending "Suppressing a NotImplementedError when the lapacke plugin is not available"
+            end
+          end
+        end
+
+        it "should reject invalid arguments" do
+
+          expect{@n.matrix_norm(0.5)}.to raise_error(ArgumentError)
+        end
+
+        it "should calculate 1 and 2(minus) matrix_norms correctly" do
+          if(dtype == :byte)
+              expect{@n.matrix_norm(1)}.to raise_error(ArgumentError)
+              expect{@n.matrix_norm(-2)}.to raise_error(ArgumentError)
+              expect{@n.matrix_norm(-1)}.to raise_error(ArgumentError)
+          else
+            expect(@n.matrix_norm(1)).to eq(7)
+            begin
+
+              #FIXME: change to the correct value when overflow issue is resolved
+              #expect(@n.matrix_norm(-2)).to eq(1.8628605857884395e-07)
+              expect(@n.matrix_norm(-2)).to be_within(@matrix_norm_TOLERANCE).of(0.0)
+              rescue NotImplementedError
+                pending "Suppressing a NotImplementedError when the lapacke plugin is not available"
+            end
+            expect(@n.matrix_norm(-1)).to eq(6)
+          end
+        end
+
+        it "should calculate infinity matrix_norms correctly" do
+          if(dtype == :byte)
+            expect{@n.matrix_norm(:inf)}.to raise_error(ArgumentError)
+            expect{@n.matrix_norm(:'-inf')}.to raise_error(ArgumentError)
+          else
+            expect(@n.matrix_norm(:inf)).to eq(9)
+            expect(@n.matrix_norm(:'-inf')).to eq(2)
+          end
+        end
+
+        it "should calculate frobenius matrix_norms correctly" do
+          if(dtype == :byte)
+            expect{@n.matrix_norm(:fro)}.to raise_error(ArgumentError)
+          else
+            expect(@n.matrix_norm(:fro)).to be_within(@matrix_norm_TOLERANCE).of(7.745966692414834)
           end
         end
       end
