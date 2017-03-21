@@ -1335,6 +1335,36 @@ class NMatrix
   alias :permute_columns  :laswp
   alias :permute_columns! :laswp!
 
+  #
+  #call-seq:
+  #    positive_semidefinite? -> boolean
+  #
+  # A matrix is positive semidefinite if all of its eigenvalues are non-negative.
+  #
+  # * *Returns* :
+  #   - A booloean value telling if the NMatrix is positive semidefinite or not.
+  # * *Raises* :
+  #   - +ShapeError+ -> Must be used on square matrices
+  #
+  def positive_semidefinite?
+    raised(ShapeError, "positive semidefinite calculated only for square matrices")unless
+      self.dim == 2 && self.shape[0] == self.shape[1]
+    # Cast to a dtype for which geev is implemented
+    new_dtype = self.integer_dtype? ? :float64 : self.dtype
+    copy = self.cast(:dense, new_dtype)
+    eigenvalues = NMatrix::LAPACK.geev(copy, :left)
+    ans = true
+    ind = 0
+    while ind != self.dim
+      if eigenvalues[0][ind].real < 0
+        ans = false
+        break
+      end
+      ind =ind + 1
+    end
+    ans
+  end
+
 protected
   # Define the element-wise operations for lists. Note that the __list_map_merged_stored__ iterator returns a Ruby Object
   # matrix, which we then cast back to the appropriate type. If you don't want that, you can redefine these functions in
