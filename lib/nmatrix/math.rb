@@ -113,7 +113,7 @@ class NMatrix
   alias :inverse :invert
 
   # call-seq:
-  #     invert_exact! -> NMatrix
+  #     exact_inverse! -> NMatrix
   #
   # Calulates inverse_exact of a matrix of size 2 or 3.
   # Only works on dense matrices.
@@ -121,7 +121,7 @@ class NMatrix
   # * *Raises* :
   #   - +DataTypeError+ -> cannot invert an integer matrix in-place.
   #   - +NotImplementedError+ -> cannot find exact inverse of matrix with size greater than 3  #
-  def invert_exact!
+  def exact_inverse!
     raise(ShapeError, "Cannot invert non-square matrix") unless self.dim == 2 && self.shape[0] == self.shape[1]
     raise(DataTypeError, "Cannot invert an integer matrix in-place") if self.integer_dtype?
     #No internal implementation of getri, so use this other function
@@ -136,7 +136,7 @@ class NMatrix
 
   #
   # call-seq:
-  #     invert_exact -> NMatrix
+  #     exact_inverse -> NMatrix
   #
   # Make a copy of the matrix, then invert using exact_inverse
   #
@@ -150,18 +150,18 @@ class NMatrix
   #   - +ShapeError+ -> matrix must be square.
   #   - +NotImplementedError+ -> cannot find exact inverse of matrix with size greater than 3
   #
-  def invert_exact
-    #write this in terms of invert_exact! so plugins will only have to overwrite
-    #invert_exact! and not invert_exact
+  def exact_inverse
+    #write this in terms of exact_inverse! so plugins will only have to overwrite
+    #exact_inverse! and not exact_inverse
     if self.integer_dtype?
       cloned = self.cast(dtype: :float64)
-      cloned.invert_exact!
+      cloned.exact_inverse!
     else
       cloned = self.clone
-      cloned.invert_exact!
+      cloned.exact_inverse!
     end
   end
-  alias :inverse_exact :invert_exact
+  alias :invert_exactly :exact_inverse
 
 
 
