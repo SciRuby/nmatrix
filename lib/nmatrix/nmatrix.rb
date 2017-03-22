@@ -97,7 +97,7 @@ class NMatrix
     # * *Returns* :
     #   - A Mat5Reader object.
     def load_matlab_file(file_path)
-      NMatrix::IO::Mat5Reader.new(File.open(file_path, 'rb')).to_ruby
+      NMatrix::IO::Matlab::Mat5Reader.new(File.open(file_path, 'rb')).to_ruby
     end
 
     # call-seq:
