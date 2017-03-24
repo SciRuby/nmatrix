@@ -1066,6 +1066,61 @@ class NMatrix
     new_matrix
   end
 
+  #
+  # call-seq:
+  #     definite_check(&cmp) -> boolean
+  #
+  # * *Arguments* :
+  #   - +&cmp+ -> comparator function
+  # * *Returns* :
+  #   - Boolean describing positive or negative definiteness of a matrix.  Uses Sylvester's Criterion.
+  #
+  # Warning: this function blows up if your matrix is more than 5000x5000.
+  # TODO: try gershgorin circle theorem to find definiteness.
+  def definite_check(&cmp)
+    # sylvesters theorem
+    # first check if it's a square matrix
+    return false unless shape[0] == shape[1]
+
+    n = shape[0]
+    0.upto n - 1 do |i|
+      # do comparison
+      return false unless cmp.call(self[i, i])
+
+      # create upperleft submatrix of [i + 1, i + 1] corner of this matrix
+      # How can I make this take less space? If the matrix is 10e12x10e12, then algorithm is O(1 trillion)
+      # this blows up at n ~= 10000, and NMatrix::LAPACK.geev takes a while for n = 1000
+      sub = self[0..i, 0..i]
+      return false unless cmp.call(sub.det)
+    end
+
+    true
+  end
+
+  #
+  # call-seq:
+  #     positive_definite? -> boolean
+  #
+  # * *Returns* :
+  #   - Boolean describing positive definiteness of a matrix.  Uses Sylvester's Criterion.
+  #
+  def positive_definite?
+    # check if all diagonal entries are positive
+    definite_check { |x| x > 0 }
+  end
+
+  #
+  # call-seq:
+  #     positive_semidefinite? -> boolean
+  #
+  # * *Returns* :
+  #   - Boolean describing positive semidefiniteness of a matrix.  Uses Sylvester's Criterion.
+  #
+  def positive_semidefinite?
+    # check if all diagonal entries are nonnegative
+    definite_check { |x| x >= 0 }
+  end
+
   # This is how you write an individual element-wise operation function:
   #def __list_elementwise_add__ rhs
   #  self.__list_map_merged_stored__(rhs){ |l,r| l+r }.cast(self.stype, NMatrix.upcast(self.dtype, rhs.dtype))
