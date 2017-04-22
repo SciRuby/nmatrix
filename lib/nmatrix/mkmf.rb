@@ -96,8 +96,3 @@ CONFIG['warnflags'].gsub!('-Wdeclaration-after-statement', '')
 CONFIG['warnflags'].gsub!('-Wimplicit-function-declaration', '')
 
 have_func("rb_array_const_ptr", "ruby.h")
-have_macro("FIX_CONST_VALUE_PTR", "ruby.h")
-have_macro("RARRAY_CONST_PTR", "ruby.h")
-have_macro("RARRAY_AREF", "ruby.h")
-
-
