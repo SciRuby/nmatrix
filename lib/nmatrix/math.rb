@@ -1312,7 +1312,7 @@ class NMatrix
 
   # 2-norm: the largest/smallest singular value of the matrix
   def two_matrix_norm minus = false
-  
+
     self_cast = self.cast(:dtype => :float64)
 
     #TODO: confirm if this is the desired svd calculation
@@ -1400,20 +1400,18 @@ class NMatrix
   #   - +ShapeError+ -> Must be used on square matrices.
   #
   def positive_definite?
-    raise(ShapeError, "positive definite calculated only for square matrices") unless 
+    raise(ShapeError, "positive definite calculated only for square matrices") unless
       self.dim == 2 && self.shape[0] == self.shape[1]
-    ans = true
     cond = 0
     while cond != self.cols
       if self[0..cond, 0..cond].det <= 0
-        ans = false
-        break
+        return false
       end
       cond += 1
     end
-    ans
+    return true
   end
-    
+
 protected
   # Define the element-wise operations for lists. Note that the __list_map_merged_stored__ iterator returns a Ruby Object
   # matrix, which we then cast back to the appropriate type. If you don't want that, you can redefine these functions in

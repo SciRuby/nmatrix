@@ -1067,6 +1067,31 @@ class NMatrix
   alias :permute_columns  :laswp
   alias :permute_columns! :laswp!
 
+  #
+  # call-seq:
+  #     positive_definite? -> boolean
+  #
+  # A matrix is positive definite if it’s symmetric and all its eigenvalues are positive
+  #
+  # * *Returns* :
+  #   - A boolean value telling if the NMatrix is positive definite or not.
+  # * *Raises* :
+  #   - +ShapeError+ -> Must be used on square matrices.
+  #
+
+  def positive_definite?
+    raise(ShapeError, "positive definite calculated only for square matrices") unless
+      self.dim == 2 && self.shape[0] == self.shape[1]
+    cond = 0
+    while cond != self.cols
+      if self[0..cond, 0..cond].det <= 0
+        return false
+      end
+      cond += 1
+    end
+    return true
+  end
+
 protected
   # Define the element-wise operations for lists. Note that the __list_map_merged_stored__ iterator returns a Ruby Object
   # matrix, which we then cast back to the appropriate type. If you don't want that, you can redefine these functions in
