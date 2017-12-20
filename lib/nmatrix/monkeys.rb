@@ -36,7 +36,7 @@ class Array
   # You must provide a shape for the matrix as the first argument.
   #
   # == Arguments:
-  # <tt>shape</tt> :: Array describing matrix dimensions (or Fixnum for square).
+  # <tt>shape</tt> :: Array describing matrix dimensions (or Integer for square).
   #   If not provided, will be intuited through #shape.
   # <tt>dtype</tt> :: Override data type (e.g., to store a Float as :float32
   #   instead of :float64) -- optional.
@@ -46,7 +46,7 @@ class Array
 
     guess_dtype = ->(type) {
       case type
-      when Fixnum   then :int64
+      when Integer  then :int64
       when Float    then :float64
       when Complex  then :complex128
       end

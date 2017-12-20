@@ -235,7 +235,7 @@ class NMatrix
   #
   # If your dtype is :object and you are converting from :dense to a sparse type, it is recommended that you
   # provide a :default, as 0 may behave differently from its Float or Complex equivalent. If no option
-  # is given, Fixnum 0 will be used.
+  # is given, Integer 0 will be used.
   def cast(*params)
     if (params.size > 0 && params[0].is_a?(Hash))
       opts = {
@@ -419,7 +419,7 @@ class NMatrix
 
   #
   # call-seq:
-  #     size -> Fixnum
+  #     size -> Integer
   #
   # Returns the total size of the NMatrix based on its shape.
   #
@@ -566,12 +566,12 @@ class NMatrix
   # the new and old shapes' components must be equal.
   #
   # * *Arguments* :
-  #   - +new_shape+ -> Array of positive Fixnums.
+  #   - +new_shape+ -> Array of positive Integers.
   # * *Returns* :
   #   - A copy with a different shape.
   #
   def reshape new_shape,*shapes
-    if new_shape.is_a?Fixnum
+    if new_shape.is_a?Integer
       newer_shape =  [new_shape]+shapes
     else  # new_shape is an Array
       newer_shape = new_shape
@@ -593,13 +593,13 @@ class NMatrix
   # the new and old shapes' components must be equal.
   #
   # * *Arguments* :
-  #   - +new_shape+ -> Array of positive Fixnums.
+  #   - +new_shape+ -> Array of positive Integer.
   #
   def reshape! new_shape,*shapes
     if self.is_ref?
       raise(ArgumentError, "This operation cannot be performed on reference slices")
     else
-      if new_shape.is_a?Fixnum
+      if new_shape.is_a?Integer
         shape =  [new_shape]+shapes
       else  # new_shape is an Array
         shape = new_shape
@@ -690,7 +690,7 @@ class NMatrix
   #
   # * *Arguments* :
   #   - +matrices+ -> one or more matrices
-  #   - +rank+ -> Fixnum (for rank); alternatively, may use :row, :column, or
+  #   - +rank+ -> Integer (for rank); alternatively, may use :row, :column, or
   #   :layer for 0, 1, 2, respectively
   def concat(*matrices)
     rank = nil

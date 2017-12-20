@@ -47,7 +47,7 @@ module NMatrix::IO::Matlab
         if content_or_bytes.is_a?(String)
           @content = content_or_bytes
 
-        elsif content_or_bytes.is_a?(Fixnum)
+        elsif content_or_bytes.is_a?(Integer)
           @padded_bytes = content_or_bytes
         end
       end
