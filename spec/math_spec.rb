@@ -1276,4 +1276,88 @@ describe "math" do
         expect(n.positive_definite?).to be_truthy
       end
   end
+  
+  context "#svd_rank" do 
+    FLOAT_DTYPES.each do |dtype|
+      context dtype do
+        #examples from https://www.cliffsnotes.com/study-guides/algebra/linear-algebra/real-euclidean-vector-spaces/the-rank-of-a-matrix
+        it "calculates the rank of matrix using singular value decomposition with NMatrix on rectangular matrix without tolerence" do
+          pending("not yet implemented for NMatrix-JRuby") if jruby?
+          a = NMatrix.new([4,3],[2,-1,3, 1,0,1, 0,2,-1, 1,1,4], dtype: dtype)
+
+          begin
+            rank = a.svd_rank()
+          
+            rank_true = 3
+            expect(rank).to eq (rank_true)
+
+          rescue NotImplementedError
+            pending "Suppressing a NotImplementedError when the lapacke plugin is not available" 
+          end         
+        end
+
+        it "calculates the rank of matrix using singular value decomposition with NMatrix on rectangular matrix with tolerence" do
+        
+          a = NMatrix.new([4,3],[2,-1,3, 1,0,1, 0,2,-1, 1,1,4], dtype: dtype)
+          pending("not yet implemented for NMatrix-JRuby") if jruby?
+          begin
+            rank = a.svd_rank(4)
+  
+            rank_true = 1
+            expect(rank).to eq (rank_true)
+
+          rescue NotImplementedError
+             pending "Suppressing a NotImplementedError when the lapacke plugin is not available" 
+          end
+        end
+
+        it "calculates the rank of matrix using singular value decomposition with NMatrix on square matrix without tolerence" do
+        
+          a = NMatrix.new([4,4],[1,-1,1,-1, -1,1,-1,1, 1,-1,1,-1, -1,1,-1,1], dtype: dtype)
+          pending("not yet implemented for NMatrix-JRuby") if jruby?
+          begin
+            rank = a.svd_rank()
+          
+            rank_true = 1
+            expect(rank).to eq (rank_true)
+
+          rescue NotImplementedError
+             pending "Suppressing a NotImplementedError when the lapacke plugin is not available" 
+          end
+        end
+
+        it "calculates the rank of matrix using singular value decomposition with NMatrix on square matrix with very small tolerence(for float32)" do
+          pending("not yet implemented for NMatrix-JRuby") if jruby?
+          a = NMatrix.new([4,4],[1,-1,1,-1, -1,1,-1,1, 1,-1,1,-1, -1,1,-1,1], dtype: :float32)
+
+          begin
+            rank = a.svd_rank(1.7881389169360773e-08)
+          
+            rank_true = 2
+            expect(rank).to eq (rank_true)
+
+          rescue NotImplementedError
+             pending "Suppressing a NotImplementedError when the lapacke plugin is not available" 
+          end
+        end
+
+        it "calculates the rank of matrix using singular value decomposition with NMatrix on square matrix with very small tolerence(for float64)" do
+          pending("not yet implemented for NMatrix-JRuby") if jruby?
+          a = NMatrix.new([4,4],[1,-1,1,-1, -1,1,-1,1, 1,-1,1,-1, -1,1,-1,1], dtype: :float64)
+
+          begin
+            rank = a.svd_rank(1.7881389169360773e-08)
+          
+            rank_true = 1
+            expect(rank).to eq (rank_true)
+
+          rescue NotImplementedError
+             pending "Suppressing a NotImplementedError when the lapacke plugin is not available" 
+          end
+        end
+
+      end
+    end 
+  end 
+
 end

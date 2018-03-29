@@ -698,6 +698,38 @@ class NMatrix
     true
   end
 
+  #
+  # call-seq:
+  #   svd_rank() -> int
+  #   svd_rank(tolerence) ->int
+  # Gives rank of the matrix based on the singular value decomposition.
+  # The rank of a matrix  is computed as the number of diagonal elements in Sigma that are larger than a tolerance
+  #
+  #* *Returns* :
+  # - An integer equal to the rank of the matrix
+  #* *Raises* :
+  #  - +ShapeError+ -> Is only computable on 2-D matrices
+  #
+  def svd_rank(tolerence="default")
+    raise(ShapeError, "rank calculated only for 2-D matrices") unless
+      self.dim == 2 
+
+    sigmas = self.gesvd[1].to_a.flatten
+    eps = NMatrix::FLOAT64_EPSILON
+
+    # epsilon depends on the width of the number
+    if (self.dtype == :float32 || self.dtype == :complex64) 
+      eps = NMatrix::FLOAT32_EPSILON
+    end
+    case tolerence
+      when "default"
+        tolerence = self.shape.max * sigmas.max * eps # tolerence of a Matrix A is max(size(A))*eps(norm(A)). norm(A) is nearly equal to max(sigma of A)
+    end
+    return sigmas.map { |x| x > tolerence ? 1 : 0 }.reduce(:+)
+  end
+
+
+
 protected
   # Define the element-wise operations for lists. Note that the __list_map_merged_stored__ iterator returns a Ruby Object
   # matrix, which we then cast back to the appropriate type. If you don't want that, you can redefine these functions in

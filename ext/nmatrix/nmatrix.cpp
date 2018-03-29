@@ -32,6 +32,7 @@
  */
 
 #include <ruby.h>
+#include <cfloat>
 #include <algorithm> // std::min
 #include <fstream>
 
