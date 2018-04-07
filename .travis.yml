@@ -2,23 +2,27 @@ language: ruby
 sudo: required
 cache: bundler
 os:
-  - linux
+  #- linux
   - osx
-osx_image: xcode7.2
 env:
   - USE_ATLAS=1       # This configuration installs ATLAS, builds and tests the nmatrix, nmatrix-atlas, and nmatrix-lapacke gems
   - USE_OPENBLAS=1    # Installs OpenBLAS and reference LAPACK, builds and tests nmatrix, nmatrix-lapacke
   - USE_REF=1         # Installs OpenBLAS and reference LAPACK, builds and tests nmatrix, nmatrix-lapacke
   - NO_EXTERNAL_LIB=1 # No external libraries installed, only nmatrix
 rvm:
-  - 2.0.0-p648
-  - 2.1.8
-  - 2.2.4
-  - 2.3.0
-  - 2.4.2
+  # The specific versions with clang specified are for Mac. The versions without
+  # -clang are for linux systems. In the matrix, make sure to exclude each non-clang
+  # osx combination.
+  - 2.0
+  - 2.1
+  - 2.1.10-clang
+  - 2.2
+  - 2.2.7-clang
+  - 2.3
+  - 2.3.4-clang
+  - 2.4
+  - 2.4.1-clang
   - ruby-head
-  # The latest stable and head versions built by clang
-  - 2.3.0-clang
   - ruby-head-clang
   # JRuby versions --- experimental, pending merging Prasun's GSoC project.
   - jruby-9.0.5.0 # earliest supported version (uncomment when jruby-head is passing)
@@ -49,21 +53,29 @@ matrix:
       env: USE_OPENBLAS=1
     - rvm: jruby-9.0.5.0
       env: USE_REF=1    
-    # NOTE: The following two ruby versions on OSX are currently unavailable
+    # NOTE: The following ruby versions on OSX are currently unavailable
+    # NOTE: See list: http://rubies.travis-ci.org/
     - os: osx
-      rvm: 2.0.0-p648
+      rvm: 2.0
+    # NOTE: The following ruby versions are GCC are we don't want to do
+    #       these ones with osx, which has clang.
     - os: osx
-      rvm: 2.1.8
+      rvm: 2.1
     - os: osx
-      rvm: 2.2.4
+      rvm: 2.2
     - os: osx
-      rvm: 2.3.0
+      rvm: 2.3
     - os: osx
-      rvm: ruby-head
+      rvm: 2.4
     - os: osx
-      rvm: 2.3.0-clang
-    - os: osx
-      rvm: ruby-head-clang
+      rvm: 2.5
+    # NOTE: The following ruby versions we need to explicitly override
+    #       and use clang with.
+    - rvm: 2.1.10-clang
+    - rvm: 2.2.7-clang
+    - rvm: 2.3.4-clang
+    - rvm: 2.4.1-clang
+    - rvm: ruby-head-clang
     # FIXME: The following configuration is unavailable because ATLAS should be built from source.
     #        We need homebrew formula for ATLAS and its bottle.
     - os: osx
@@ -75,51 +87,82 @@ matrix:
   include:
     # The latest stable and head versions of ruby built by clang on OSX
     - os: osx
+      osx_image: xcode9.2
       compiler: clang
-      rvm: 2.2
+      rvm: ruby-head-clang
       env:
-        - ruby_version=2.4.0-dev USE_OPENBLAS=1
+        - ruby_version=2.5.0 USE_OPENBLAS=1 CC=clang CXX=clang++
     - os: osx
+      osx_image: xcode9.2
       compiler: clang
-      rvm: 2.2
+      rvm: ruby-head-clang
       env:
-        - ruby_version=2.4.0-dev NO_EXTERNAL_LIB=1
+        - ruby_version=2.5.0 NO_EXTERNAL_LIB=1 CC=clang CXX=clang++    
+    # The latest version of Ruby 2.4.x built by clang on OSX    
     - os: osx
+      osx_image: xcode9.2
       compiler: clang
-      rvm: 2.2
+      rvm: 2.4.1-clang
       env:
-        - ruby_version=2.3.0 USE_OPENBLAS=1
+        - ruby_version=2.4.1 USE_OPENBLAS=1 CC=clang CXX=clang++
     - os: osx
+      osx_image: xcode9.2
       compiler: clang
-      rvm: 2.2
+      rvm: 2.4.1-clang
       env:
-        - ruby_version=2.3.0 NO_EXTERNAL_LIB=1
-    # The latest version of Ruby 2.2.x built by clang on OSX
+        - ruby_version=2.4.1 NO_EXTERNAL_LIB=1 CC=clang CXX=clang++
+    # The latest version of Ruby 2.3.x built by clang on OSX
     - os: osx
+      osx_image: xcode9.2
       compiler: clang
-      rvm: 2.2
+      rvm: 2.3.4-clang
       env:
-        - ruby_version=2.2.4 USE_OPENBLAS=1
+        - ruby_version=2.3.4 USE_OPENBLAS=1 CC=clang CXX=clang++
+    - os: osx
+      osx_image: xcode9.2
+      compiler: clang
+      rvm: 2.3.4-clang
+      env:
+        - ruby_version=2.3.4 NO_EXTERNAL_LIB=1 CC=clang CXX=clang++
+    # The latest version of Ruby 2.2.x built by clang on OSX	
+    - os: osx
+      osx_image: xcode9.2
+      compiler: clang
+      rvm: 2.2.7-clang
+      env:
+        - ruby_version=2.2.7 USE_OPENBLAS=1 CC=clang CXX=clang++
+    - os: osx
+      osx_image: xcode9.2
+      compiler: clang
+      rvm: 2.2.7-clang
+      env:
+        - ruby_version=2.2.7 NO_EXTERNAL_LIB=1 CC=clang CXX=clang++	
     # The latest version of Ruby 2.1.x built by clang on OSX
     - os: osx
+      osx_image: xcode9.2
       compiler: clang
-      rvm: 2.2
+      rvm: 2.1.10-clang
       env:
-        - ruby_version=2.1.8 USE_OPENBLAS=1
+        - ruby_version=2.1.10 USE_OPENBLAS=1 CC=clang CXX=clang++
+    - os: osx
+      osx_image: xcode9.2
+      compiler: clang
+      rvm: 2.1.10-clang
+      env:
+        - ruby_version=2.1.10 NO_EXTERNAL_LIB=1 CC=clang CXX=clang++
   allow_failures:
-    # trunk
+    # trunk    
     - rvm: ruby-head
-    - rvm: ruby-head-clang
     - os: osx
       compiler: clang
-      rvm: 2.2
+      rvm: 2.5
       env:
-        - ruby_version=2.4.0-dev USE_OPENBLAS=1
+        - ruby_version=2.5.0-dev USE_OPENBLAS=1 CC=clang CXX=clang++
     - os: osx
       compiler: clang
-      rvm: 2.2
+      rvm: 2.5
       env:
-        - ruby_version=2.4.0-dev NO_EXTERNAL_LIB=1
+        - ruby_version=2.5.0-dev NO_EXTERNAL_LIB=1 CC=clang CXX=clang++
 
 notifications:
   irc: "chat.freenode.net#sciruby"
