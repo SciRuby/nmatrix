@@ -50,28 +50,7 @@ describe NMatrix::IO do
     expect(n[3,3]).to eq(0)
   end
 
-  it "reads MATLAB .mat file containing a single square sparse matrix" do
-    pending("not yet implemented for NMatrix-JRuby") if jruby?
-    n = NMatrix::IO::Matlab.load_mat("spec/4x4_sparse.mat")
-    expect(n[0,0]).to eq(2)
-    expect(n[1,1]).to eq(3)
-    expect(n[1,3]).to eq(5)
-    expect(n[3,0]).to eq(4)
-    expect(n[2,2]).to eq(0)
-    expect(n[3,3]).to eq(0)
-  end
-
-  it "reads MATLAB .mat file containing a single dense integer matrix" do
-    n = NMatrix::IO::Matlab.load_mat("spec/4x5_dense.mat")
-    m = NMatrix.new([4,5], [16,17,18,19,20,15,14,13,12,11,6,7,8,9,10,5,4,3,2,1])
-    expect(n).to eq(m)
-  end
-
-  it "reads MATLAB .mat file containing a single dense double matrix" do
-    n = NMatrix::IO::Matlab.load_mat("spec/2x2_dense_double.mat")
-    m = NMatrix.new(2, [1.1, 2.0, 3.0, 4.0], dtype: :float64)
-    expect(n).to eq(m)
-  end
+  
 
   it "loads and saves MatrixMarket .mtx file containing a single large sparse double matrix" do
     pending "spec disabled because it's so slow"
