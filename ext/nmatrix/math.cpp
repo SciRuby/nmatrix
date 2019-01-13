@@ -219,7 +219,7 @@ namespace nm {
 
     //we can't do det_exact on byte, because it will want to return a byte (unsigned), but determinants can be negative, even if all elements of the matrix are positive
     template <>
-    void det_exact_from_dense<uint8_t>(const int M, const void* A_elements, const int lda, void* result_arg) {
+    [[ noreturn ]] void det_exact_from_dense<uint8_t>(const int M, const void* A_elements, const int lda, void* result_arg) {
       rb_raise(nm_eDataTypeError, "cannot call det_exact on unsigned type");
     }
     /*
@@ -464,7 +464,7 @@ namespace nm {
       delete[] u;
     }
 
-    void raise_not_invertible_error() {
+    [[ noreturn ]] void raise_not_invertible_error() {
         rb_raise(nm_eNotInvertibleError,
             "matrix must have non-zero determinant to be invertible (not getting this error does not mean matrix is invertible if you're dealing with floating points)");
     }

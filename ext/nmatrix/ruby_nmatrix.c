@@ -1144,7 +1144,7 @@ static VALUE nm_init_new_version(int argc, VALUE* argv, VALUE self) {
   // Get the shape.
   size_t  dim;
   size_t* shape = interpret_shape(shape_ary, &dim);
-  void*   init;
+  void*   init = NULL;
   void*   v = NULL;
   size_t  v_size = 0;
 
