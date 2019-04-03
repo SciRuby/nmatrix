@@ -124,7 +124,7 @@ end
 
 # Since `autoload` will most likely be deprecated (due to multi-threading concerns),
 # we'll use `const_missing`. See: https://www.ruby-forum.com/topic/3036681 for more info.
-module AutoloadPatch #:nodoc
+module AutoloadPatch # :nodoc:
   def const_missing(name)
     file = name.to_s.underscore
     require "nmatrix/io/#{file}"

@@ -177,7 +177,8 @@ class NMatrix
     dest[:elements]
   end
 
-  def dense_storage_coords(s, slice_pos, coords_out, stride, offset) # array, int, array
+  # array, int, array
+  def dense_storage_coords(s, slice_pos, coords_out, stride, offset)
     temp_pos = slice_pos
 
     (0...dim).each do |i|

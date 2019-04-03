@@ -600,6 +600,7 @@ describe "NMatrix" do
             expect {n == x}.to raise_error(ShapeError)
           end
 
+          # yale must have dimension 2
           if left != :yale && right != :yale
             it "tests equality of matrices with different dimension" do
               n = NMatrix.new([2, 1], [1, 2], stype: left)
@@ -607,7 +608,7 @@ describe "NMatrix" do
 
               expect {n == m}.to raise_error(ShapeError)
             end
-          end # yale must have dimension 2
+          end
         end
       end
     end
