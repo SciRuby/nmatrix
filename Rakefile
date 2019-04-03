@@ -3,6 +3,7 @@
 require 'rubygems'
 require 'rubygems/package_task'
 require 'bundler'
+require "standard/rake"
 
 #Specify plugins to build on the command line like:
 #rake whatever nmatrix_plugins=atlas,lapacke
