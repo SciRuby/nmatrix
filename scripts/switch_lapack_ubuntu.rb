@@ -19,7 +19,6 @@ def run(cmd)
   system cmd
 end
 
-
 run "update-alternatives --set liblapack.so.3 #{lapack_prefix}/liblapack.so.3"
 run "update-alternatives --set liblapack.so #{lapack_prefix}/liblapack.so"
 run "update-alternatives --set libblas.so.3 #{blas_prefix}/libblas.so.3"
