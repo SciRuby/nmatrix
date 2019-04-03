@@ -24,29 +24,29 @@
 #
 # This file checks FFTW3 and other necessary headers/shared objects.
 
-require 'nmatrix/mkmf'
+require "nmatrix/mkmf"
 
-fftw_libdir = RbConfig::CONFIG['libdir']
-fftw_incdir = RbConfig::CONFIG['includedir']
-fftw_srcdir = RbConfig::CONFIG['srcdir']
+fftw_libdir = RbConfig::CONFIG["libdir"]
+fftw_incdir = RbConfig::CONFIG["includedir"]
+fftw_srcdir = RbConfig::CONFIG["srcdir"]
 
-$CFLAGS = ["-Wall -Werror=return-type -I$(srcdir)/../nmatrix -I$(srcdir)/lapacke/include",$CFLAGS].join(" ")
-$CXXFLAGS = ["-Wall -Werror=return-type -I$(srcdir)/../nmatrix -I$(srcdir)/lapacke/include -std=c++11",$CXXFLAGS].join(" ")
-$CPPFLAGS = ["-Wall -Werror=return-type -I$(srcdir)/../nmatrix -I$(srcdir)/lapacke/include -std=c++11",$CPPFLAGS].join(" ")
+$CFLAGS = ["-Wall -Werror=return-type -I$(srcdir)/../nmatrix -I$(srcdir)/lapacke/include", $CFLAGS].join(" ")
+$CXXFLAGS = ["-Wall -Werror=return-type -I$(srcdir)/../nmatrix -I$(srcdir)/lapacke/include -std=c++11", $CXXFLAGS].join(" ")
+$CPPFLAGS = ["-Wall -Werror=return-type -I$(srcdir)/../nmatrix -I$(srcdir)/lapacke/include -std=c++11", $CPPFLAGS].join(" ")
 
 flags = " --include=#{fftw_incdir} --libdir=#{fftw_libdir}"
 
 if have_library("fftw3")
   $CFLAGS += [" -lfftw3 -lm #{$CFLAGS} #{$flags}"].join(" ")
-  dir_config('nmatrix_fftw', fftw_incdir, fftw_libdir)
-  dir_config('nmatrix_fftw')
+  dir_config("nmatrix_fftw", fftw_incdir, fftw_libdir)
+  dir_config("nmatrix_fftw")
 end
 
 create_conf_h("nmatrix_fftw_config.h")
 create_makefile("nmatrix_fftw")
 
 # to clean up object files in subdirectories:
-open('Makefile', 'a') do |f|
-  clean_objs_paths = %w{ }.map { |d| "#{d}/*.#{CONFIG["OBJEXT"]}" }
-  f.write("CLEANOBJS := $(CLEANOBJS) #{clean_objs_paths.join(' ')}")
+open("Makefile", "a") do |f|
+  clean_objs_paths = %w[].map { |d| "#{d}/*.#{CONFIG["OBJEXT"]}" }
+  f.write("CLEANOBJS := $(CLEANOBJS) #{clean_objs_paths.join(" ")}")
 end
