@@ -33,10 +33,8 @@
 #++
 
 class NMatrix
-
   module LAPACK
-
-    #Add functions from C extension to main LAPACK module
+    # Add functions from C extension to main LAPACK module
     class << self
       NMatrix::Internal::LAPACK.singleton_methods.each do |m|
         define_method m, NMatrix::Internal::LAPACK.method(m).to_proc
@@ -71,17 +69,16 @@ class NMatrix
         raise(StorageTypeError, "LAPACK functions only work on :dense NMatrix instances") unless matrix.stype == :dense
         raise(ArgumentError, "expected Array ipiv to have no more entries than NMatrix a has columns") if ipiv.size > matrix.shape[1]
 
-        clapack_laswp(matrix.shape[0], matrix, matrix.shape[1], 0, ipiv.size-1, ipiv, 1)
+        clapack_laswp(matrix.shape[0], matrix, matrix.shape[1], 0, ipiv.size - 1, ipiv, 1)
       end
 
       def alloc_svd_result(matrix)
         [
           NMatrix.new(matrix.shape[0], dtype: matrix.dtype),
-          NMatrix.new([[matrix.shape[0],matrix.shape[1]].min,1], dtype: matrix.abs_dtype),
-          NMatrix.new(matrix.shape[1], dtype: matrix.dtype)
+          NMatrix.new([[matrix.shape[0], matrix.shape[1]].min, 1], dtype: matrix.abs_dtype),
+          NMatrix.new(matrix.shape[1], dtype: matrix.dtype),
         ]
       end
-
 
       #
       # call-seq:
@@ -95,8 +92,8 @@ class NMatrix
       #
       # Requires either the nmatrix-lapacke or nmatrix-atlas gem.
       #
-      def gesvd(matrix, workspace_size=1)
-        raise(NotImplementedError,"gesvd requires either the nmatrix-atlas or nmatrix-lapacke gem")
+      def gesvd(matrix, workspace_size = 1)
+        raise(NotImplementedError, "gesvd requires either the nmatrix-atlas or nmatrix-lapacke gem")
       end
 
       #
@@ -112,8 +109,8 @@ class NMatrix
       #
       # Requires either the nmatrix-lapacke or nmatrix-atlas gem.
       #
-      def gesdd(matrix, workspace_size=nil)
-        raise(NotImplementedError,"gesvd requires either the nmatrix-atlas or nmatrix-lapacke gem")
+      def gesdd(matrix, workspace_size = nil)
+        raise(NotImplementedError, "gesvd requires either the nmatrix-atlas or nmatrix-lapacke gem")
       end
 
       #
@@ -142,7 +139,7 @@ class NMatrix
       #
       # Only available if nmatrix-lapack or nmatrix-atlas is installed.
       #
-      def geev(matrix, which=:both)
+      def geev(matrix, which = :both)
         raise(NotImplementedError, "geev requires either the nmatrix-atlas or nmatrix-lapack gem")
       end
 
@@ -150,31 +147,31 @@ class NMatrix
       # now require nmatrix-atlas to run properly, so we can just
       # implemented their stubs in Ruby.
       def lapack_gesvd(jobu, jobvt, m, n, a, lda, s, u, ldu, vt, ldvt, lwork)
-        raise(NotImplementedError,"lapack_gesvd requires the nmatrix-atlas gem")
+        raise(NotImplementedError, "lapack_gesvd requires the nmatrix-atlas gem")
       end
 
       def lapack_gesdd(jobz, m, n, a, lda, s, u, ldu, vt, ldvt, lwork)
-        raise(NotImplementedError,"lapack_gesdd requires the nmatrix-atlas gem")
+        raise(NotImplementedError, "lapack_gesdd requires the nmatrix-atlas gem")
       end
 
       def lapack_geev(jobvl, jobvr, n, a, lda, w, wi, vl, ldvl, vr, ldvr, lwork)
-        raise(NotImplementedError,"lapack_geev requires the nmatrix-atlas gem")
+        raise(NotImplementedError, "lapack_geev requires the nmatrix-atlas gem")
       end
 
       def clapack_potrf(order, uplo, n, a, lda)
-        raise(NotImplementedError,"clapack_potrf requires the nmatrix-atlas gem")
+        raise(NotImplementedError, "clapack_potrf requires the nmatrix-atlas gem")
       end
 
       def clapack_potri(order, uplo, n, a, lda)
-        raise(NotImplementedError,"clapack_potri requires the nmatrix-atlas gem")
+        raise(NotImplementedError, "clapack_potri requires the nmatrix-atlas gem")
       end
 
       def clapack_potrs(order, uplo, n, nrhs, a, lda, b, ldb)
-        raise(NotImplementedError,"clapack_potrs requires the nmatrix-atlas gem")
+        raise(NotImplementedError, "clapack_potrs requires the nmatrix-atlas gem")
       end
 
       def clapack_getri(order, n, a, lda, ipiv)
-        raise(NotImplementedError,"clapack_getri requires the nmatrix-atlas gem")
+        raise(NotImplementedError, "clapack_getri requires the nmatrix-atlas gem")
       end
     end
   end

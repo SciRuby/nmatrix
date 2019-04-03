@@ -42,7 +42,7 @@ class Array
   #   instead of :float64) -- optional.
   # <tt>stype</tt> :: Optional storage type (defaults to :dense)
   def to_nm(shape = nil, dtype = nil, stype = :dense)
-    elements = self.dup
+    elements = dup
 
     guess_dtype = ->(type) {
       case type
@@ -58,8 +58,6 @@ class Array
       shape << shapey.map {|s|
         if s.respond_to?(:size) && s.respond_to?(:map)
           guess_shape.call(s)
-        else
-          nil
         end
       }
       if shape.last.any? {|s| (s != shape.last.first) || s.nil?}
@@ -85,7 +83,7 @@ class Array
 
     matrix = NMatrix.new(:dense, shape, elements, dtype)
 
-    if stype != :dense then matrix.cast(stype, dtype) else matrix end
+    stype != :dense ? matrix.cast(stype, dtype) : matrix
   end
 end
 
@@ -96,17 +94,16 @@ class Object #:nodoc:
   end
 end
 
-
 module Math #:nodoc:
   class << self
     NMatrix::NMMath::METHODS_ARITY_2.each do |meth|
       define_method "nm_#{meth}" do |arg0, arg1|
-        if arg0.is_a? NMatrix then
+        if arg0.is_a? NMatrix
           arg0.send(meth, arg1)
-        elsif arg1.is_a? NMatrix then
+        elsif arg1.is_a? NMatrix
           arg1.send(meth, arg0, true)
         else
-          self.send("old_#{meth}".to_sym, arg0, arg1)
+          send("old_#{meth}".to_sym, arg0, arg1)
         end
       end
       alias_method "old_#{meth}".to_sym, meth
@@ -117,17 +114,17 @@ end
 
 class String
   def underscore
-    self.gsub(/::/, '/').
-    gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
-    gsub(/([a-z\d])([A-Z])/,'\1_\2').
-    tr("-", "_").
-    downcase
+    gsub(/::/, "/")
+      .gsub(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
+      .gsub(/([a-z\d])([A-Z])/, '\1_\2')
+      .tr("-", "_")
+      .downcase
   end
 end
 
 # Since `autoload` will most likely be deprecated (due to multi-threading concerns),
 # we'll use `const_missing`. See: https://www.ruby-forum.com/topic/3036681 for more info.
-module AutoloadPatch #:nodoc
+module AutoloadPatch # :nodoc:
   def const_missing(name)
     file = name.to_s.underscore
     require "nmatrix/io/#{file}"

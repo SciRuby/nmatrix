@@ -33,110 +33,115 @@
 #++
 
 class NMatrix
-
   # Methods for generating magic matrix.
   module MagicHelpers
     class << self
       def odd_magic(nm, shape)
         row = shape - 1
-        col = shape / 2       
-        nm[row,col] = 1
+        col = shape / 2
+        nm[row, col] = 1
         (2..shape * shape).each do |index|
-          if nm[(row + 1) % shape,(col + 1) % shape] == 0
+          if nm[(row + 1) % shape, (col + 1) % shape] == 0
             row = (row + 1) % shape
             col = (col + 1) % shape
           else
             row = (row - 1 + shape) % shape
           end
-            nm[row,col] = index
+          nm[row, col] = index
         end
       end
-    
+
       def doubly_even_magic(nm, shape)
         mini_square_num = shape / 4
-        count = 1     
+        count = 1
         inv_count = shape * shape
         shape.times do |row|
           shape.times do |col|
-            if col >= mini_square_num and col < shape - mini_square_num
-              if row >= mini_square_num and row < shape - mini_square_num
-      	        nm[row,col] = count
-              else 
-                nm[row,col] = inv_count
+            nm[row, col] = if (col >= mini_square_num) && (col < shape - mini_square_num)
+              if (row >= mini_square_num) && (row < shape - mini_square_num)
+                count
+              else
+                inv_count
               end
-            elsif row < mini_square_num or row >= shape - mini_square_num
-              nm[row,col] = count
+            elsif (row < mini_square_num) || (row >= shape - mini_square_num)
+              count
             else
-              nm[row,col] = inv_count
+              inv_count
             end
             count += 1
-            inv_count -= 1  
+            inv_count -= 1
           end
         end
       end
-    
+
       def singly_even_magic(nm, shape)
         half_shape = shape / 2
         complementary_pair = (shape - 2) / 4
         swap_col = NMatrix.new([shape])
-        index = 0 
-        mini_magic = NMatrix.new([half_shape,half_shape], 0, dtype: nm.dtype)
+        index = 0
+        mini_magic = NMatrix.new([half_shape, half_shape], 0, dtype: nm.dtype)
         odd_magic mini_magic, half_shape
         half_shape.times do |row|
           half_shape.times do |col|
-            nm[row,col] = mini_magic[row,col]  	
-            nm[row + half_shape,col + half_shape] = mini_magic[row,col] + half_shape * half_shape  
-            nm[row,col + half_shape] = mini_magic[row,col] + 2 * half_shape * half_shape      
-            nm[row + half_shape,col] = mini_magic[row,col] + 3 * half_shape * half_shape       
-          end  
+            nm[row, col] = mini_magic[row, col]
+            nm[row + half_shape, col + half_shape] = mini_magic[row, col] + half_shape * half_shape
+            nm[row, col + half_shape] = mini_magic[row, col] + 2 * half_shape * half_shape
+            nm[row + half_shape, col] = mini_magic[row, col] + 3 * half_shape * half_shape
+          end
         end
-  
+
         (1..complementary_pair).each do |complementary_entry|
           swap_col[index] = complementary_entry
           index += 1
         end
-      
+
         (shape - complementary_pair + 2..shape).each do |center|
           swap_col[index] = center
           index += 1
-        end 
-      
+        end
+
         (1..half_shape).each do |row|
           (1..index).each do |col|
-            temp = nm[row - 1,swap_col[col - 1] - 1]
-            nm[row - 1,swap_col[col - 1] - 1] = nm[row + half_shape - 1,swap_col[col - 1] - 1]
-            nm[row + half_shape - 1,swap_col[col - 1] - 1] = temp
+            temp = nm[row - 1, swap_col[col - 1] - 1]
+            nm[row - 1, swap_col[col - 1] - 1] = nm[row + half_shape - 1, swap_col[col - 1] - 1]
+            nm[row + half_shape - 1, swap_col[col - 1] - 1] = temp
           end
         end
 
-        temp = nm[complementary_pair,0] 
-        nm[complementary_pair,0] = nm[complementary_pair + half_shape,0] 
-        nm[complementary_pair + half_shape,0] = temp
+        temp = nm[complementary_pair, 0]
+        nm[complementary_pair, 0] = nm[complementary_pair + half_shape, 0]
+        nm[complementary_pair + half_shape, 0] = temp
 
-        temp = nm[complementary_pair + half_shape,complementary_pair]
-        nm[complementary_pair + half_shape,complementary_pair] = nm[complementary_pair,complementary_pair] 
-        nm[complementary_pair,complementary_pair] = temp
-      end  
-    end 
-  end 
-    
+        temp = nm[complementary_pair + half_shape, complementary_pair]
+        nm[complementary_pair + half_shape, complementary_pair] = nm[complementary_pair, complementary_pair]
+        nm[complementary_pair, complementary_pair] = temp
+      end
+    end
+  end
+
   # call-seq:
   #     m.dense? -> true or false
   #
   # Determine if +m+ is a dense matrix.
-  def dense?; return stype == :dense; end
+  def dense?
+    stype == :dense
+  end
 
   # call-seq:
   #     m.yale? -> true or false
   #
   # Determine if +m+ is a Yale matrix.
-  def yale?;  return stype == :yale; end
+  def yale?
+    stype == :yale
+  end
 
   # call-seq:
   #     m.list? -> true or false
   #
   # Determine if +m+ is a list-of-lists matrix.
-  def list?;  return stype == :list; end
+  def list?
+    stype == :list
+  end
 
   class << self
     # call-seq:
@@ -197,7 +202,7 @@ class NMatrix
       end
 
       # A row vector should be stored as 1xN, not N
-      #shape.unshift(1) if shape.size == 1
+      # shape.unshift(1) if shape.size == 1
 
       # Then flatten the array.
       NMatrix.new(shape, params.flatten, options)
@@ -230,9 +235,9 @@ class NMatrix
     #   NMatrix.zeros([1, 5], dtype: :int32) # =>  0  0  0  0  0
     #
     def zeros(shape, opts = {})
-      NMatrix.new(shape, 0, {:dtype => :float64}.merge(opts))
+      NMatrix.new(shape, 0, {dtype: :float64}.merge(opts))
     end
-    alias :zeroes :zeros
+    alias zeroes zeros
 
     #
     # call-seq:
@@ -254,8 +259,8 @@ class NMatrix
     #   NMatrix.ones([2, 3], dtype: :int32) # =>  1  1  1
     #                                             1  1  1
     #
-    def ones(shape, opts={})
-      NMatrix.new(shape, 1, {:dtype => :float64, :default => 1}.merge(opts))
+    def ones(shape, opts = {})
+      NMatrix.new(shape, 1, {dtype: :float64, default: 1}.merge(opts))
     end
 
     # call-seq:
@@ -312,16 +317,16 @@ class NMatrix
     #    NMatrix.eye(2, dtype: :int32, stype: :yale) # =>   1   0
     #                                                       0   1
     #
-    def eye(shape, opts={})
+    def eye(shape, opts = {})
       # Fill the diagonal with 1's.
-      m = NMatrix.zeros(shape, {:dtype => :float64}.merge(opts))
+      m = NMatrix.zeros(shape, {dtype: :float64}.merge(opts))
       (0...m.shape[0]).each do |i|
         m[i, i] = 1
       end
 
       m
     end
-    alias :identity :eye
+    alias identity eye
 
     #
     # call-seq:
@@ -344,12 +349,12 @@ class NMatrix
     #            0.5                         0.3333333333333333    0.25
     #            0.3333333333333333          0.25                  0.2
     #
-    def hilbert(shape, opts={})
-      m = NMatrix.new([shape,shape], {:dtype => :float64}.merge(opts))
+    def hilbert(shape, opts = {})
+      m = NMatrix.new([shape, shape], {dtype: :float64}.merge(opts))
       0.upto(shape - 1) do |i|
         0.upto(i) do |j|
-          m[i,j] = 1.0 / (j + i + 1)
-          m[j,i] = m[i,j] if i != j
+          m[i, j] = 1.0 / (j + i + 1)
+          m[j, i] = m[i, j] if i != j
         end
       end
       m
@@ -376,27 +381,27 @@ class NMatrix
     #                          30.0, -180.0,  180.0
     #
     #
-    def inv_hilbert(shape, opts={})
-      opts = {:dtype => :float64}.merge(opts)
-      m = NMatrix.new([shape,shape],opts)
-      combination = NMatrix.new([2*shape,2*shape],opts)
-      #combinations refers to the combination of n things taken k at a time
-      0.upto(2*shape-1) do |i|
+    def inv_hilbert(shape, opts = {})
+      opts = {dtype: :float64}.merge(opts)
+      m = NMatrix.new([shape, shape], opts)
+      combination = NMatrix.new([2 * shape, 2 * shape], opts)
+      # combinations refers to the combination of n things taken k at a time
+      0.upto(2 * shape - 1) do |i|
         0.upto(i) do |j|
-          if j != 0 and j != i
-            combination[i,j] = combination[i-1,j] + combination[i-1,j-1]
+          combination[i, j] = if (j != 0) && (j != i)
+            combination[i - 1, j] + combination[i - 1, j - 1]
           else
-            combination[i,j] = 1
+            1
           end
         end
       end
 
-      0.upto(shape-1) do |i|
+      0.upto(shape - 1) do |i|
         0.upto(i) do |j|
-          m[i,j] = combination[shape + j,shape - i - 1] * ((i+j)+1) * \
-          combination[shape + i,shape - j - 1] * (-1) ** ((i+j)) * \
-          combination[(i+j),i] * combination[(i+j),i]
-          m[j,i] = m[i,j] if i != j
+          m[i, j] = combination[shape + j, shape - i - 1] * ((i + j) + 1) * \
+            combination[shape + i, shape - j - 1] * (-1)**((i + j)) * \
+            combination[(i + j), i] * combination[(i + j), i]
+          m[j, i] = m[i, j] if i != j
         end
       end
       m
@@ -428,39 +433,38 @@ class NMatrix
     #                                                   0 0 0 4
     #
     #
-    def diagonal(entries, opts={})
+    def diagonal(entries, opts = {})
       m = NMatrix.zeros(entries.size,
-                        {:dtype => guess_dtype(entries[0]), :capacity => entries.size + 1}.merge(opts)
-                       )
+        {dtype: guess_dtype(entries[0]), capacity: entries.size + 1}.merge(opts))
       entries.each_with_index do |n, i|
-        m[i,i] = n
+        m[i, i] = n
       end
       m
     end
-    alias :diag :diagonal
-    alias :diagonals :diagonal
+    alias diag diagonal
+    alias diagonals diagonal
 
     # Generate a block-diagonal NMatrix from the supplied 2D square matrices.
     #
     # * *Arguments*
     #   - +*params+ -> An array that collects all arguments passed to the method. The method
-    #                  can receive any number of arguments. Optionally, the last entry of +params+ is 
-    #                  a hash of options from NMatrix#initialize. All other entries of +params+ are 
-    #                  the blocks of the desired block-diagonal matrix. Each such matrix block can be 
-    #                  supplied as a square 2D NMatrix object, or alternatively as an array of arrays 
+    #                  can receive any number of arguments. Optionally, the last entry of +params+ is
+    #                  a hash of options from NMatrix#initialize. All other entries of +params+ are
+    #                  the blocks of the desired block-diagonal matrix. Each such matrix block can be
+    #                  supplied as a square 2D NMatrix object, or alternatively as an array of arrays
     #                  (with dimensions corresponding to a square matrix), or alternatively as a number.
     # * *Returns*
     #   - NMatrix of block-diagonal form filled with specified matrices
     #     as the blocks along the diagonal.
     #
-    # * *Example* 
+    # * *Example*
     #
     #  a = NMatrix.new([2,2], [1,2,3,4])
     #  b = NMatrix.new([1,1], [123], dtype: :float64)
     #  c = Array.new(2) { [[10,10], [10,10]] }
     #  d = Array[[1,2,3], [4,5,6], [7,8,9]]
     #  m = NMatrix.block_diagonal(a, b, *c, d, 10.0, 11, dtype: :int64, stype: :yale)
-    #        => 
+    #        =>
     #        [
     #          [1, 2,   0,  0,  0,  0,  0, 0, 0, 0,  0,  0]
     #          [3, 4,   0,  0,  0,  0,  0, 0, 0, 0,  0,  0]
@@ -481,10 +485,10 @@ class NMatrix
 
       params.each_index do |i|
         params[i] = params[i].to_nm if params[i].is_a?(Array) # Convert Array to NMatrix
-        params[i] = NMatrix.new([1,1], [params[i]]) if params[i].is_a?(Numeric) # Convert number to NMatrix
+        params[i] = NMatrix.new([1, 1], [params[i]]) if params[i].is_a?(Numeric) # Convert number to NMatrix
       end
 
-      block_sizes = [] #holds the size of each matrix block
+      block_sizes = [] # holds the size of each matrix block
       params.each do |b|
         unless b.is_a?(NMatrix)
           raise(ArgumentError, "Only NMatrix or appropriate Array objects or single numbers allowed")
@@ -494,22 +498,22 @@ class NMatrix
         block_sizes << b.shape[0]
       end
 
-      block_diag_mat = NMatrix.zeros(block_sizes.inject(0,:+), options)
+      block_diag_mat = NMatrix.zeros(block_sizes.inject(0, :+), options)
       (0...params.length).each do |n|
         # First determine the size and position of the n'th block in the block-diagonal matrix
         block_size = block_sizes[n]
-        block_pos = block_sizes[0...n].inject(0,:+)
+        block_pos = block_sizes[0...n].inject(0, :+)
         # populate the n'th block in the block-diagonal matrix
         (0...block_size).each do |i|
           (0...block_size).each do |j|
-            block_diag_mat[block_pos+i,block_pos+j] = params[n][i,j]
+            block_diag_mat[block_pos + i, block_pos + j] = params[n][i, j]
           end
         end
       end
 
-      return block_diag_mat
+      block_diag_mat
     end
-    alias :block_diag :block_diagonal
+    alias block_diag block_diagonal
 
     #
     # call-seq:
@@ -533,18 +537,16 @@ class NMatrix
     #
     #   NMatrix.random([2, 2], :dtype => :byte, :scale => 255) # => [ [252, 108] [44, 12] ]
     #
-    def random(shape, opts={})
+    def random(shape, opts = {})
       scale = opts.delete(:scale) || 1.0
 
-      if opts[:seed].nil?
-        rng = Random.new
+      rng = if opts[:seed].nil?
+        Random.new
       else
-        rng = Random.new(opts[:seed])
+        Random.new(opts[:seed])
       end
-      
 
       random_values = []
-
 
       # Construct the values of the final matrix based on the dimension.
       if opts[:dtype] == :complex64 || opts[:dtype] == :complex128
@@ -553,11 +555,11 @@ class NMatrix
         NMatrix.size(shape).times { |i| random_values << rng.rand(scale) }
       end
 
-      NMatrix.new(shape, random_values, {:dtype => :float64, :stype => :dense}.merge(opts))
+      NMatrix.new(shape, random_values, {dtype: :float64, stype: :dense}.merge(opts))
     end
-    alias :rand :random
-    
-    # 
+    alias rand random
+
+    #
     #  call-seq:
     #    magic(shape) -> NMatrix
     #    magic(shape, dtype: dtype) -> NMatrix
@@ -568,9 +570,9 @@ class NMatrix
     #    - An arrangement of the numbers from 1 to n^2 (n-squared) in the matrix, with each number occurring exactly once.
     #    - The sum of the entries of any row, any column, or any main diagonal is the same.
     #    - This sum must be n(n^2+1)/2.
-    #   
+    #
     #  See: http://www.mathworks.com/help/matlab/ref/magic.html
-    # 
+    #
     #  * *Arguments* :
     #   - +shape+ -> Array (or integer for square matrix) specifying the dimensions.
     #   - +dtype+ -> (optional) Default is +:float64+
@@ -578,14 +580,14 @@ class NMatrix
     #   - NMatrix with the above given properties.
     #
     #  Examples:
-    #       
+    #
     #    NMatrix.magic(3) # => [  [4.0, 9.0, 2.0]   [3.0, 5.0, 7.0]   [8.0, 1.0, 6.0] ]
-    #    
+    #
     #    NMatrix.magic(4, dtype :int32) # => [  [ 1, 15, 14,  4]
     #                                           [12,  6,  7,  9]
     #                                           [ 8, 10, 11,  5]
     #                                           [13,  3,  2, 16] ]
-    #                             
+    #
     #    NMatrix.magic(6,dtype: :int64) # => [  [31,  9,  2, 22, 27, 20]
     #                                           [ 3, 32,  7, 21, 23, 25]
     #                                           [35,  1,  6, 26, 19, 24]
@@ -593,118 +595,18 @@ class NMatrix
     #                                           [30,  5, 34, 12, 14, 16]
     #                                           [ 8, 28, 33, 17, 10, 15] ]
     #
-    def magic(shape, opts={})
+    def magic(shape, opts = {})
       raise(ArgumentError, "shape of two is not allowed") if shape == 2
-      nm = NMatrix.new([shape,shape], 0, {:dtype => :float64}.merge(opts))
+      nm = NMatrix.new([shape, shape], 0, {dtype: :float64}.merge(opts))
       if shape % 2 != 0
         MagicHelpers.odd_magic nm, shape
       elsif shape % 4 == 0
         MagicHelpers.doubly_even_magic nm, shape
-      else   
+      else
         MagicHelpers.singly_even_magic nm, shape
       end
       nm
     end
-    
-    #
-    # call-seq:
-    #     linspace(base, limit) -> 1x100 NMatrix
-    #     linspace(base, limit, *shape) -> NMatrix
-    #
-    # Returns an NMatrix with +[shape[0] x shape[1] x .. x shape[dim-1]]+ values of dtype +:float64+ equally spaced from
-    # +base+ to +limit+, inclusive.
-    #
-    # See: http://www.mathworks.com/help/matlab/ref/linspace.html
-    #
-    # * *Arguments* :
-    #   - +base+ -> The first value in the sequence.
-    #   - +limit+ -> The last value in the sequence.
-    #   - +shape+ -> Desired output shape. Default returns a 1x100 row vector.
-    # * *Returns* :
-    #   - NMatrix with +:float64+ values.
-    #
-    # Examples :-
-    #
-    #   NMatrix.linspace(1,Math::PI, 6)
-    #     =>[1.0,
-    #        1.4283185005187988,
-    #        1.8566370010375977,
-    #        2.2849555015563965,
-    #        2.7132740020751953,
-    #        3.1415927410125732
-    #       ]
-    #
-    #   NMatrix.linspace(1,10, [3,2])
-    #     =>[
-    #         [              1.0, 2.799999952316284]
-    #         [4.599999904632568, 6.400000095367432]
-    #         [8.199999809265137,              10.0]
-    #       ]
-    #
-    def linspace(base, limit, shape = [100])
-      
-      # Convert shape to array format 
-      shape = [shape] if shape.is_a? Integer 
-      
-      #Calculate number of elements 
-      count = shape.inject(:*)
-            
-      # Linear spacing between elements calculated in step
-      #   step = limit - base / (count - 1)
-      #   [Result Sequence] = [0->N sequence] * step + [Base]
-      step = (limit - base) * (1.0 / (count - 1))
-      result = NMatrix.seq(shape, {:dtype => :float64}) * step
-      result += NMatrix.new(shape, base)
-      result
-    end
-
-    # call-seq:
-    #     logspace(base, limit) -> 1x50 NMatrix with exponent_base = 10 
-    #     logspace(base, limit, shape , exponent_base:) -> NMatrix
-    #     logspace(base, :pi, n) -> 1xn NMatrix with interval [10 ^ base, Math::PI]
-    #
-    # Returns an NMatrix with +[shape[0] x shape[1] x .. x shape[dim-1]]+ values of dtype +:float64+ logarithmically spaced from
-    # +exponent_base ^ base+ to +exponent_base ^ limit+, inclusive.
-    #
-    # See: http://www.mathworks.com/help/matlab/ref/logspace.html
-    #
-    # * *Arguments* :
-    #   - +base+ -> exponent_base ** base is the first value in the sequence
-    #   - +limit+ -> exponent_base ** limit is the last value in the sequence.
-    #   - +shape+ -> Desired output shape. Default returns a 1x50 row vector.
-    # * *Returns* :
-    #   - NMatrix with +:float64+ values.
-    #
-    # Examples :-
-    #
-    #   NMatrix.logspace(1,:pi,7)
-    #     =>[
-    #         10.0000, 
-    #         8.2450, 
-    #         6.7980, 
-    #         5.6050, 
-    #         4.6213, 
-    #         3.8103, 
-    #         3.1416
-    #       ]
-    #
-    #   NMatrix.logspace(1,2,[3,2])
-    #     =>[
-    #         [10.0, 15.8489]
-    #         [25.1189, 39.8107]
-    #         [63.0957, 100.0]
-    #       ]
-    #
-    def logspace(base, limit, shape = [50], exponent_base: 10)
-
-      #Calculate limit for [10 ^ base ... Math::PI] if limit = :pi
-      limit = Math.log(Math::PI, exponent_base = 10) if limit == :pi 
-      shape = [shape] if shape.is_a? Integer
-
-      #[base...limit]  -> [exponent_base ** base ... exponent_base ** limit]
-      result = NMatrix.linspace(base, limit, shape)
-      result.map {|element| exponent_base ** element}
-    end
 
     #
     # call-seq:
@@ -742,24 +644,23 @@ class NMatrix
     #       ]
     #
     def linspace(base, limit, shape = [100])
-      
-      # Convert shape to array format 
-      shape = [shape] if shape.is_a? Integer 
-      
-      #Calculate number of elements 
+      # Convert shape to array format
+      shape = [shape] if shape.is_a? Integer
+
+      # Calculate number of elements
       count = shape.inject(:*)
-            
+
       # Linear spacing between elements calculated in step
       #   step = limit - base / (count - 1)
       #   [Result Sequence] = [0->N sequence] * step + [Base]
       step = (limit - base) * (1.0 / (count - 1))
-      result = NMatrix.seq(shape, {:dtype => :float64}) * step
+      result = NMatrix.seq(shape, {dtype: :float64}) * step
       result += NMatrix.new(shape, base)
       result
     end
 
     # call-seq:
-    #     logspace(base, limit) -> 1x50 NMatrix with exponent_base = 10 
+    #     logspace(base, limit) -> 1x50 NMatrix with exponent_base = 10
     #     logspace(base, limit, shape , exponent_base:) -> NMatrix
     #     logspace(base, :pi, n) -> 1xn NMatrix with interval [10 ^ base, Math::PI]
     #
@@ -779,12 +680,12 @@ class NMatrix
     #
     #   NMatrix.logspace(1,:pi,7)
     #     =>[
-    #         10.0000, 
-    #         8.2450, 
-    #         6.7980, 
-    #         5.6050, 
-    #         4.6213, 
-    #         3.8103, 
+    #         10.0000,
+    #         8.2450,
+    #         6.7980,
+    #         5.6050,
+    #         4.6213,
+    #         3.8103,
     #         3.1416
     #       ]
     #
@@ -796,14 +697,111 @@ class NMatrix
     #       ]
     #
     def logspace(base, limit, shape = [50], exponent_base: 10)
-
-      #Calculate limit for [10 ^ base ... Math::PI] if limit = :pi
-      limit = Math.log(Math::PI, exponent_base = 10) if limit == :pi 
+      # Calculate limit for [10 ^ base ... Math::PI] if limit = :pi
+      limit = Math.log(Math::PI, exponent_base = 10) if limit == :pi
       shape = [shape] if shape.is_a? Integer
 
-      #[base...limit]  -> [exponent_base ** base ... exponent_base ** limit]
+      # [base...limit]  -> [exponent_base ** base ... exponent_base ** limit]
       result = NMatrix.linspace(base, limit, shape)
-      result.map {|element| exponent_base ** element}
+      result.map {|element| exponent_base**element}
+    end
+
+    #
+    # call-seq:
+    #     linspace(base, limit) -> 1x100 NMatrix
+    #     linspace(base, limit, *shape) -> NMatrix
+    #
+    # Returns an NMatrix with +[shape[0] x shape[1] x .. x shape[dim-1]]+ values of dtype +:float64+ equally spaced from
+    # +base+ to +limit+, inclusive.
+    #
+    # See: http://www.mathworks.com/help/matlab/ref/linspace.html
+    #
+    # * *Arguments* :
+    #   - +base+ -> The first value in the sequence.
+    #   - +limit+ -> The last value in the sequence.
+    #   - +shape+ -> Desired output shape. Default returns a 1x100 row vector.
+    # * *Returns* :
+    #   - NMatrix with +:float64+ values.
+    #
+    # Examples :-
+    #
+    #   NMatrix.linspace(1,Math::PI, 6)
+    #     =>[1.0,
+    #        1.4283185005187988,
+    #        1.8566370010375977,
+    #        2.2849555015563965,
+    #        2.7132740020751953,
+    #        3.1415927410125732
+    #       ]
+    #
+    #   NMatrix.linspace(1,10, [3,2])
+    #     =>[
+    #         [              1.0, 2.799999952316284]
+    #         [4.599999904632568, 6.400000095367432]
+    #         [8.199999809265137,              10.0]
+    #       ]
+    #
+    def linspace(base, limit, shape = [100])
+      # Convert shape to array format
+      shape = [shape] if shape.is_a? Integer
+
+      # Calculate number of elements
+      count = shape.inject(:*)
+
+      # Linear spacing between elements calculated in step
+      #   step = limit - base / (count - 1)
+      #   [Result Sequence] = [0->N sequence] * step + [Base]
+      step = (limit - base) * (1.0 / (count - 1))
+      result = NMatrix.seq(shape, {dtype: :float64}) * step
+      result += NMatrix.new(shape, base)
+      result
+    end
+
+    # call-seq:
+    #     logspace(base, limit) -> 1x50 NMatrix with exponent_base = 10
+    #     logspace(base, limit, shape , exponent_base:) -> NMatrix
+    #     logspace(base, :pi, n) -> 1xn NMatrix with interval [10 ^ base, Math::PI]
+    #
+    # Returns an NMatrix with +[shape[0] x shape[1] x .. x shape[dim-1]]+ values of dtype +:float64+ logarithmically spaced from
+    # +exponent_base ^ base+ to +exponent_base ^ limit+, inclusive.
+    #
+    # See: http://www.mathworks.com/help/matlab/ref/logspace.html
+    #
+    # * *Arguments* :
+    #   - +base+ -> exponent_base ** base is the first value in the sequence
+    #   - +limit+ -> exponent_base ** limit is the last value in the sequence.
+    #   - +shape+ -> Desired output shape. Default returns a 1x50 row vector.
+    # * *Returns* :
+    #   - NMatrix with +:float64+ values.
+    #
+    # Examples :-
+    #
+    #   NMatrix.logspace(1,:pi,7)
+    #     =>[
+    #         10.0000,
+    #         8.2450,
+    #         6.7980,
+    #         5.6050,
+    #         4.6213,
+    #         3.8103,
+    #         3.1416
+    #       ]
+    #
+    #   NMatrix.logspace(1,2,[3,2])
+    #     =>[
+    #         [10.0, 15.8489]
+    #         [25.1189, 39.8107]
+    #         [63.0957, 100.0]
+    #       ]
+    #
+    def logspace(base, limit, shape = [50], exponent_base: 10)
+      # Calculate limit for [10 ^ base ... Math::PI] if limit = :pi
+      limit = Math.log(Math::PI, exponent_base = 10) if limit == :pi
+      shape = [shape] if shape.is_a? Integer
+
+      # [base...limit]  -> [exponent_base ** base ... exponent_base ** limit]
+      result = NMatrix.linspace(base, limit, shape)
+      result.map {|element| exponent_base**element}
     end
 
     #
@@ -835,25 +833,23 @@ class NMatrix
     #                                       3.0  4.0  5.0
     #                                       6.0  7.0  8.0
     #
-    def seq(shape, options={})
-
+    def seq(shape, options = {})
       # Construct the values of the final matrix based on the dimension.
-      values = (0 ... NMatrix.size(shape)).to_a
+      values = (0...NMatrix.size(shape)).to_a
 
       # It'll produce :int32, except if a dtype is provided.
-      NMatrix.new(shape, values, {:stype => :dense}.merge(options))
+      NMatrix.new(shape, values, {stype: :dense}.merge(options))
     end
 
-    {:bindgen => :byte, :indgen => :int64, :findgen => :float32, :dindgen => :float64,
-     :cindgen => :complex64, :zindgen => :complex128,
-     :rbindgen => :object}.each_pair do |meth, dtype|
-      define_method(meth) { |shape| NMatrix.seq(shape, :dtype => dtype) }
+    {bindgen: :byte, indgen: :int64, findgen: :float32, dindgen: :float64,
+     cindgen: :complex64, zindgen: :complex128,
+     rbindgen: :object,}.each_pair do |meth, dtype|
+      define_method(meth) { |shape| NMatrix.seq(shape, dtype: dtype) }
     end
   end
 end
 
 module NVector #:nodoc:
-
   class << self
     #
     # call-seq:
@@ -879,9 +875,9 @@ module NVector #:nodoc:
     #
     def new(*args)
       stype = args[0].is_a?(Symbol) ? args.shift : :dense
-      shape = args[0].is_a?(Array) ? args.shift  : [1,args.shift]
+      shape = args[0].is_a?(Array) ? args.shift  : [1, args.shift]
 
-      if shape.size != 2 || !shape.include?(1) || shape == [1,1]
+      if shape.size != 2 || !shape.include?(1) || shape == [1, 1]
         raise(ArgumentError, "shape must be a Fixnum or an Array of positive Fixnums where exactly one value is 1")
       end
 
@@ -914,9 +910,9 @@ module NVector #:nodoc:
     #                                  0
     #
     def zeros(size, dtype = :float64)
-      NMatrix.new([size,1], 0, dtype: dtype)
+      NMatrix.new([size, 1], 0, dtype: dtype)
     end
-    alias :zeroes :zeros
+    alias zeroes zeros
 
     #
     # call-seq:
@@ -942,7 +938,7 @@ module NVector #:nodoc:
     #                                 1
     #
     def ones(size, dtype = :float64)
-      NMatrix.new([size,1], 1, dtype: dtype)
+      NMatrix.new([size, 1], 1, dtype: dtype)
     end
 
     #
@@ -969,7 +965,7 @@ module NVector #:nodoc:
       random_values = []
       size.times { |i| random_values << rng.rand }
 
-      NMatrix.new([size,1], random_values, opts)
+      NMatrix.new([size, 1], random_values, opts)
     end
 
     #
@@ -996,9 +992,9 @@ module NVector #:nodoc:
     #                                  2.0
     #
     def seq(size, dtype = :int64)
-      values = (0 ... size).to_a
+      values = (0...size).to_a
 
-      NMatrix.new([size,1], values, dtype: dtype)
+      NMatrix.new([size, 1], values, dtype: dtype)
     end
 
     #
@@ -1097,8 +1093,8 @@ module NVector #:nodoc:
       step = (b - a) * (1.0 / (n - 1))
 
       # dtype = :float64 is used to prevent integer coercion.
-      result = NVector.seq(n, :float64) * NMatrix.new([n,1], step, dtype: :float64)
-      result += NMatrix.new([n,1], a, dtype: :float64)
+      result = NVector.seq(n, :float64) * NMatrix.new([n, 1], step, dtype: :float64)
+      result += NMatrix.new([n, 1], a, dtype: :float64)
       result
     end
 
@@ -1138,12 +1134,11 @@ module NVector #:nodoc:
       # Formula: 10^a, 10^(a + step), ..., 10^b, where step = ((b-a) / (n-1)).
 
       result = NVector.linspace(a, b, n)
-      result.each_stored_with_index { |element, i| result[i] = 10 ** element }
+      result.each_stored_with_index { |element, i| result[i] = 10**element }
       result
     end
   end
 end
-
 
 # This constant is intended as a simple constructor for NMatrix meant for
 # experimenting.

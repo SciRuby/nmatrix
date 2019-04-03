@@ -24,12 +24,12 @@
 #
 # A spec for testing monkey patches to RSpec for NMatrix.
 #
-require 'spec_helper'
+require "spec_helper"
 
 describe "RSpec" do
   it "should permit #be_within to be used on a dense NMatrix" do
     pending("not yet implemented for NMatrix-JRuby") if jruby?
-    expect(NMatrix.new([4,1], 1.0, dtype: :complex128, stype: :dense) / 10000.0).to be_within(0.00000001).of(NMatrix.new([4,1], 0.0001, dtype: :float64, stype: :dense))
-    expect(NMatrix.new([4,1], 1.0, dtype: :complex128, stype: :dense) / 10000.0).not_to be_within(0.00000001).of(NMatrix.new([4,1], 1.0, dtype: :float64, stype: :dense))
+    expect(NMatrix.new([4, 1], 1.0, dtype: :complex128, stype: :dense) / 10000.0).to be_within(0.00000001).of(NMatrix.new([4, 1], 0.0001, dtype: :float64, stype: :dense))
+    expect(NMatrix.new([4, 1], 1.0, dtype: :complex128, stype: :dense) / 10000.0).not_to be_within(0.00000001).of(NMatrix.new([4, 1], 1.0, dtype: :float64, stype: :dense))
   end
 end

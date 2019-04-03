@@ -24,32 +24,30 @@
 # == io/matlab/fortran_format.rb
 #
 # A parser for making sense of FORTRAN formats.
-# => Only handles R (real), F (float) and E (exponential) format codes. 
+# => Only handles R (real), F (float) and E (exponential) format codes.
 #++
 
 class NMatrix
   module IO
     module FortranFormat
-
       # Class for reading strings in FORTRAN format for specifying attributes
-      # of numerical data in a file. Supports F (float), E (exponential) and 
+      # of numerical data in a file. Supports F (float), E (exponential) and
       # R (real).
-      # 
+      #
       # == Usage
-      # 
+      #
       #   p = NMatrix::IO::FortranFormat::Reader.new("(16I5)")
       #   v = p.parse
-      #   puts v #=> { :format_code => "INT_ID", 
+      #   puts v #=> { :format_code => "INT_ID",
       #          #=>   :repeat      =>       16,
       #          #=>   :field_width =>        5 }
       class Reader
-
-        # Accepts a string in FORTRAN format and initializes the 
-        # NMatrix::IO::FortranFormat::Reader object for further parsing of the 
+        # Accepts a string in FORTRAN format and initializes the
+        # NMatrix::IO::FortranFormat::Reader object for further parsing of the
         # data.
-        # 
+        #
         # == Arguments
-        # 
+        #
         # * +string+ - FORTRAN format string to be parsed.
         def initialize string
           @string = string
@@ -57,14 +55,14 @@ class NMatrix
 
         # Parses the FORTRAN format string passed in initialize and returns
         # a hash of the results.
-        # 
+        #
         # == Result Hash Format
-        # 
+        #
         # Take note that some of the below parameters may be absent in the hash
         # depending on the type of string being parsed.
-        # 
-        # * +:format_code+ - A string containing the format code of the read data. 
-        #                    Can be "INT_ID", "FP_ID" or "EXP_ID" 
+        #
+        # * +:format_code+ - A string containing the format code of the read data.
+        #                    Can be "INT_ID", "FP_ID" or "EXP_ID"
         # * +:repeat+      - Number of times this format will repeat in a line.
         # * +:field_width+ - Width of the numerical part of the number.
         # * +:post_decimal_width+ - Width of the numerals after the decimal point.
@@ -85,9 +83,10 @@ class NMatrix
           @result
         end
 
-       private
+        private
+
         def parentheses_missing?
-          true if @string[0] != '(' or @string[-1] != ')'
+          true if (@string[0] != "(") || (@string[-1] != ")")
         end
 
         # Changing any of the following regular expressions can lead to disaster
@@ -95,7 +94,7 @@ class NMatrix
           @mdata = @string.match(/\A(\d*)(I)(\d+)\z/) # check for integer format
           @mdata = @string.match(/\A(\d*)(F)(\d+)\.(\d+)\z/) \
            if @mdata.nil? # check for floating point if not integer
-          @mdata =  @string.match(/\A(\d*)(E)(\d+)\.(\d+)(E)?(\d*)\z/) \
+          @mdata = @string.match(/\A(\d*)(E)(\d+)\.(\d+)(E)?(\d*)\z/) \
            if @mdata.nil? # check for exponential format if not floating point
 
           @mdata
@@ -113,26 +112,25 @@ class NMatrix
 
         def create_integer_hash
           @result[:format_code] = "INT_ID"
-          @result[:repeat]      = @mdata[1].to_i if !@mdata[1].empty?
+          @result[:repeat]      = @mdata[1].to_i unless @mdata[1].empty?
           @result[:field_width] = @mdata[3].to_i
         end
 
         def create_float_hash
           @result[:format_code]        = "FP_ID"
-          @result[:repeat]             = @mdata[1].to_i if !@mdata[1].empty?
+          @result[:repeat]             = @mdata[1].to_i unless @mdata[1].empty?
           @result[:field_width]        = @mdata[3].to_i
           @result[:post_decimal_width] = @mdata[4].to_i
         end
 
         def create_exp_hash
           @result[:format_code]        = "EXP_ID"
-          @result[:repeat]             = @mdata[1].to_i if !@mdata[1].empty?
+          @result[:repeat]             = @mdata[1].to_i unless @mdata[1].empty?
           @result[:field_width]        = @mdata[3].to_i
           @result[:post_decimal_width] = @mdata[4].to_i
-          @result[:exponent_width]     = @mdata[6].to_i if !@mdata[6].empty?
+          @result[:exponent_width]     = @mdata[6].to_i unless @mdata[6].empty?
         end
       end
-      
     end
   end
 end

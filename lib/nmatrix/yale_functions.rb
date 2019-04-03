@@ -35,7 +35,7 @@ module NMatrix::YaleFunctions
   #
   # Returns the size of a given non-diagonal row.
   def yale_nd_row_size i
-    yale_ija(i+1) - yale_ija(i)
+    yale_ija(i + 1) - yale_ija(i)
   end
 
   # call-seq:
@@ -45,27 +45,27 @@ module NMatrix::YaleFunctions
   def yale_ja_at i
     yale_nd_row(i, :keys)
   end
-  alias :yale_nd_row_as_array :yale_ja_at
+  alias yale_nd_row_as_array yale_ja_at
 
   # call-seq:
   #     yale_ja_set_at(i) -> Set
   #
   # Returns the non-diagonal column indices which are stored in a given row, as a Set.
   def yale_ja_set_at i
-    require 'set'
+    require "set"
     yale_nd_row(i, :keys).to_set
   end
-  alias :yale_nd_row_as_set :yale_ja_set_at
+  alias yale_nd_row_as_set yale_ja_set_at
 
   # call-seq:
   #     yale_ja_sorted_set_at -> SortedSet
   #
   # Returns the non-diagonal column indices which are stored in a given row, as a Set.
   def yale_ja_sorted_set_at i
-    require 'set'
+    require "set"
     SortedSet.new(yale_nd_row(i, :keys))
   end
-  alias :yale_nd_row_as_sorted_set :yale_ja_sorted_set_at
+  alias yale_nd_row_as_sorted_set yale_ja_sorted_set_at
 
   # call-seq:
   #     yale_nd_row_as_hash(i) -> Hash
@@ -81,30 +81,30 @@ module NMatrix::YaleFunctions
   # Returns the diagonal and non-digonal column indices stored in a given row.
   def yale_ja_d_keys_at i
     ary = yale_nd_row(i, :keys)
-    return ary if i >= self.shape[1] || self[i,i] == self.default_value
+    return ary if i >= shape[1] || self[i, i] == default_value
     ary << i
   end
-  alias :yale_row_as_array :yale_ja_d_keys_at
+  alias yale_row_as_array yale_ja_d_keys_at
 
   # call-seq:
   #     yale_ja_d_keys_set_at(i) -> Set
   #
   # Returns the diagonal and non-diagonal column indices stored in a given row.
   def yale_ja_d_keys_set_at i
-    require 'set'
+    require "set"
     yale_ja_d_keys_at(i).to_set
   end
-  alias :yale_row_as_set :yale_ja_d_keys_set_at
+  alias yale_row_as_set yale_ja_d_keys_set_at
 
   # call-seq:
   #     yale_ja_d_keys_sorted_set_at(i) -> SortedSet
   #
   # Returns the diagonal and non-diagonal column indices stored in a given row.
   def yale_ja_d_keys_sorted_set_at i
-    require 'set'
+    require "set"
     SortedSet.new(yale_row_as_array(i))
   end
-  alias :yale_row_as_sorted_set :yale_ja_d_keys_sorted_set_at
+  alias yale_row_as_sorted_set yale_ja_d_keys_sorted_set_at
 
   # call-seq:
   #     yale_row_as_hash(i) -> Hash
@@ -112,7 +112,7 @@ module NMatrix::YaleFunctions
   # Returns the diagonal and non-diagonal column indices and entries stored in a given row.
   def yale_row_as_hash i
     h = yale_nd_row(i, :hash)
-    return h if i >= self.shape[1] || self[i,i] == self.default_value
-    h[i] = self[i,i]
+    return h if i >= shape[1] || self[i, i] == default_value
+    h[i] = self[i, i]
   end
 end

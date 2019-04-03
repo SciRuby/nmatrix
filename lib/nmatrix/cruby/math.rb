@@ -29,7 +29,6 @@
 #++
 
 class NMatrix
-
   #
   # call-seq:
   #     getrf! -> Array
@@ -51,24 +50,24 @@ class NMatrix
   #   - +StorageTypeError+ -> ATLAS functions only work on dense matrices.
   #
   def getrf!
-    raise(StorageTypeError, "ATLAS functions only work on dense matrices") unless self.dense?
+    raise(StorageTypeError, "ATLAS functions only work on dense matrices") unless dense?
 
-    #For row-major matrices, clapack_getrf uses a different convention than
-    #described above (U has unit diagonal elements instead of L and columns
-    #are interchanged rather than rows). For column-major matrices, clapack
-    #uses the stanard conventions. So we just transpose the matrix before
-    #and after calling clapack_getrf.
-    #Unfortunately, this is not a very good way, uses a lot of memory.
-    temp = self.transpose
-    ipiv = NMatrix::LAPACK::clapack_getrf(:col, self.shape[0], self.shape[1], temp, self.shape[0])
+    # For row-major matrices, clapack_getrf uses a different convention than
+    # described above (U has unit diagonal elements instead of L and columns
+    # are interchanged rather than rows). For column-major matrices, clapack
+    # uses the stanard conventions. So we just transpose the matrix before
+    # and after calling clapack_getrf.
+    # Unfortunately, this is not a very good way, uses a lot of memory.
+    temp = transpose
+    ipiv = NMatrix::LAPACK.clapack_getrf(:col, shape[0], shape[1], temp, shape[0])
     temp = temp.transpose
-    self[0...self.shape[0], 0...self.shape[1]] = temp
+    self[0...shape[0], 0...shape[1]] = temp
 
-    #for some reason, in clapack_getrf, the indices in ipiv start from 0
-    #instead of 1 as in LAPACK.
-    ipiv.each_index { |i| ipiv[i]+=1 }
+    # for some reason, in clapack_getrf, the indices in ipiv start from 0
+    # instead of 1 as in LAPACK.
+    ipiv.each_index { |i| ipiv[i] += 1 }
 
-    return ipiv
+    ipiv
   end
 
   #
@@ -130,10 +129,9 @@ class NMatrix
   #   - +TypeError+ -> Works only on floating point matrices, use unmqr for complex types
   #   - +TypeError+ -> c must have the same dtype as the calling NMatrix
   #
-  def ormqr(tau, side=:left, transpose=false, c=nil)
+  def ormqr(tau, side = :left, transpose = false, c = nil)
     # The real implementation is in lib/nmatrix/lapacke.rb
     raise(NotImplementedError, "ormqr requires the nmatrix-lapacke gem")
-
   end
 
   #
@@ -164,7 +162,7 @@ class NMatrix
   #   - +TypeError+ -> Works only on floating point matrices, use unmqr for complex types
   #   - +TypeError+ -> c must have the same dtype as the calling NMatrix
   #
-  def unmqr(tau, side=:left, transpose=false, c=nil)
+  def unmqr(tau, side = :left, transpose = false, c = nil)
     # The real implementation is in lib/nmatrix/lapacke.rb
     raise(NotImplementedError, "unmqr requires the nmatrix-lapacke gem")
   end
@@ -205,7 +203,6 @@ class NMatrix
     potrf! :lower
   end
 
-
   #
   # call-seq:
   #     factorize_cholesky -> [upper NMatrix, lower NMatrix]
@@ -218,10 +215,10 @@ class NMatrix
   # symmetric or Hermitian. However, it is still your responsibility to make
   # sure it is positive-definite.
   def factorize_cholesky
-    raise "Matrix must be symmetric/Hermitian for Cholesky factorization" unless self.hermitian?
-    l = self.clone.potrf_lower!.tril!
+    raise "Matrix must be symmetric/Hermitian for Cholesky factorization" unless hermitian?
+    l = clone.potrf_lower!.tril!
     u = l.conjugate_transpose
-    [u,l]
+    [u, l]
   end
 
   #
@@ -237,11 +234,11 @@ class NMatrix
   # +with_permutation_matrix+ - If set to *true* will return the permutation
   #   matrix alongwith the LU factorization as a second return value.
   #
-  def factorize_lu with_permutation_matrix=nil
-    raise(NotImplementedError, "only implemented for dense storage") unless self.stype == :dense
-    raise(NotImplementedError, "matrix is not 2-dimensional") unless self.dimensions == 2
+  def factorize_lu with_permutation_matrix = nil
+    raise(NotImplementedError, "only implemented for dense storage") unless stype == :dense
+    raise(NotImplementedError, "matrix is not 2-dimensional") unless dimensions == 2
 
-    t     = self.clone
+    t     = clone
     pivot = t.getrf!
     return t unless with_permutation_matrix
 
@@ -266,26 +263,26 @@ class NMatrix
   #   - +ShapeError+ -> Input must be a 2-dimensional matrix to have a QR decomposition.
   #
   def factorize_qr
-    raise(NotImplementedError, "only implemented for dense storage") unless self.stype == :dense
-    raise(ShapeError, "Input must be a 2-dimensional matrix to have a QR decomposition") unless self.dim == 2
+    raise(NotImplementedError, "only implemented for dense storage") unless stype == :dense
+    raise(ShapeError, "Input must be a 2-dimensional matrix to have a QR decomposition") unless dim == 2
 
-    rows, columns = self.shape
-    r = self.clone
-    tau =  r.geqrf!
+    rows, columns = shape
+    r = clone
+    tau = r.geqrf!
 
-    #Obtain Q
-    q = self.complex_dtype? ? r.unmqr(tau) : r.ormqr(tau)
+    # Obtain Q
+    q = complex_dtype? ? r.unmqr(tau) : r.ormqr(tau)
 
-    #Obtain R
+    # Obtain R
     if rows <= columns
       r.upper_triangle!
-    #Need to account for upper trapezoidal structure if R is a tall rectangle (rows > columns)
+    # Need to account for upper trapezoidal structure if R is a tall rectangle (rows > columns)
     else
       r[0...columns, 0...columns].upper_triangle!
       r[columns...rows, 0...columns] = 0
     end
 
-    [q,r]
+    [q, r]
   end
 
   # Solve the matrix equation AX = B, where A is +self+, B is the first
@@ -332,16 +329,16 @@ class NMatrix
   #   #  upper_tri    0.180000   0.000000   0.180000 (  0.182491)
   #
   def solve(b, opts = {})
-    raise(ShapeError, "Must be called on square matrix") unless self.dim == 2 && self.shape[0] == self.shape[1]
+    raise(ShapeError, "Must be called on square matrix") unless dim == 2 && shape[0] == shape[1]
     raise(ShapeError, "number of rows of b must equal number of cols of self") if
-      self.shape[1] != b.shape[0]
-    raise(ArgumentError, "only works with dense matrices") if self.stype != :dense
+      shape[1] != b.shape[0]
+    raise(ArgumentError, "only works with dense matrices") if stype != :dense
     raise(ArgumentError, "only works for non-integer, non-object dtypes") if
-      integer_dtype? or object_dtype? or b.integer_dtype? or b.object_dtype?
+      integer_dtype? || object_dtype? || b.integer_dtype? || b.object_dtype?
 
-    opts = { form: :general }.merge(opts)
+    opts = {form: :general}.merge(opts)
     x    = b.clone
-    n    = self.shape[0]
+    n    = shape[0]
     nrhs = b.shape[1]
 
     case opts[:form]
@@ -358,17 +355,17 @@ class NMatrix
       x.transpose
     when :upper_tri, :upper_triangular
       raise(ArgumentError, "upper triangular solver does not work with complex dtypes") if
-        complex_dtype? or b.complex_dtype?
+        complex_dtype? || b.complex_dtype?
       # this is the correct function call; see https://github.com/SciRuby/nmatrix/issues/374
-      NMatrix::BLAS::cblas_trsm(:row, :left, :upper, false, :nounit, n, nrhs, 1.0, self, n, x, nrhs)
+      NMatrix::BLAS.cblas_trsm(:row, :left, :upper, false, :nounit, n, nrhs, 1.0, self, n, x, nrhs)
       x
     when :lower_tri, :lower_triangular
       raise(ArgumentError, "lower triangular solver does not work with complex dtypes") if
-        complex_dtype? or b.complex_dtype?
-      NMatrix::BLAS::cblas_trsm(:row, :left, :lower, false, :nounit, n, nrhs, 1.0, self, n, x, nrhs)
+        complex_dtype? || b.complex_dtype?
+      NMatrix::BLAS.cblas_trsm(:row, :left, :lower, false, :nounit, n, nrhs, 1.0, self, n, x, nrhs)
       x
     when :pos_def, :positive_definite
-      u, l = self.factorize_cholesky
+      u, l = factorize_cholesky
       z = l.solve(b, form: :lower_tri)
       u.solve(z, form: :upper_tri)
     else
@@ -411,19 +408,19 @@ class NMatrix
   #
   def least_squares(b, tolerance: 10e-6)
     raise(ArgumentError, "least squares approximation only works for non-complex types") if
-      self.complex_dtype?
+      complex_dtype?
 
-    rows, columns = self.shape
+    rows, columns = shape
 
     raise(ShapeError, "system must be under-determined ( rows > columns )") unless
       rows > columns
 
-    #Perform economical QR factorization
-    r = self.clone
+    # Perform economical QR factorization
+    r = clone
     tau = r.geqrf!
     q_transpose_b = r.ormqr(tau, :left, :transpose, b)
 
-    #Obtain R from geqrf! intermediate
+    # Obtain R from geqrf! intermediate
     r[0...columns, 0...columns].upper_triangle!
     r[columns...rows, 0...columns] = 0
 
@@ -433,7 +430,7 @@ class NMatrix
 
     if diagonal.any? { |x| x.abs < tolerance }
       warn "warning: A diagonal element of R in A = QR is close to zero ;" <<
-           " indicates a possible loss of precision"
+        " indicates a possible loss of precision"
     end
 
     # Transform the system A * X = B to R1 * X = B2 where B2 = Q1_t * B
@@ -442,8 +439,8 @@ class NMatrix
 
     nrhs = b2.shape[1]
 
-    #Solve the upper triangular system
-    NMatrix::BLAS::cblas_trsm(:row, :left, :upper, false, :nounit, r1.shape[0], nrhs, 1.0, r1, r1.shape[0], b2, nrhs)
+    # Solve the upper triangular system
+    NMatrix::BLAS.cblas_trsm(:row, :left, :upper, false, :nounit, r1.shape[0], nrhs, 1.0, r1, r1.shape[0], b2, nrhs)
     b2
   end
 
@@ -458,8 +455,8 @@ class NMatrix
   # Optionally accepts a +workspace_size+ parameter, which will be honored only if it is larger than what LAPACK
   # requires.
   #
-  def gesvd!(workspace_size=1)
-    NMatrix::LAPACK::gesvd(self, workspace_size)
+  def gesvd!(workspace_size = 1)
+    NMatrix::LAPACK.gesvd(self, workspace_size)
   end
 
   #
@@ -472,11 +469,9 @@ class NMatrix
   # Optionally accepts a +workspace_size+ parameter, which will be honored only if it is larger than what LAPACK
   # requires.
   #
-  def gesvd(workspace_size=1)
-    self.clone.gesvd!(workspace_size)
+  def gesvd(workspace_size = 1)
+    clone.gesvd!(workspace_size)
   end
-
-
 
   #
   # call-seq:
@@ -489,8 +484,8 @@ class NMatrix
   # Optionally accepts a +workspace_size+ parameter, which will be honored only if it is larger than what LAPACK
   # requires.
   #
-  def gesdd!(workspace_size=nil)
-    NMatrix::LAPACK::gesdd(self, workspace_size)
+  def gesdd!(workspace_size = nil)
+    NMatrix::LAPACK.gesdd(self, workspace_size)
   end
 
   #
@@ -504,8 +499,8 @@ class NMatrix
   # Optionally accepts a +workspace_size+ parameter, which will be honored only if it is larger than what LAPACK
   # requires.
   #
-  def gesdd(workspace_size=nil)
-    self.clone.gesdd!(workspace_size)
+  def gesdd(workspace_size = nil)
+    clone.gesdd!(workspace_size)
   end
 
   #
@@ -532,27 +527,27 @@ class NMatrix
   #
   # * +:covention+ - Possible values are +:lapack+ and +:intuitive+. Default is +:intuitive+. See above for details.
   #
-  def laswp!(ary, opts={})
-    raise(StorageTypeError, "ATLAS functions only work on dense matrices") unless self.dense?
-    opts = { convention: :intuitive }.merge(opts)
+  def laswp!(ary, opts = {})
+    raise(StorageTypeError, "ATLAS functions only work on dense matrices") unless dense?
+    opts = {convention: :intuitive}.merge(opts)
 
     if opts[:convention] == :intuitive
       if ary.length != ary.uniq.length
         raise(ArgumentError, "No duplicated entries in the order array are allowed under convention :intuitive")
       end
-      n = self.shape[1]
+      n = shape[1]
       p = []
       order = (0...n).to_a
-      0.upto(n-2) do |i|
+      0.upto(n - 2) do |i|
         p[i] = order.index(ary[i])
         order[i], order[p[i]] = order[p[i]], order[i]
       end
-      p[n-1] = n-1
+      p[n - 1] = n - 1
     else
       p = ary
     end
 
-    NMatrix::LAPACK::laswp(self, p)
+    NMatrix::LAPACK.laswp(self, p)
   end
 
   #
@@ -579,8 +574,8 @@ class NMatrix
   #
   # * +:covention+ - Possible values are +:lapack+ and +:intuitive+. Default is +:lapack+. See above for details.
   #
-  def laswp(ary, opts={})
-    self.clone.laswp!(ary, opts)
+  def laswp(ary, opts = {})
+    clone.laswp!(ary, opts)
   end
 
   #
@@ -609,28 +604,28 @@ class NMatrix
   #   - +ShapeError+ -> Must be used on square matrices.
   #
   def det
-    raise(ShapeError, "determinant can be calculated only for square matrices") unless self.dim == 2 && self.shape[0] == self.shape[1]
+    raise(ShapeError, "determinant can be calculated only for square matrices") unless dim == 2 && shape[0] == shape[1]
 
     # Cast to a dtype for which getrf is implemented
-    new_dtype = self.integer_dtype? ? :float64 : self.dtype
-    copy = self.cast(:dense, new_dtype)
+    new_dtype = integer_dtype? ? :float64 : dtype
+    copy = cast(:dense, new_dtype)
 
     # Need to know the number of permutations. We'll add up the diagonals of
     # the factorized matrix.
     pivot = copy.getrf!
 
-    num_perm = 0 #number of permutations
+    num_perm = 0 # number of permutations
     pivot.each_with_index do |swap, i|
-      #pivot indexes rows starting from 1, instead of 0, so need to subtract 1 here
-      num_perm += 1 if swap-1 != i
+      # pivot indexes rows starting from 1, instead of 0, so need to subtract 1 here
+      num_perm += 1 if swap - 1 != i
     end
     prod = num_perm % 2 == 1 ? -1 : 1 # odd permutations => negative
-    [shape[0],shape[1]].min.times do |i|
-      prod *= copy[i,i]
+    [shape[0], shape[1]].min.times do |i|
+      prod *= copy[i, i]
     end
 
     # Convert back to an integer if necessary
-    new_dtype != self.dtype ? prod.round : prod #prevent rounding errors
+    new_dtype != dtype ? prod.round : prod # prevent rounding errors
   end
 
   #
@@ -650,8 +645,8 @@ class NMatrix
   # * *Returns* :
   #   - If the original NMatrix isn't complex, the result is a +:complex128+ NMatrix. Otherwise, it's the original dtype.
   #
-  def complex_conjugate(new_stype = self.stype)
-    self.cast(new_stype, NMatrix::upcast(dtype, :complex64)).complex_conjugate!
+  def complex_conjugate(new_stype = stype)
+    cast(new_stype, NMatrix.upcast(dtype, :complex64)).complex_conjugate!
   end
 
   #
@@ -665,7 +660,7 @@ class NMatrix
   #   - The conjugate transpose of the matrix as a copy.
   #
   def conjugate_transpose
-    self.transpose.complex_conjugate!
+    transpose.complex_conjugate!
   end
 
   #
@@ -677,15 +672,15 @@ class NMatrix
   #   - +n+ -> the number of elements to include
   #
   # Return the sum of the contents of the vector. This is the BLAS asum routine.
-  def asum incx=1, n=nil
-    if self.shape == [1]
-      return self[0].abs unless self.complex_dtype?
+  def asum incx = 1, n = nil
+    if shape == [1]
+      return self[0].abs unless complex_dtype?
       return self[0].real.abs + self[0].imag.abs
     end
     return method_missing(:asum, incx, n) unless vector?
-    NMatrix::BLAS::asum(self, incx, self.size / incx)
+    NMatrix::BLAS.asum(self, incx, size / incx)
   end
-  alias :absolute_sum :asum
+  alias absolute_sum asum
 
   #
   # call-seq:
@@ -696,11 +691,11 @@ class NMatrix
   #   - +n+ -> the number of elements to include
   #
   # Return the 2-norm of the vector. This is the BLAS nrm2 routine.
-  def nrm2 incx=1, n=nil
+  def nrm2 incx = 1, n = nil
     return method_missing(:nrm2, incx, n) unless vector?
-    NMatrix::BLAS::nrm2(self, incx, self.size / incx)
+    NMatrix::BLAS.nrm2(self, incx, size / incx)
   end
-  alias :norm2 :nrm2
+  alias norm2 nrm2
 
   #
   # call-seq:
@@ -714,12 +709,12 @@ class NMatrix
   # This is a destructive method, modifying the source NMatrix.  See also #scale.
   # Return the scaling result of the matrix. BLAS scal will be invoked if provided.
 
-  def scale!(alpha, incx=1, n=nil)
+  def scale!(alpha, incx = 1, n = nil)
     raise(DataTypeError, "Incompatible data type for the scaling factor") unless
-        NMatrix::upcast(self.dtype, NMatrix::min_dtype(alpha)) == self.dtype
-    return NMatrix::BLAS::scal(alpha, self, incx, self.size / incx) if NMatrix::BLAS.method_defined? :scal
-    self.each_stored_with_indices do |e, *i|
-      self[*i] = e*alpha
+        NMatrix.upcast(dtype, NMatrix.min_dtype(alpha)) == dtype
+    return NMatrix::BLAS.scal(alpha, self, incx, size / incx) if NMatrix::BLAS.method_defined? :scal
+    each_stored_with_indices do |e, *i|
+      self[*i] = e * alpha
     end
   end
 
@@ -734,11 +729,10 @@ class NMatrix
   #
   # Return the scaling result of the matrix. BLAS scal will be invoked if provided.
 
-  def scale(alpha, incx=1, n=nil)
-    return self.clone.scale!(alpha, incx, n)
+  def scale(alpha, incx = 1, n = nil)
+    clone.scale!(alpha, incx, n)
   end
 
-  alias :permute_columns  :laswp
-  alias :permute_columns! :laswp!
-
+  alias permute_columns  laswp
+  alias permute_columns! laswp!
 end

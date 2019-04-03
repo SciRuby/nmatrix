@@ -1,30 +1,30 @@
-require 'java'
-require_relative '../../../ext/nmatrix_java/vendor/commons-math3-3.6.1.jar'
-require_relative '../../../ext/nmatrix_java/target/nmatrix.jar'
+require "java"
+require_relative "../../../ext/nmatrix_java/vendor/commons-math3-3.6.1.jar"
+require_relative "../../../ext/nmatrix_java/target/nmatrix.jar"
 
-java_import 'org.apache.commons.math3.linear.ArrayRealVector'
-java_import 'org.apache.commons.math3.linear.RealMatrix'
-java_import 'org.apache.commons.math3.linear.MatrixUtils'
-java_import 'org.apache.commons.math3.linear.DecompositionSolver'
-java_import 'org.apache.commons.math3.linear.LUDecomposition'
-java_import 'org.apache.commons.math3.linear.QRDecomposition'
-java_import 'org.apache.commons.math3.linear.CholeskyDecomposition'
-java_import 'MatrixGenerator'
-java_import 'ArrayGenerator'
-java_import 'MathHelper'
-java_import 'ArrayComparator'
+java_import "org.apache.commons.math3.linear.ArrayRealVector"
+java_import "org.apache.commons.math3.linear.RealMatrix"
+java_import "org.apache.commons.math3.linear.MatrixUtils"
+java_import "org.apache.commons.math3.linear.DecompositionSolver"
+java_import "org.apache.commons.math3.linear.LUDecomposition"
+java_import "org.apache.commons.math3.linear.QRDecomposition"
+java_import "org.apache.commons.math3.linear.CholeskyDecomposition"
+java_import "MatrixGenerator"
+java_import "ArrayGenerator"
+java_import "MathHelper"
+java_import "ArrayComparator"
 
 class NMatrix
-  include_package 'org.apache.commons.math3.analysis.function'
+  include_package "org.apache.commons.math3.analysis.function"
   attr_accessor :shape, :dim, :dtype, :stype, :s
 
   def initialize(*args)
     if args[-1] == :copy
-      @shape = [2,2]
-      @s = [0,0,0,0]
+      @shape = [2, 2]
+      @s = [0, 0, 0, 0]
       @dim = shape.is_a?(Array) ? shape.length : 2
     else
-      if (args.length <= 3)
+      if args.length <= 3
         @shape = args[0]
         if args[1].is_a?(Array)
           elements = args[1]
@@ -44,16 +44,16 @@ class NMatrix
               hash = args[1]
               @dtype = hash[:dtype]
               @stype = hash[:stype]
-              elements = Array.new(shape*shape) unless shape.is_a? Array
+              elements = Array.new(shape * shape) unless shape.is_a? Array
             else
-              elements = Array.new(shape*shape) unless shape.is_a? Array
+              elements = Array.new(shape * shape) unless shape.is_a? Array
             end
           end
         end
       else
 
         offset = 0
-        if (!args[0].is_a?(Symbol) && !args[0].is_a?(String))
+        if !args[0].is_a?(Symbol) && !args[0].is_a?(String)
           @stype = :dense
         else
           offset = 1
@@ -62,42 +62,41 @@ class NMatrix
         end
 
         @shape = args[offset]
-        elements = args[offset+1]
+        elements = args[offset + 1]
 
       end
 
-
-      @shape = [shape,shape] unless shape.is_a?(Array)
+      @shape = [shape, shape] unless shape.is_a?(Array)
       # @dtype = interpret_dtype(argc-1-offset, argv+offset+1, stype);
       # @dtype = args[:dtype] if args[:dtype]
       @dtype_sym = nil
       @stype_sym = nil
       @default_val_num = nil
       @capacity_num = nil
-      @size = (0...@shape.size).inject(1) { |x,i| x * @shape[i] }
+      @size = (0...@shape.size).inject(1) { |x, i| x * @shape[i] }
 
-      j=0
+      j = 0
 
-      if (elements.is_a?(ArrayRealVector))
+      if elements.is_a?(ArrayRealVector)
         @s = elements
       # elsif elements.java_class.to_s == "[D"
       #   @s = ArrayRealVector.new(elements)
       else
         storage = Array.new(size)
-        elements = [elements,elements] unless elements.is_a?(Array)
+        elements = [elements, elements] unless elements.is_a?(Array)
         if size > elements.length
           (0...size).each do |i|
-            j=0 unless j!=elements.length
+            j = 0 unless j != elements.length
             storage[i] = elements[j]
-            j+=1
+            j += 1
           end
         else
           storage = elements
         end
-        if @dtype == :object
-          @s = storage
+        @s = if @dtype == :object
+          storage
         else
-          @s = ArrayRealVector.new(storage.to_java Java::double)
+          ArrayRealVector.new(storage.to_java(Java::double))
         end
       end
 
@@ -120,22 +119,20 @@ class NMatrix
     # ArrayRealVector#clone is disable, hence use copy
     # that returns a deep copy of the object.
     result.s = @s.copy
-    return result
+    result
   end
 
   def entries
-    return @s.toArray.to_a
+    @s.toArray.to_a
   end
 
   def twoDMat
-    return MatrixUtils.createRealMatrix MatrixGenerator.getMatrixDouble(self.s.toArray, @shape[0], @shape[1])
+    MatrixUtils.createRealMatrix MatrixGenerator.getMatrixDouble(s.toArray, @shape[0], @shape[1])
   end
 
-  def dtype
-    return @dtype
-  end
+  attr_reader :dtype
 
-  #FIXME
+  # FIXME
   def self.guess_dtype arg
     :float32
   end
@@ -145,93 +142,87 @@ class NMatrix
   end
 
   def cast_full *args
-    if args.is_a? Hash
-      self.dtype = args[:dtype]
+    self.dtype = if args.is_a? Hash
+      args[:dtype]
     else
-      self.dtype = args[1]
+      args[1]
     end
-    return self
+    self
   end
 
   def default_value
-    return nil
+    nil
   end
 
   def __list_default_value__
-    #not implemented currently
+    # not implemented currently
   end
 
   def __yale_default_value__
-    #not implemented currently
+    # not implemented currently
   end
 
   def [] *args
-    return xslice(args)
+    xslice(args)
   end
 
   def slice(*args)
-    return xslice(args)
+    xslice(args)
   end
 
   def []=(*args)
     to_return = nil
-    if args.length > @dim+1
-      raise(ArgumentError, "wrong number of arguments (#{args.length} for #{effective_dim(dim+1)})" )
+    if args.length > @dim + 1
+      raise(ArgumentError, "wrong number of arguments (#{args.length} for #{effective_dim(dim + 1)})")
     else
       slice = get_slice(@dim, args, @shape)
       dense_storage_set(slice, args[-1])
       to_return = args[-1]
     end
-    return to_return
+    to_return
   end
 
   def is_ref?
-
   end
 
   # def dim
   #   shape.is_a?(Array) ? shape.length : 2
   # end
 
-  alias :dimensions :dim
+  alias dimensions dim
 
   def effective_dim(s)
     d = 0
     (0...@dim).each do |i|
-      d+=1 unless @shape[i] == 1
+      d += 1 unless @shape[i] == 1
     end
-    return d
+    d
   end
 
-  alias :effective_dimensions :effective_dim
-
-
+  alias effective_dimensions effective_dim
 
   protected
 
   def create_dummy_nmatrix
     nmatrix = NMatrix.new(:copy)
-    nmatrix.shape = self.shape
-    nmatrix.dim = self.dim
-    nmatrix.dtype = self.dtype
-    nmatrix.stype = self.stype
-    return nmatrix
+    nmatrix.shape = shape
+    nmatrix.dim = dim
+    nmatrix.dtype = dtype
+    nmatrix.stype = stype
+    nmatrix
   end
 
   def __list_to_hash__
-
   end
 
   public
 
-  def shape
-    @shape
-  end
+  attr_reader :shape
 
-   def supershape s
-    if (s[:src] == @s)
+  def supershape s
+    if s[:src] == @s
       return shape
-       # easy case (not a slice)
+    # easy case (not a slice)
     else
       @s = s[:src]
     end
@@ -241,8 +232,8 @@ class NMatrix
       new_shape[index] = shape[index]
     end
 
-    return new_shape
-  end
+    new_shape
+ end
 
   def offset
     # ArrayRealVector takes care of the offset value when indexing a Vector.
@@ -255,49 +246,47 @@ class NMatrix
     #   raise Exception.new("can only calculate exact determinant for dense matrices")
     #   return nil
     # end
-    raise(DataTypeError, "cannot call det_exact on unsigned type") if(self.dtype == :byte)
-    if (@dim != 2 || @shape[0] != @shape[1])
+    raise(DataTypeError, "cannot call det_exact on unsigned type") if dtype == :byte
+    if @dim != 2 || @shape[0] != @shape[1]
       raise(ShapeError, "matrices must be square to have a determinant defined")
       return nil
     end
     to_return = nil
-    if (dtype == :object)
+    if dtype == :object
       # to_return = *reinterpret_cast<VALUE*>(result);
     else
-      to_return = LUDecomposition.new(self.twoDMat).getDeterminant()
+      to_return = LUDecomposition.new(twoDMat).getDeterminant
     end
 
-    return to_return.round(3)
+    to_return.round(3)
   end
 
   def det_exact2
-    if (@dim != 2 || @shape[0] != @shape[1])
+    if @dim != 2 || @shape[0] != @shape[1]
       raise(ShapeError, "matrices must be square to have a determinant defined")
       return nil
     end
     to_return = nil
-    if (dtype == :object)
+    if dtype == :object
       # to_return = *reinterpret_cast<VALUE*>(result);
     else
-      to_return = LUDecomposition.new(self.twoDMat).getDeterminant()
+      to_return = LUDecomposition.new(twoDMat).getDeterminant
     end
 
-    return to_return.round(3)
+    to_return.round(3)
   end
 
   def complex_conjugate!
-
   end
-
 
   protected
 
   def count_max_elements
-    return size
+    size
   end
 
   def reshape_bang arg
-    if(@stype == :dense)
+    if @stype == :dense
       shape_ary = arg
       size = count_max_elements
       new_size = 1
@@ -307,12 +296,12 @@ class NMatrix
         new_size *= shape[index]
       end
 
-      if (size == new_size)
+      if size == new_size
         self.shape = shape
         self.dim = dim
         return self
       else
-         raise(ArgumentError, "reshape cannot resize; size of new and old matrices must match")
+        raise(ArgumentError, "reshape cannot resize; size of new and old matrices must match")
       end
     else
       raise(NotImplementedError, "reshape in place only for dense stype")
@@ -338,9 +327,8 @@ class NMatrix
       raise(ArgumentError, "Expected an array of numbers or a single Fixnum for matrix shape")
     end
 
-    return shape
+    shape
   end
-
 
   public
 
@@ -348,67 +336,67 @@ class NMatrix
     nmatrix = create_dummy_nmatrix
     stride = get_stride(self)
     offset = 0
-    #Create indices and initialize them to zero
-    coords = Array.new(dim){ 0 }
+    # Create indices and initialize them to zero
+    coords = Array.new(dim) { 0 }
 
-    shape_copy =  Array.new(dim)
-    (0...size).each do |k|
-      dense_storage_coords(nmatrix, k, coords, stride, offset)
-      slice_index = dense_storage_pos(coords,stride)
-      ary = Array.new
-      if (@dtype == :object)
-        ary << self.s[slice_index]
-      else
-        ary << self.s.toArray.to_a[slice_index]
+    shape_copy = Array.new(dim)
+    if block_given?
+      (0...size).each do |k|
+        dense_storage_coords(nmatrix, k, coords, stride, offset)
+        slice_index = dense_storage_pos(coords, stride)
+        ary = []
+        ary << if @dtype == :object
+          s[slice_index]
+        else
+          s.toArray.to_a[slice_index]
+        end
+        (0...dim).each do |p|
+          ary << coords[p]
+        end
+
+        # yield the array which now consists of the value and the indices
+        yield(ary)
       end
-      (0...dim).each do |p|
-        ary << coords[p]
-      end
+    end
 
-      # yield the array which now consists of the value and the indices
-      yield(ary)
-    end if block_given?
-
-    return nmatrix
+    nmatrix
   end
-
 
   def each_stored_with_indices
     nmatrix = create_dummy_nmatrix
     stride = get_stride(self)
     offset = 0
-    #Create indices and initialize them to zero
-    coords = Array.new(dim){ 0 }
+    # Create indices and initialize them to zero
+    coords = Array.new(dim) { 0 }
 
-    shape_copy =  Array.new(dim)
+    shape_copy = Array.new(dim)
 
-    (0...size).each do |k|
-      dense_storage_coords(nmatrix, k, coords, stride, offset)
-      slice_index = dense_storage_pos(coords,stride)
-      ary = Array.new
-      if (@dtype == :object)
-        ary << self.s[slice_index]
-      else
-        ary << self.s.toArray.to_a[slice_index]
+    if block_given?
+      (0...size).each do |k|
+        dense_storage_coords(nmatrix, k, coords, stride, offset)
+        slice_index = dense_storage_pos(coords, stride)
+        ary = []
+        ary << if @dtype == :object
+          s[slice_index]
+        else
+          s.toArray.to_a[slice_index]
+        end
+        (0...dim).each do |p|
+          ary << coords[p]
+        end
+        # yield the array which now consists of the value and the indices
+        yield(ary)
       end
-      (0...dim).each do |p|
-        ary << coords[p]
-      end
-      # yield the array which now consists of the value and the indices
-      yield(ary)
-    end if block_given?
+    end
 
-    return nmatrix
+    nmatrix
   end
 
   def map_stored
-
   end
 
   def each_ordered_stored_with_indices
-
   end
-
 
   protected
 
@@ -416,25 +404,27 @@ class NMatrix
     nmatrix = create_dummy_nmatrix
     stride = get_stride(self)
     offset = 0
-    #Create indices and initialize them to zero
-    coords = Array.new(dim){ 0 }
+    # Create indices and initialize them to zero
+    coords = Array.new(dim) { 0 }
 
-    shape_copy =  Array.new(dim)
-    (0...size).each do |k|
-      if (@dtype == :object)
-        dense_storage_coords(nmatrix, k, coords, stride, offset)
-        slice_index = dense_storage_pos(coords,stride)
-        yield self.s[slice_index]
-      else
-        dense_storage_coords(nmatrix, k, coords, stride, offset)
-        slice_index = dense_storage_pos(coords,stride)
-        yield self.s.toArray.to_a[slice_index]
+    shape_copy = Array.new(dim)
+    if block_given?
+      (0...size).each do |k|
+        if @dtype == :object
+          dense_storage_coords(nmatrix, k, coords, stride, offset)
+          slice_index = dense_storage_pos(coords, stride)
+          yield s[slice_index]
+        else
+          dense_storage_coords(nmatrix, k, coords, stride, offset)
+          slice_index = dense_storage_pos(coords, stride)
+          yield s.toArray.to_a[slice_index]
+        end
       end
-    end if block_given?
-    if (@dtype == :object)
+    end
+    if @dtype == :object
       return @s.to_enum
     else
-      return @s.toArray().to_a.to_enum
+      return @s.toArray.to_a.to_enum
     end
   end
 
@@ -442,97 +432,89 @@ class NMatrix
     nmatrix = create_dummy_nmatrix
     stride = get_stride(self)
     offset = 0
-    coords = Array.new(dim){ 0 }
-    shape_copy =  Array.new(dim)
+    coords = Array.new(dim) { 0 }
+    shape_copy = Array.new(dim)
 
-    s= Java::double[size].new
+    s = Java::double[size].new
     (0...size).each do |k|
       dense_storage_coords(nmatrix, k, coords, stride, offset)
-      slice_index = dense_storage_pos(coords,stride)
+      slice_index = dense_storage_pos(coords, stride)
 
       y = yield @s.getEntry(slice_index)
       @s.setEntry(slice_index, y)
     end
     nmatrix.s = ArrayRealVector.new s
 
-    return nmatrix
+    nmatrix
   end
 
   def __dense_map_pair__
-
   end
 
   def __list_map_merged_stored__
-
   end
 
   def __list_map_stored__
-
   end
 
   def __yale_map_merged_stored__
-
   end
 
   def __yale_map_stored__
-
   end
 
   def __yale_stored_diagonal_each_with_indices__
-
   end
 
   def __yale_stored_nondiagonal_each_with_indices__
-
   end
-
 
   public
 
   def ==(otherNmatrix)
     result = false
-    if (otherNmatrix.is_a?(NMatrix))
-      #check dimension
-      if (@dim != otherNmatrix.dim)
+    if otherNmatrix.is_a?(NMatrix)
+      # check dimension
+      if @dim != otherNmatrix.dim
         raise(ShapeError, "cannot compare matrices with different dimension")
       end
-      #check shape
+      # check shape
       (0...dim).each do |i|
-        if (@shape[i] != otherNmatrix.shape[i])
-          raise(ShapeError, "cannot compare matrices with different shapes");
+        if @shape[i] != otherNmatrix.shape[i]
+          raise(ShapeError, "cannot compare matrices with different shapes")
         end
       end
 
-      #check the entries
-      if dtype == :object
-        result = @s == otherNmatrix.s
+      # check the entries
+      result = if dtype == :object
+        @s == otherNmatrix.s
       else
-        result = ArrayComparator.equals(@s.toArray, otherNmatrix.s.toArray)
+        ArrayComparator.equals(@s.toArray, otherNmatrix.s.toArray)
       end
     end
     result
   end
 
-  def =~ (other)
+  def =~(other)
     lha = @s.toArray.to_a
     rha = other.s.toArray.to_a
     resultArray = Array.new(lha.length)
-    if (other.is_a?(NMatrix))
-      #check dimension
-      if (@dim != other.dim)
+    if other.is_a?(NMatrix)
+      # check dimension
+      if @dim != other.dim
         raise(ShapeError, "cannot compare matrices with different dimension")
         return nil
       end
-      #check shape
+      # check shape
       (0...dim).each do |i|
-        if (@shape[i] != other.shape[i])
-          raise(ShapeError, "cannot compare matrices with different shapes");
+        if @shape[i] != other.shape[i]
+          raise(ShapeError, "cannot compare matrices with different shapes")
           return nil
         end
       end
-      #check the entries
+      # check the entries
       (0...lha.length).each do |i|
-        resultArray[i] = lha[i] == rha[i] ? true : false
+        resultArray[i] = lha[i] == rha[i]
       end
       result = NMatrix.new(:copy)
       result.shape = @shape
@@ -542,26 +524,26 @@ class NMatrix
     result
   end
 
-  def !~ (other)
+  def !~(other)
     lha = @s.toArray.to_a
     rha = other.s.toArray.to_a
     resultArray = Array.new(lha.length)
-    if (other.is_a?(NMatrix))
-      #check dimension
-      if (@dim != other.dim)
+    if other.is_a?(NMatrix)
+      # check dimension
+      if @dim != other.dim
         raise(ShapeError, "cannot compare matrices with different dimension")
         return nil
       end
-      #check shape
+      # check shape
       (0...dim).each do |i|
-        if (@shape[i] != other.shape[i])
-          raise(ShapeError, "cannot compare matrices with different shapes");
+        if @shape[i] != other.shape[i]
+          raise(ShapeError, "cannot compare matrices with different shapes")
           return nil
         end
       end
-      #check the entries
+      # check the entries
       (0...lha.length).each do |i|
-        resultArray[i] = lha[i] != rha[i] ? true : false
+        resultArray[i] = lha[i] != rha[i]
       end
       result = NMatrix.new(:copy)
       result.shape = @shape
@@ -571,26 +553,26 @@ class NMatrix
     result
   end
 
-  def <= (other)
+  def <=(other)
     lha = @s.toArray.to_a
     rha = other.s.toArray.to_a
     resultArray = Array.new(lha.length)
-    if (other.is_a?(NMatrix))
-      #check dimension
-      if (@dim != other.dim)
+    if other.is_a?(NMatrix)
+      # check dimension
+      if @dim != other.dim
         raise(ShapeError, "cannot compare matrices with different dimension")
         return nil
       end
-      #check shape
+      # check shape
       (0...dim).each do |i|
-        if (@shape[i] != other.shape[i])
-          raise(ShapeError, "cannot compare matrices with different shapes");
+        if @shape[i] != other.shape[i]
+          raise(ShapeError, "cannot compare matrices with different shapes")
           return nil
         end
       end
-      #check the entries
+      # check the entries
       (0...lha.length).each do |i|
-        resultArray[i] = lha[i] <= rha[i] ? true : false
+        resultArray[i] = lha[i] <= rha[i]
       end
       result = NMatrix.new(:copy)
       result.shape = @shape
@@ -600,26 +582,26 @@ class NMatrix
     result
   end
 
-  def >= (other)
+  def >=(other)
     lha = @s.toArray.to_a
     rha = other.s.toArray.to_a
     resultArray = Array.new(lha.length)
-    if (other.is_a?(NMatrix))
-      #check dimension
-      if (@dim != other.dim)
+    if other.is_a?(NMatrix)
+      # check dimension
+      if @dim != other.dim
         raise(ShapeError, "cannot compare matrices with different dimension")
         return nil
       end
-      #check shape
+      # check shape
       (0...dim).each do |i|
-        if (@shape[i] != other.shape[i])
-          raise(ShapeError, "cannot compare matrices with different shapes");
+        if @shape[i] != other.shape[i]
+          raise(ShapeError, "cannot compare matrices with different shapes")
           return nil
         end
       end
-      #check the entries
+      # check the entries
       (0...lha.length).each do |i|
-        resultArray[i] = lha[i] >= rha[i] ? true : false
+        resultArray[i] = lha[i] >= rha[i]
       end
       result = NMatrix.new(:copy)
       result.shape = @shape
@@ -629,26 +611,26 @@ class NMatrix
     result
   end
 
-  def < (other)
+  def <(other)
     lha = @s.toArray.to_a
     rha = other.s.toArray.to_a
     resultArray = Array.new(lha.length)
-    if (other.is_a?(NMatrix))
-      #check dimension
-      if (@dim != other.dim)
+    if other.is_a?(NMatrix)
+      # check dimension
+      if @dim != other.dim
         raise(ShapeError, "cannot compare matrices with different dimension")
         return nil
       end
-      #check shape
+      # check shape
       (0...dim).each do |i|
-        if (@shape[i] != other.shape[i])
-          raise(ShapeError, "cannot compare matrices with different shapes");
+        if @shape[i] != other.shape[i]
+          raise(ShapeError, "cannot compare matrices with different shapes")
           return nil
         end
       end
-      #check the entries
+      # check the entries
       (0...lha.length).each do |i|
-        resultArray[i] = lha[i] < rha[i] ? true : false
+        resultArray[i] = lha[i] < rha[i]
       end
       result = NMatrix.new(:copy)
       result.shape = @shape
@@ -658,26 +640,26 @@ class NMatrix
     result
   end
 
-  def > (other)
+  def >(other)
     lha = @s.toArray.to_a
     rha = other.s.toArray.to_a
     resultArray = Array.new(lha.length)
-    if (other.is_a?(NMatrix))
-      #check dimension
-      if (@dim != other.dim)
+    if other.is_a?(NMatrix)
+      # check dimension
+      if @dim != other.dim
         raise(ShapeError, "cannot compare matrices with different dimension")
         return nil
       end
-      #check shape
+      # check shape
       (0...dim).each do |i|
-        if (@shape[i] != other.shape[i])
-          raise(ShapeError, "cannot compare matrices with different shapes");
+        if @shape[i] != other.shape[i]
+          raise(ShapeError, "cannot compare matrices with different shapes")
           return nil
         end
       end
-      #check the entries
+      # check the entries
       (0...lha.length).each do |i|
-        resultArray[i] = lha[i] > rha[i] ? true : false
+        resultArray[i] = lha[i] > rha[i]
       end
       result = NMatrix.new(:copy)
       result.shape = @shape
@@ -693,14 +675,14 @@ class NMatrix
 
   def dot(other)
     result = nil
-    if (other.is_a?(NMatrix))
-      #check dimension
-      if (@shape.length!=2 || other.shape.length!=2)
+    if other.is_a?(NMatrix)
+      # check dimension
+      if @shape.length != 2 || other.shape.length != 2
         raise(NotImplementedError, "please convert array to nx1 or 1xn NMatrix first")
         return nil
       end
-      #check shape
-      if (@shape[1] != other.shape[0])
+      # check shape
+      if @shape[1] != other.shape[0]
         raise(ArgumentError, "incompatible dimensions")
         return nil
       end
@@ -710,65 +692,64 @@ class NMatrix
       # end
 
       result = create_dummy_nmatrix
-      result.shape = [@shape[0],other.shape[1]]
+      result.shape = [@shape[0], other.shape[1]]
       twoDMat = self.twoDMat.multiply(other.twoDMat)
-      result.s = ArrayRealVector.new(ArrayGenerator.getArrayDouble(twoDMat.getData, @shape[0],other.shape[1]))
+      result.s = ArrayRealVector.new(ArrayGenerator.getArrayDouble(twoDMat.getData, @shape[0], other.shape[1]))
     else
-      raise(ArgumentError, "cannot have dot product with a scalar");
+      raise(ArgumentError, "cannot have dot product with a scalar")
     end
-    return result;
+    result
   end
 
   def symmetric?
-    return is_symmetric(false)
+    is_symmetric(false)
   end
 
   def is_symmetric(hermitian)
     is_symmetric = true
 
-    if (@shape[0] == @shape[1] and @dim == 2)
+    if (@shape[0] == @shape[1]) && (@dim == 2)
       if @stype == :dense
-        if (hermitian)
-          #Currently, we are not dealing with complex matrices.
+        if hermitian
+          # Currently, we are not dealing with complex matrices.
           eps = 0
-          is_symmetric = MatrixUtils.isSymmetric(self.twoDMat, eps)
+          is_symmetric = MatrixUtils.isSymmetric(twoDMat, eps)
         else
           eps = 0
-          is_symmetric = MatrixUtils.isSymmetric(self.twoDMat, eps)
+          is_symmetric = MatrixUtils.isSymmetric(twoDMat, eps)
         end
 
       else
-        #TODO: Implement, at the very least, yale_is_symmetric. Model it after yale/transp.template.c.
+        # TODO: Implement, at the very least, yale_is_symmetric. Model it after yale/transp.template.c.
         # raise Exception.new("symmetric? and hermitian? only implemented for dense currently")
       end
     end
-    return is_symmetric ? true : false
+    is_symmetric ? true : false
   end
 
   def hermitian?
-    return is_symmetric(true)
+    is_symmetric(true)
   end
 
   def capacity
-
   end
 
   # // protected methods
 
   protected
 
-  def __inverse__(matrix, bool =true)
+  def __inverse__(matrix, bool = true)
     # if (:stype != :dense)
     #   raise Exception.new("needs exact determinant implementation for this matrix stype")
     #   return nil
     # end
 
-    if (@dim != 2 || @shape[0] != @shape[1])
+    if @dim != 2 || @shape[0] != @shape[1]
       raise Exception.new("matrices must be square to have an inverse defined")
       return nil
     end
     to_return = nil
-    if (dtype == :RUBYOBJ)
+    if dtype == :RUBYOBJ
       # to_return = *reinterpret_cast<VALUE*>(result);
     else
       to_return = create_dummy_nmatrix
@@ -776,7 +757,7 @@ class NMatrix
       to_return.s = ArrayRealVector.new(ArrayGenerator.getArrayDouble(twoDMat.getData, @shape[0], @shape[1]))
     end
 
-    return to_return
+    to_return
   end
 
   def __inverse__!
@@ -785,19 +766,19 @@ class NMatrix
     #   return nil
     # end
 
-    if (@dim != 2 || @shape[0] != @shape[1])
+    if @dim != 2 || @shape[0] != @shape[1]
       raise Exception.new("matrices must be square to have an inverse defined")
       return nil
     end
     to_return = nil
-    if (dtype == :RUBYOBJ)
+    if dtype == :RUBYOBJ
       # to_return = *reinterpret_cast<VALUE*>(result);
     else
       twoDMat = MatrixUtils.inverse(self.twoDMat)
       @s = ArrayRealVector.new(ArrayGenerator.getArrayDouble(twoDMat.getData, @shape[0], @shape[1]))
     end
 
-    return self
+    self
   end
 
   def __inverse_exact__
@@ -806,12 +787,12 @@ class NMatrix
     #   return nil
     # end
 
-    if (@dim != 2 || @shape[0] != @shape[1])
+    if @dim != 2 || @shape[0] != @shape[1]
       raise Exception.new("matrices must be square to have an inverse defined")
       return nil
     end
     to_return = nil
-    if (dtype == :RUBYOBJ)
+    if dtype == :RUBYOBJ
       # to_return = *reinterpret_cast<VALUE*>(result);
     else
       to_return = create_dummy_nmatrix
@@ -819,8 +800,7 @@ class NMatrix
       to_return.s = ArrayRealVector.new(ArrayGenerator.getArrayDouble(twoDMat.getData, @shape[0], @shape[1]))
     end
 
-    return to_return
-
+    to_return
   end
 
   private
@@ -833,8 +813,8 @@ class NMatrix
 end
 
 # load jruby implementation of operators.
-require_relative './slice.rb'
-require_relative './operators.rb'
-require_relative './decomposition.rb'
-require_relative './error.rb'
-require_relative './enumerable.rb'
+require_relative "./slice.rb"
+require_relative "./operators.rb"
+require_relative "./decomposition.rb"
+require_relative "./error.rb"
+require_relative "./enumerable.rb"

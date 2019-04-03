@@ -40,20 +40,19 @@
 # * http://math.nist.gov/MatrixMarket/formats.html
 module NMatrix::IO::Market
   CONVERTER_AND_DTYPE = {
-    :real => [:to_f, :float64],
-    :complex => [:to_c, :complex128],
-    :integer => [:to_i, :int64],
-    :pattern => [:to_i, :byte]
+    real: [:to_f, :float64],
+    complex: [:to_c, :complex128],
+    integer: [:to_i, :int64],
+    pattern: [:to_i, :byte],
   } #:nodoc:
 
   ENTRY_TYPE = {
-    :byte => :integer, :int8 => :integer, :int16 => :integer,
-    :int32 => :integer, :int64 => :integer,:float32 => :real,
-    :float64 => :real, :complex64 => :complex, :complex128 => :complex
+    byte: :integer, int8: :integer, int16: :integer,
+    int32: :integer, int64: :integer, float32: :real,
+    float64: :real, complex64: :complex, complex128: :complex,
   } #:nodoc:
 
   class << self
-
     # call-seq:
     #     load(filename) -> NMatrix
     #
@@ -64,7 +63,6 @@ module NMatrix::IO::Market
     # * *Raises* :
     #   - +IOError+ -> expected type code line beginning with '%%MatrixMarket matrix'
     def load(filename)
-
       f = File.new(filename, "r")
 
       header = f.gets
@@ -78,7 +76,7 @@ module NMatrix::IO::Market
       symmetry   = header[4].downcase.to_sym
       converter, default_dtype = CONVERTER_AND_DTYPE[entry_type]
 
-      if header[2] == 'coordinate'
+      if header[2] == "coordinate"
         load_coordinate f, converter, default_dtype, entry_type, symmetry
       else
         load_array f, converter, default_dtype, entry_type, symmetry
@@ -99,8 +97,8 @@ module NMatrix::IO::Market
     #   - +DataTypeError+ -> MatrixMarket does not support Ruby objects.
     #   - +ArgumentError+ -> Expected two-dimensional NMatrix.
     def save(matrix, filename, options = {})
-      options = {:pattern => false,
-        :symmetry => :general}.merge(options)
+      options = {pattern: false,
+                 symmetry: :general,}.merge(options)
 
       mode = matrix.stype == :dense ? :array : :coordinate
       if [:object].include?(matrix.dtype)
@@ -111,13 +109,13 @@ module NMatrix::IO::Market
       raise(ArgumentError, "expected two-dimensional NMatrix") \
        if matrix.dim != 2
 
-      f = File.new(filename, 'w')
+      f = File.new(filename, "w")
 
       f.puts "%%MatrixMarket matrix #{mode} #{entry_type} #{options[:symmetry]}"
 
       if matrix.stype == :dense
         save_array matrix, f, options[:symmetry]
-      elsif [:list,:yale].include?(matrix.stype)
+      elsif [:list, :yale].include?(matrix.stype)
         save_coordinate matrix, f, options[:symmetry], options[:pattern]
       end
 
@@ -125,7 +123,6 @@ module NMatrix::IO::Market
 
       true
     end
-
 
     protected
 
@@ -149,13 +146,12 @@ module NMatrix::IO::Market
       rows.each_pair do |i, columns|
         columns.each_pair do |j, val|
           next if symmetry != :general && j > i
-          file.puts(pattern ? "\t#{i+1}\t#{j+1}" : "\t#{i+1}\t#{j+1}\t#{val}")
+          file.puts(pattern ? "\t#{i + 1}\t#{j + 1}" : "\t#{i + 1}\t#{j + 1}\t#{val}")
         end
       end
 
       file
     end
-
 
     def save_array matrix, file, symmetry
       file.puts [matrix.shape[0], matrix.shape[1]].join("\t")
@@ -163,20 +159,19 @@ module NMatrix::IO::Market
       if symmetry == :general
         (0...matrix.shape[1]).each do |j|
           (0...matrix.shape[0]).each do |i|
-            file.puts matrix[i,j]
+            file.puts matrix[i, j]
           end
         end
       else # :symmetric, :'skew-symmetric', :hermitian
         (0...matrix.shape[1]).each do |j|
           (j...matrix.shape[0]).each do |i|
-            file.puts matrix[i,j]
+            file.puts matrix[i, j]
           end
         end
       end
 
       file
     end
-
 
     def load_array file, converter, dtype, entry_type, symmetry
       mat = nil
@@ -192,15 +187,15 @@ module NMatrix::IO::Market
       (0...mat.shape[1]).each do |j|
         (0...mat.shape[0]).each do |i|
           datum = file.gets.chomp.send(converter)
-          mat[i,j] = datum
+          mat[i, j] = datum
 
           unless i == j || symmetry == :general
             if symmetry == :symmetric
-              mat[j,i] = datum
+              mat[j, i] = datum
             elsif symmetry == :hermitian
-              mat[j,i] = Complex.new(datum.real, -datum.imag)
+              mat[j, i] = Complex.new(datum.real, -datum.imag)
             elsif symmetry == :'skew-symmetric'
-              mat[j,i] = -datum
+              mat[j, i] = -datum
             end
           end
         end
@@ -211,17 +206,15 @@ module NMatrix::IO::Market
       mat
     end
 
-
     # Creates a :list NMatrix from a coordinate-list MatrixMarket file.
     def load_coordinate file, converter, dtype, entry_type, symmetry
-
       mat = nil
 
       # Read until we get the dimensions and nonzeros
       while line = file.gets
         line.chomp!
         line.lstrip!
-        line, comment = line.split('%', 2) # ignore comments
+        line, comment = line.split("%", 2) # ignore comments
         if line.size > 4
           shape0, shape1 = line.split
           mat = NMatrix.new(:list, [shape0.to_i, shape1.to_i], 0, dtype)
@@ -233,7 +226,7 @@ module NMatrix::IO::Market
       while line = file.gets
         line.chomp!
         line.lstrip!
-        line, comment = line.split('%', 2) # ignore comments
+        line, comment = line.split("%", 2) # ignore comments
 
         next unless line.size >= 5 # ignore empty lines
 

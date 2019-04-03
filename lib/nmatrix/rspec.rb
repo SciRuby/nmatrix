@@ -26,25 +26,24 @@
 # NMatrix (particularly #be_within).
 #
 
-require 'rspec'
+require "rspec"
 
 # Amend RSpec to allow #be_within for matrices.
 module RSpec::Matchers::BuiltIn
   class BeWithin
-
     def of(expected)
       @expected = expected
-      @unit     = ''
-      if expected.is_a?(NMatrix)
-        @tolerance = if @delta.is_a?(NMatrix)
-                       @delta.abs
-                     elsif @delta.is_a?(Array)
-                       NMatrix.new(:dense, expected.shape, @delta, :object).abs.cast(:dtype => expected.abs_dtype)
-                     else
-                       (NMatrix.ones_like(expected) * @delta).abs
-                     end
+      @unit     = ""
+      @tolerance = if expected.is_a?(NMatrix)
+        if @delta.is_a?(NMatrix)
+          @delta.abs
+        elsif @delta.is_a?(Array)
+          NMatrix.new(:dense, expected.shape, @delta, :object).abs.cast(dtype: expected.abs_dtype)
+        else
+          (NMatrix.ones_like(expected) * @delta).abs
+        end
       else
-        @tolerance = @delta
+        @delta
       end
 
       self
@@ -52,7 +51,7 @@ module RSpec::Matchers::BuiltIn
 
     def percent_of(expected)
       @expected  = expected
-      @unit      = '%'
+      @unit      = "%"
       @tolerance = @expected.abs * @delta / 100.0 # <- only change is to reverse abs and @delta
       self
     end
@@ -63,13 +62,12 @@ module RSpec::Matchers::BuiltIn
       raise needs_subtractable unless @actual.respond_to? :-
       res = (@actual - @expected).abs <= @tolerance
 
-      #if res.is_a?(NMatrix)
+      # if res.is_a?(NMatrix)
       #  require 'pry'
       #  binding.pry
-      #end
+      # end
 
       res.is_a?(NMatrix) ? !res.any? { |x| !x } : res
     end
-
   end
 end

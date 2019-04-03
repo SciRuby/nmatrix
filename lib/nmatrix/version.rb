@@ -30,10 +30,9 @@ class NMatrix
     MAJOR = 0
     MINOR = 2
     TINY = 4
-    #PRE = "a"
+    # PRE = "a"
 
     STRING = [MAJOR, MINOR, TINY].compact.join(".")
-    #STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
+    # STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end
 end
-

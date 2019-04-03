@@ -63,33 +63,32 @@ class NMatrix
     #                                              0.0      0.5       0.866025  0.0
     #                                              0.0      0.0       0.0       1.0
     #
-    def x_rotation angle_in_radians, opts={}
+    def x_rotation angle_in_radians, opts = {}
       c = Math.cos(angle_in_radians)
       s = Math.sin(angle_in_radians)
       NMatrix.new(4, [1.0, 0.0, 0.0, 0.0,
                       0.0, c,   -s,  0.0,
-                      0.0, s,    c,  0.0,
-                      0.0, 0.0, 0.0, 1.0], {dtype: :float64}.merge(opts))
+                      0.0, s, c,  0.0,
+                      0.0, 0.0, 0.0, 1.0,], {dtype: :float64}.merge(opts))
     end
 
-    def y_rotation angle_in_radians, opts={}
+    def y_rotation angle_in_radians, opts = {}
       c = Math.cos(angle_in_radians)
       s = Math.sin(angle_in_radians)
-      NMatrix.new(4, [ c,  0.0,  s,  0.0,
+      NMatrix.new(4, [c, 0.0, s,  0.0,
                       0.0, 1.0, 0.0, 0.0,
-                      -s,  0.0,  c,  0.0,
-                      0.0, 0.0, 0.0, 1.0], {dtype: :float64}.merge(opts))
+                      -s,  0.0, c, 0.0,
+                      0.0, 0.0, 0.0, 1.0,], {dtype: :float64}.merge(opts))
     end
 
-    def z_rotation angle_in_radians, opts={}
+    def z_rotation angle_in_radians, opts = {}
       c = Math.cos(angle_in_radians)
       s = Math.sin(angle_in_radians)
-      NMatrix.new(4, [ c,  -s,  0.0, 0.0,
-                       s,   c,  0.0, 0.0,
+      NMatrix.new(4, [c, -s, 0.0, 0.0,
+                      s, c,  0.0, 0.0,
                       0.0, 0.0, 1.0, 0.0,
-                      0.0, 0.0, 0.0, 1.0], {dtype: :float64}.merge(opts))
+                      0.0, 0.0, 0.0, 1.0,], {dtype: :float64}.merge(opts))
     end
-
 
     #
     # call-seq:
@@ -136,7 +135,7 @@ class NMatrix
       else
         NMatrix.eye(4, opts)
       end
-      n[0..2,3] = xyz
+      n[0..2, 3] = xyz
       n
     end
   end
@@ -157,46 +156,46 @@ class NMatrix
   #    n.quaternion # => [1, 0, 0, 0]
   #
   def quaternion
-    raise(ShapeError, "Expected square matrix") if self.shape[0] != self.shape[1]
-    raise(ShapeError, "Expected 3x3 rotation (or 4x4 homogeneous) matrix") if self.shape[0] > 4 || self.shape[0] < 3
+    raise(ShapeError, "Expected square matrix") if shape[0] != shape[1]
+    raise(ShapeError, "Expected 3x3 rotation (or 4x4 homogeneous) matrix") if shape[0] > 4 || shape[0] < 3
 
-    q = NMatrix.new([4], dtype: self.dtype == :float32 ? :float32: :float64)
-    rotation_trace = self[0,0] + self[1,1] + self[2,2]
+    q = NMatrix.new([4], dtype: dtype == :float32 ? :float32 : :float64)
+    rotation_trace = self[0, 0] + self[1, 1] + self[2, 2]
     if rotation_trace >= 0
-      self_w = self.shape[0] == 4 ? self[3,3] : 1.0
+      self_w = shape[0] == 4 ? self[3, 3] : 1.0
       root_of_homogeneous_trace = Math.sqrt(rotation_trace + self_w)
       q[0] = root_of_homogeneous_trace * 0.5
       s = 0.5 / root_of_homogeneous_trace
-      q[1] = (self[2,1] - self[1,2]) * s
-      q[2] = (self[0,2] - self[2,0]) * s
-      q[3] = (self[1,0] - self[0,1]) * s
+      q[1] = (self[2, 1] - self[1, 2]) * s
+      q[2] = (self[0, 2] - self[2, 0]) * s
+      q[3] = (self[1, 0] - self[0, 1]) * s
     else
       h = 0
-      h = 1 if self[1,1] > self[0,0]
-      h = 2 if self[2,2] > self[h,h]
+      h = 1 if self[1, 1] > self[0, 0]
+      h = 2 if self[2, 2] > self[h, h]
 
-      case_macro = Proc.new do |i,j,k,ii,jj,kk|
+      case_macro = proc { |i, j, k, ii, jj, kk|
         qq = NMatrix.new([4], dtype: :float64)
-        self_w = self.shape[0] == 4 ? self[3,3] : 1.0
-        s = Math.sqrt( (self[ii,ii] - (self[jj,jj] + self[kk,kk])) + self_w)
-        qq[i] = s*0.5
+        self_w = shape[0] == 4 ? self[3, 3] : 1.0
+        s = Math.sqrt((self[ii, ii] - (self[jj, jj] + self[kk, kk])) + self_w)
+        qq[i] = s * 0.5
         s = 0.5 / s
-        qq[j] = (self[ii,jj] + self[jj,ii]) * s
-        qq[k] = (self[kk,ii] + self[ii,kk]) * s
-        qq[0] = (self[kk,jj] - self[jj,kk]) * s
+        qq[j] = (self[ii, jj] + self[jj, ii]) * s
+        qq[k] = (self[kk, ii] + self[ii, kk]) * s
+        qq[0] = (self[kk, jj] - self[jj, kk]) * s
         qq
-      end
+      }
 
       case h
       when 0
-        q = case_macro.call(1,2,3, 0,1,2)
+        q = case_macro.call(1, 2, 3, 0, 1, 2)
       when 1
-        q = case_macro.call(2,3,1, 1,2,0)
+        q = case_macro.call(2, 3, 1, 1, 2, 0)
       when 2
-        q = case_macro.call(3,1,2, 2,0,1)
+        q = case_macro.call(3, 1, 2, 2, 0, 1)
       end
 
-      self_w = self.shape[0] == 4 ? self[3,3] : 1.0
+      self_w = shape[0] == 4 ? self[3, 3] : 1.0
       if self_w != 1
         s = 1.0 / Math.sqrt(self_w)
         q[0] *= s
@@ -226,16 +225,16 @@ class NMatrix
   #    q.angle_vector # => [1, 0, 0, 0]
   #
   def angle_vector
-    raise(ShapeError, "Expected length-4 vector or matrix (quaternion)") if self.shape[0] != 4
+    raise(ShapeError, "Expected length-4 vector or matrix (quaternion)") if shape[0] != 4
     raise("Expected unit quaternion") if self[0] > 1
 
-    xyz = NMatrix.new([3], dtype: self.dtype)
+    xyz = NMatrix.new([3], dtype: dtype)
 
     angle = 2 * Math.acos(self[0])
-    s = Math.sqrt(1.0 - self[0]*self[0])
+    s = Math.sqrt(1.0 - self[0] * self[0])
 
     xyz[0..2] = self[1..3]
     xyz /= s if s >= 0.001 # avoid divide by zero
-    return [angle, xyz]
+    [angle, xyz]
   end
 end
