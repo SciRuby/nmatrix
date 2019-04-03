@@ -25,17 +25,17 @@
 # Tests for interfaces that are only exposed by nmatrix-lapacke
 #
 
-require 'spec_helper'
+require "spec_helper"
 require "./lib/nmatrix/lapacke"
 
 describe "NMatrix::LAPACK functions implemented with LAPACKE interface" do
   [:float32, :float64, :complex64, :complex128].each do |dtype|
     context dtype do
       it "exposes lapacke_getrf" do
-        a = NMatrix.new([3,4], GETRF_EXAMPLE_ARRAY, dtype: dtype)
+        a = NMatrix.new([3, 4], GETRF_EXAMPLE_ARRAY, dtype: dtype)
         ipiv = NMatrix::LAPACK.lapacke_getrf(:row, 3, 4, a, 4)
-        b = NMatrix.new([3,4], GETRF_SOLUTION_ARRAY, dtype: dtype)
-        ipiv_true = [2,3,3]
+        b = NMatrix.new([3, 4], GETRF_SOLUTION_ARRAY, dtype: dtype)
+        ipiv_true = [2, 3, 3]
 
         # delta varies for different dtypes
         err = case dtype
@@ -43,15 +43,15 @@ describe "NMatrix::LAPACK functions implemented with LAPACKE interface" do
                   1e-6
                 when :float64, :complex128
                   1e-14
-              end
+        end
 
         expect(a).to be_within(err).of(b)
         expect(ipiv).to eq(ipiv_true)
       end
 
       it "exposes lapacke_getri" do
-        a = NMatrix.new(:dense, 3, [1,0,4,1,1,6,-3,0,-10], dtype)
-        ipiv = NMatrix::LAPACK::lapacke_getrf(:row, 3, 3, a, 3) # get pivot from getrf, use for getri
+        a = NMatrix.new(:dense, 3, [1, 0, 4, 1, 1, 6, -3, 0, -10], dtype)
+        ipiv = NMatrix::LAPACK.lapacke_getrf(:row, 3, 3, a, 3) # get pivot from getrf, use for getri
 
         # delta varies for different dtypes
         err = case dtype
@@ -59,21 +59,21 @@ describe "NMatrix::LAPACK functions implemented with LAPACKE interface" do
                   1e-5
                 when :float64, :complex128
                   1e-14
-              end
+        end
 
-        NMatrix::LAPACK::lapacke_getri(:row, 3, a, 3, ipiv)
+        NMatrix::LAPACK.lapacke_getri(:row, 3, a, 3, ipiv)
 
-        b = NMatrix.new(:dense, 3, [-5,0,-2,-4,1,-1,1.5,0,0.5], dtype)
+        b = NMatrix.new(:dense, 3, [-5, 0, -2, -4, 1, -1, 1.5, 0, 0.5], dtype)
         expect(a).to be_within(err).of(b)
       end
 
       it "exposes lapacke_getrs with vector solutions" do
-        a     = NMatrix.new(3, [-2,4,-3,3,-2,1,0,-4,3], dtype: dtype)
-        ipiv  = NMatrix::LAPACK::lapacke_getrf(:row, 3, 3, a, 3)
-        b     = NMatrix.new([3,1], [-1, 17, -9], dtype: dtype)
+        a     = NMatrix.new(3, [-2, 4, -3, 3, -2, 1, 0, -4, 3], dtype: dtype)
+        ipiv  = NMatrix::LAPACK.lapacke_getrf(:row, 3, 3, a, 3)
+        b     = NMatrix.new([3, 1], [-1, 17, -9], dtype: dtype)
 
-        #be careful! the leading dimenension (lda,ldb) is the number of rows for row-major in LAPACKE. Different from CLAPACK convention!
-        NMatrix::LAPACK::lapacke_getrs(:row, false, 3, 1, a, 3, ipiv, b, 1)
+        # be careful! the leading dimenension (lda,ldb) is the number of rows for row-major in LAPACKE. Different from CLAPACK convention!
+        NMatrix::LAPACK.lapacke_getrs(:row, false, 3, 1, a, 3, ipiv, b, 1)
 
         # delta varies for different dtypes
         err = case dtype
@@ -81,20 +81,20 @@ describe "NMatrix::LAPACK functions implemented with LAPACKE interface" do
                   1e-5
                 when :float64, :complex128
                   1e-13
-              end
+        end
 
         expect(b[0]).to be_within(err).of(5)
-        expect(b[1]).to be_within(err).of(-15.0/2)
+        expect(b[1]).to be_within(err).of(-15.0 / 2)
         expect(b[2]).to be_within(err).of(-13)
       end
 
       it "exposes lapacke_getrs with matrix solutions" do
-        a     = NMatrix.new(3, [-2,4,-3,3,-2,1,0,-4,3], dtype: dtype)
-        ipiv  = NMatrix::LAPACK::lapacke_getrf(:row, 3, 3, a, 3)
-        b     = NMatrix.new([3,2], [-1, 2, 17, 10, -9, 1], dtype: dtype)
+        a     = NMatrix.new(3, [-2, 4, -3, 3, -2, 1, 0, -4, 3], dtype: dtype)
+        ipiv  = NMatrix::LAPACK.lapacke_getrf(:row, 3, 3, a, 3)
+        b     = NMatrix.new([3, 2], [-1, 2, 17, 10, -9, 1], dtype: dtype)
 
-        #be careful! the leading dimenension (lda,ldb) is the number of rows for row-major in LAPACKE. Different from CLAPACK convention!
-        NMatrix::LAPACK::lapacke_getrs(:row, false, 3, 2, a, 3, ipiv, b, 2)
+        # be careful! the leading dimenension (lda,ldb) is the number of rows for row-major in LAPACKE. Different from CLAPACK convention!
+        NMatrix::LAPACK.lapacke_getrs(:row, false, 3, 2, a, 3, ipiv, b, 2)
 
         # delta varies for different dtypes
         err = case dtype
@@ -102,115 +102,115 @@ describe "NMatrix::LAPACK functions implemented with LAPACKE interface" do
                   1e-4
                 when :float64, :complex128
                   1e-13
-              end
+        end
 
-        x = NMatrix.new([3,2], [5, -1.5, -7.5, -21.25, -13, -28], dtype: dtype)
+        x = NMatrix.new([3, 2], [5, -1.5, -7.5, -21.25, -13, -28], dtype: dtype)
         expect(b).to be_within(err).of(x)
       end
 
       it "exposes lapacke_potrf" do
         # first do upper
         begin
-          a = NMatrix.new(:dense, 3, [25,15,-5, 0,18,0, 0,0,11], dtype)
-          NMatrix::LAPACK::lapacke_potrf(:row, :upper, 3, a, 3)
-          b = NMatrix.new(:dense, 3, [5,3,-1, 0,3,1, 0,0,3], dtype)
+          a = NMatrix.new(:dense, 3, [25, 15, -5, 0, 18, 0, 0, 0, 11], dtype)
+          NMatrix::LAPACK.lapacke_potrf(:row, :upper, 3, a, 3)
+          b = NMatrix.new(:dense, 3, [5, 3, -1, 0, 3, 1, 0, 0, 3], dtype)
           expect(a).to eq(b)
         end
 
         # then do lower
-        a = NMatrix.new(:dense, 3, [25,0,0, 15,18,0,-5,0,11], dtype)
-        NMatrix::LAPACK::lapacke_potrf(:row, :lower, 3, a, 3)
-        b = NMatrix.new(:dense, 3, [5,0,0, 3,3,0, -1,1,3], dtype)
+        a = NMatrix.new(:dense, 3, [25, 0, 0, 15, 18, 0, -5, 0, 11], dtype)
+        NMatrix::LAPACK.lapacke_potrf(:row, :lower, 3, a, 3)
+        b = NMatrix.new(:dense, 3, [5, 0, 0, 3, 3, 0, -1, 1, 3], dtype)
         expect(a).to eq(b)
       end
 
       it "exposes lapacke_potri" do
-        a = NMatrix.new(3, [4, 0,-1,
+        a = NMatrix.new(3, [4, 0, -1,
                             0, 2, 1,
-                            0, 0, 1], dtype: dtype)
-        NMatrix::LAPACK::lapacke_potrf(:row, :upper, 3, a, 3)
-        NMatrix::LAPACK::lapacke_potri(:row, :upper, 3, a, 3)
-        b = NMatrix.new(3, [0.5, -0.5, 1,  0, 1.5, -2,  0, 0, 4], dtype: dtype)
+                            0, 0, 1,], dtype: dtype)
+        NMatrix::LAPACK.lapacke_potrf(:row, :upper, 3, a, 3)
+        NMatrix::LAPACK.lapacke_potri(:row, :upper, 3, a, 3)
+        b = NMatrix.new(3, [0.5, -0.5, 1, 0, 1.5, -2,  0, 0, 4], dtype: dtype)
         err = case dtype
                 when :float32, :complex64
                   1e-6
                 when :float64, :complex128
                   1e-14
-              end
+        end
         expect(a).to be_within(err).of(b)
       end
 
       it "exposes lapacke_potrs with vector solution" do
-        a = NMatrix.new(3, [4, 0,-1,
+        a = NMatrix.new(3, [4, 0, -1,
                             0, 2, 1,
-                            0, 0, 1], dtype: dtype)
-        b = NMatrix.new([3,1], [3,0,2], dtype: dtype)
+                            0, 0, 1,], dtype: dtype)
+        b = NMatrix.new([3, 1], [3, 0, 2], dtype: dtype)
 
-        NMatrix::LAPACK::lapacke_potrf(:row, :upper, 3, a, 3)
-        #ldb is different from CLAPACK versions
-        NMatrix::LAPACK::lapacke_potrs(:row, :upper, 3, 1, a, 3, b, 1)
+        NMatrix::LAPACK.lapacke_potrf(:row, :upper, 3, a, 3)
+        # ldb is different from CLAPACK versions
+        NMatrix::LAPACK.lapacke_potrs(:row, :upper, 3, 1, a, 3, b, 1)
 
-        x = NMatrix.new([3,1], [3.5, -5.5, 11], dtype: dtype)
+        x = NMatrix.new([3, 1], [3.5, -5.5, 11], dtype: dtype)
 
         err = case dtype
                 when :float32, :complex64
                   1e-5
                 when :float64, :complex128
                   1e-14
-              end
+        end
 
         expect(b).to be_within(err).of(x)
       end
 
       it "exposes lapacke_potrs with matrix solution" do
-        a = NMatrix.new(3, [4, 0,-1,
+        a = NMatrix.new(3, [4, 0, -1,
                             0, 2, 1,
-                            0, 0, 1], dtype: dtype)
-        b = NMatrix.new([3,2], [3,4,
-                                0,4,
-                                2,0], dtype: dtype)
+                            0, 0, 1,], dtype: dtype)
+        b = NMatrix.new([3, 2], [3, 4,
+                                 0, 4,
+                                 2, 0,], dtype: dtype)
 
-        NMatrix::LAPACK::lapacke_potrf(:row, :upper, 3, a, 3)
-        #ldb is different from CLAPACK versions
-        NMatrix::LAPACK::lapacke_potrs(:row, :upper, 3, 2, a, 3, b, 2)
+        NMatrix::LAPACK.lapacke_potrf(:row, :upper, 3, a, 3)
+        # ldb is different from CLAPACK versions
+        NMatrix::LAPACK.lapacke_potrs(:row, :upper, 3, 2, a, 3, b, 2)
 
-        x = NMatrix.new([3,2], [3.5, 0,
-                                -5.5, 4,
-                                11, -4], dtype: dtype)
+        x = NMatrix.new([3, 2], [3.5, 0,
+                                 -5.5, 4,
+                                 11, -4,], dtype: dtype)
 
         err = case dtype
                 when :float32, :complex64
                   1e-5
                 when :float64, :complex128
                   1e-14
-              end
+        end
 
         expect(b).to be_within(err).of(x)
       end
 
       it "calculates the singular value decomposition with lapacke_gesvd" do
-        #example from Wikipedia
+        # example from Wikipedia
         m = 4
         n = 5
-        mn_min = [m,n].min
-        a = NMatrix.new([m,n],[1,0,0,0,2, 0,0,3,0,0, 0,0,0,0,0, 0,4,0,0,0], dtype: dtype)
-        s = NMatrix.new([mn_min], 0, dtype: a.abs_dtype) #s is always real and always returned as float/double, never as complex
-        u = NMatrix.new([m,m], 0, dtype: dtype)
-        vt = NMatrix.new([n,n], 0, dtype: dtype)
-        superb = NMatrix.new([mn_min-1], dtype: a.abs_dtype)
+        mn_min = [m, n].min
+        a = NMatrix.new([m, n], [1, 0, 0, 0, 2, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0], dtype: dtype)
+        s = NMatrix.new([mn_min], 0, dtype: a.abs_dtype) # s is always real and always returned as float/double, never as complex
+        u = NMatrix.new([m, m], 0, dtype: dtype)
+        vt = NMatrix.new([n, n], 0, dtype: dtype)
+        superb = NMatrix.new([mn_min - 1], dtype: a.abs_dtype)
 
         NMatrix::LAPACK.lapacke_gesvd(:row, :a, :a, m, n, a, n, s, u, m, vt, n, superb)
 
-        s_true = NMatrix.new([mn_min], [4,3,Math.sqrt(5),0], dtype: a.abs_dtype)
-        u_true = NMatrix.new([m,m], [0,0,1,0, 0,1,0,0, 0,0,0,-1, 1,0,0,0], dtype: dtype)
-        vt_true = NMatrix.new([n,n], [0,1,0,0,0, 0,0,1,0,0, Math.sqrt(0.2),0,0,0,Math.sqrt(0.8), 0,0,0,1,0, -Math.sqrt(0.8),0,0,0,Math.sqrt(0.2)], dtype: dtype)
+        s_true = NMatrix.new([mn_min], [4, 3, Math.sqrt(5), 0], dtype: a.abs_dtype)
+        u_true = NMatrix.new([m, m], [0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, -1, 1, 0, 0, 0], dtype: dtype)
+        vt_true = NMatrix.new([n, n], [0, 1, 0, 0, 0, 0, 0, 1, 0, 0, Math.sqrt(0.2), 0, 0, 0, Math.sqrt(0.8), 0, 0, 0, 1, 0, -Math.sqrt(0.8), 0, 0, 0, Math.sqrt(0.2)], dtype: dtype)
 
         err = case dtype
                 when :float32, :complex64
                   1e-5
                 when :float64, :complex128
                   1e-14
-              end
+        end
 
         expect(s).to be_within(err).of(s_true)
         expect(u).to be_within(err).of(u_true)
@@ -218,27 +218,27 @@ describe "NMatrix::LAPACK functions implemented with LAPACKE interface" do
       end
 
       it "calculates the singular value decomposition with lapacke_gesdd" do
-        #example from Wikipedia
+        # example from Wikipedia
         m = 4
         n = 5
-        mn_min = [m,n].min
-        a = NMatrix.new([m,n],[1,0,0,0,2, 0,0,3,0,0, 0,0,0,0,0, 0,4,0,0,0], dtype: dtype)
-        s = NMatrix.new([mn_min], 0, dtype: a.abs_dtype) #s is always real and always returned as float/double, never as complex
-        u = NMatrix.new([m,m], 0, dtype: dtype)
-        vt = NMatrix.new([n,n], 0, dtype: dtype)
+        mn_min = [m, n].min
+        a = NMatrix.new([m, n], [1, 0, 0, 0, 2, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0], dtype: dtype)
+        s = NMatrix.new([mn_min], 0, dtype: a.abs_dtype) # s is always real and always returned as float/double, never as complex
+        u = NMatrix.new([m, m], 0, dtype: dtype)
+        vt = NMatrix.new([n, n], 0, dtype: dtype)
 
         NMatrix::LAPACK.lapacke_gesdd(:row, :a, m, n, a, n, s, u, m, vt, n)
 
-        s_true = NMatrix.new([mn_min], [4,3,Math.sqrt(5),0], dtype: a.abs_dtype)
-        u_true = NMatrix.new([m,m], [0,0,1,0, 0,1,0,0, 0,0,0,-1, 1,0,0,0], dtype: dtype)
-        vt_true = NMatrix.new([n,n], [0,1,0,0,0, 0,0,1,0,0, Math.sqrt(0.2),0,0,0,Math.sqrt(0.8), 0,0,0,1,0, -Math.sqrt(0.8),0,0,0,Math.sqrt(0.2)], dtype: dtype)
+        s_true = NMatrix.new([mn_min], [4, 3, Math.sqrt(5), 0], dtype: a.abs_dtype)
+        u_true = NMatrix.new([m, m], [0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, -1, 1, 0, 0, 0], dtype: dtype)
+        vt_true = NMatrix.new([n, n], [0, 1, 0, 0, 0, 0, 0, 1, 0, 0, Math.sqrt(0.2), 0, 0, 0, Math.sqrt(0.8), 0, 0, 0, 1, 0, -Math.sqrt(0.8), 0, 0, 0, Math.sqrt(0.2)], dtype: dtype)
 
         err = case dtype
                 when :float32, :complex64
                   1e-5
                 when :float64, :complex128
                   1e-14
-              end
+        end
 
         expect(s).to be_within(err).of(s_true)
         expect(u).to be_within(err).of(u_true)
@@ -247,44 +247,44 @@ describe "NMatrix::LAPACK functions implemented with LAPACKE interface" do
 
       it "calculates eigenvalues and eigenvectors using lapacke_geev" do
         n = 3
-        a = NMatrix.new([n,n], [-1,0,0, 0,1,-2, 0,1,-1], dtype: dtype)
+        a = NMatrix.new([n, n], [-1, 0, 0, 0, 1, -2, 0, 1, -1], dtype: dtype)
         w = NMatrix.new([n], dtype: dtype)
-        if a.complex_dtype? #for real dtypes, imaginary parts of eigenvalues are stored in separate vector
-          wi = nil
+        wi = if a.complex_dtype? # for real dtypes, imaginary parts of eigenvalues are stored in separate vector
+          nil
         else
-          wi = NMatrix.new([n], dtype: dtype)
+          NMatrix.new([n], dtype: dtype)
         end
-        vl = NMatrix.new([n,n], dtype: dtype)
-        vr = NMatrix.new([n,n], dtype: dtype)
+        vl = NMatrix.new([n, n], dtype: dtype)
+        vr = NMatrix.new([n, n], dtype: dtype)
 
         NMatrix::LAPACK.lapacke_geev(:row, :t, :t, n, a, n, w, wi, vl, n, vr, n)
 
-        if !a.complex_dtype?
-          w = w + wi*Complex(0,1)
+        unless a.complex_dtype?
+          w += wi * Complex(0, 1)
         end
 
-        w_true = NMatrix.new([n], [Complex(0,1), -Complex(0,1), -1], dtype: NMatrix.upcast(dtype, :complex64))
+        w_true = NMatrix.new([n], [Complex(0, 1), -Complex(0, 1), -1], dtype: NMatrix.upcast(dtype, :complex64))
         if a.complex_dtype?
-          #For complex types the right/left eigenvectors are stored as columns
-          #of vr/vl.
-          vr_true = NMatrix.new([n,n],[0,0,1,
-                                       2/Math.sqrt(6),2/Math.sqrt(6),0,
-                                       Complex(1,-1)/Math.sqrt(6),Complex(1,1)/Math.sqrt(6),0], dtype: dtype)
-          vl_true = NMatrix.new([n,n],[0,0,1,
-                                       Complex(-1,1)/Math.sqrt(6),Complex(-1,-1)/Math.sqrt(6),0,
-                                       2/Math.sqrt(6),2/Math.sqrt(6),0], dtype: dtype)
+          # For complex types the right/left eigenvectors are stored as columns
+          # of vr/vl.
+          vr_true = NMatrix.new([n, n], [0, 0, 1,
+                                         2 / Math.sqrt(6), 2 / Math.sqrt(6), 0,
+                                         Complex(1, -1) / Math.sqrt(6), Complex(1, 1) / Math.sqrt(6), 0,], dtype: dtype)
+          vl_true = NMatrix.new([n, n], [0, 0, 1,
+                                         Complex(-1, 1) / Math.sqrt(6), Complex(-1, -1) / Math.sqrt(6), 0,
+                                         2 / Math.sqrt(6), 2 / Math.sqrt(6), 0,], dtype: dtype)
         else
-          #For real types, the real part of the first and second eigenvectors is
-          #stored in the first column, the imaginary part of the first (= the
-          #negative of the imaginary part of the second) eigenvector is stored
-          #in the second column, and the third eigenvector (purely real) is the
-          #third column.
-          vr_true = NMatrix.new([n,n],[0,0,1,
-                                       2/Math.sqrt(6),0,0,
-                                       1/Math.sqrt(6),-1/Math.sqrt(6),0], dtype: dtype)
-          vl_true = NMatrix.new([n,n],[0,0,1,
-                                       -1/Math.sqrt(6),1/Math.sqrt(6),0,
-                                       2/Math.sqrt(6),0,0], dtype: dtype)
+          # For real types, the real part of the first and second eigenvectors is
+          # stored in the first column, the imaginary part of the first (= the
+          # negative of the imaginary part of the second) eigenvector is stored
+          # in the second column, and the third eigenvector (purely real) is the
+          # third column.
+          vr_true = NMatrix.new([n, n], [0, 0, 1,
+                                         2 / Math.sqrt(6), 0, 0,
+                                         1 / Math.sqrt(6), -1 / Math.sqrt(6), 0,], dtype: dtype)
+          vl_true = NMatrix.new([n, n], [0, 0, 1,
+                                         -1 / Math.sqrt(6), 1 / Math.sqrt(6), 0,
+                                         2 / Math.sqrt(6), 0, 0,], dtype: dtype)
         end
 
         err = case dtype
@@ -292,199 +292,197 @@ describe "NMatrix::LAPACK functions implemented with LAPACKE interface" do
                   1e-6
                 when :float64, :complex128
                   1e-15
-              end
+        end
 
         expect(w).to be_within(err).of(w_true)
         expect(vr).to be_within(err).of(vr_true)
         expect(vl).to be_within(err).of(vl_true)
       end
-      
+
       it "exposes lapacke_geqrf" do
-        a = NMatrix.new(3, [12.0, -51.0,   4.0, 
-                             6.0, 167.0, -68.0, 
-                            -4.0,  24.0, -41.0] , dtype: dtype)
+        a = NMatrix.new(3, [12.0, -51.0, 4.0,
+                            6.0, 167.0, -68.0,
+                            -4.0,  24.0, -41.0,], dtype: dtype)
 
-        b = NMatrix.new([3,1], 0, dtype: dtype)
+        b = NMatrix.new([3, 1], 0, dtype: dtype)
 
-        NMatrix::LAPACK::lapacke_geqrf(:row, a.shape[0], a.shape[1], a, a.shape[1], b)
+        NMatrix::LAPACK.lapacke_geqrf(:row, a.shape[0], a.shape[1], a, a.shape[1], b)
 
-        x = NMatrix.new([3,1], TAU_SOLUTION_ARRAY, dtype: dtype)
-     
-        y = NMatrix.new([3,3], GEQRF_SOLUTION_ARRAY, dtype: dtype)
+        x = NMatrix.new([3, 1], TAU_SOLUTION_ARRAY, dtype: dtype)
+
+        y = NMatrix.new([3, 3], GEQRF_SOLUTION_ARRAY, dtype: dtype)
 
         err = case dtype
                 when :float32, :complex64
                   1e-4
                 when :float64, :complex128
                   1e-14
-              end
-        
+        end
+
         expect(b).to be_within(err).of(x)
-        expect(a).to be_within(err).of(y)      
+        expect(a).to be_within(err).of(y)
       end
 
       it "calculates QR decomposition in a compressed format using geqrf!" do
-        a = NMatrix.new(3, [12.0, -51.0,   4.0, 
-                             6.0, 167.0, -68.0, 
-                            -4.0,  24.0, -41.0] , dtype: dtype)
+        a = NMatrix.new(3, [12.0, -51.0,   4.0,
+                            6.0, 167.0, -68.0,
+                            -4.0, 24.0, -41.0,], dtype: dtype)
 
         tau = a.geqrf!
-    
-        x = NMatrix.new([3,1], TAU_SOLUTION_ARRAY, dtype: dtype)
-     
-        y = NMatrix.new([3,3], GEQRF_SOLUTION_ARRAY, dtype: dtype)
+
+        x = NMatrix.new([3, 1], TAU_SOLUTION_ARRAY, dtype: dtype)
+
+        y = NMatrix.new([3, 3], GEQRF_SOLUTION_ARRAY, dtype: dtype)
 
         err = case dtype
                 when :float32, :complex64
                   1e-4
                 when :float64, :complex128
                   1e-14
-              end
-        
+        end
+
         expect(tau).to be_within(err).of(x)
-        expect(a).to be_within(err).of(y)      
+        expect(a).to be_within(err).of(y)
       end
 
       it "exposes lapacke_ormqr and lapacke_unmqr" do
-        a = NMatrix.new([4,2], [34.0,  21.0, 
-                                23.0,  53.0, 
-                                26.0, 346.0, 
-                                23.0, 121.0] , dtype: dtype)
+        a = NMatrix.new([4, 2], [34.0, 21.0,
+                                 23.0, 53.0,
+                                 26.0, 346.0,
+                                 23.0, 121.0,], dtype: dtype)
 
-        tau = NMatrix.new([2,1], dtype: dtype)
+        tau = NMatrix.new([2, 1], dtype: dtype)
         result = NMatrix.identity(4, dtype: dtype)
-        
-        # get tau from geqrf, use for ormqr  
-        NMatrix::LAPACK::lapacke_geqrf(:row, a.shape[0], a.shape[1], a, a.shape[1], tau)
 
-        #Q is stored in result 
+        # get tau from geqrf, use for ormqr
+        NMatrix::LAPACK.lapacke_geqrf(:row, a.shape[0], a.shape[1], a, a.shape[1], tau)
+
+        # Q is stored in result
         a.complex_dtype? ?
-          NMatrix::LAPACK::lapacke_unmqr(:row, :left, false, result.shape[0], result.shape[1], tau.shape[0], 
-                                                                a, a.shape[1], tau, result, result.shape[1])
+          NMatrix::LAPACK.lapacke_unmqr(:row, :left, false, result.shape[0], result.shape[1], tau.shape[0],
+            a, a.shape[1], tau, result, result.shape[1])
           :
 
-          NMatrix::LAPACK::lapacke_ormqr(:row, :left, false, result.shape[0], result.shape[1], tau.shape[0], 
-                                                                a, a.shape[1], tau, result, result.shape[1])
+          NMatrix::LAPACK.lapacke_ormqr(:row, :left, false, result.shape[0], result.shape[1], tau.shape[0],
+            a, a.shape[1], tau, result, result.shape[1])
 
-        x = NMatrix.new([4,4], Q_SOLUTION_ARRAY_1, dtype: dtype)
+        x = NMatrix.new([4, 4], Q_SOLUTION_ARRAY_1, dtype: dtype)
 
         err = case dtype
                 when :float32, :complex64
                   1e-4
                 when :float64, :complex128
                   1e-14
-              end
+        end
 
-        expect(result).to be_within(err).of(x)      
+        expect(result).to be_within(err).of(x)
       end
 
       it "calculates the product of the orthogonal matrix with an arbitrary matrix" do
-        a = N.new([2,2], [34.0, 21, 23, 53] , dtype: dtype)
+        a = N.new([2, 2], [34.0, 21, 23, 53], dtype: dtype)
 
-        tau = NMatrix.new([2,1], dtype: dtype)
-        
-        #Result is the multiplicand that gets overriden : result = Q * result
-        result   = NMatrix.new([2,2], [2,0,0,2], dtype: dtype)
-        
-        # get tau from geqrf, use for ormqr  
-        NMatrix::LAPACK::lapacke_geqrf(:row, a.shape[0], a.shape[1], a, a.shape[1], tau)
+        tau = NMatrix.new([2, 1], dtype: dtype)
 
-        #Q is stored in result 
+        # Result is the multiplicand that gets overriden : result = Q * result
+        result = NMatrix.new([2, 2], [2, 0, 0, 2], dtype: dtype)
+
+        # get tau from geqrf, use for ormqr
+        NMatrix::LAPACK.lapacke_geqrf(:row, a.shape[0], a.shape[1], a, a.shape[1], tau)
+
+        # Q is stored in result
         a.complex_dtype? ?
-          NMatrix::LAPACK::lapacke_unmqr(:row, :left, false, result.shape[0], result.shape[1], tau.shape[0], 
-                                                                a, a.shape[1], tau, result, result.shape[1])
+          NMatrix::LAPACK.lapacke_unmqr(:row, :left, false, result.shape[0], result.shape[1], tau.shape[0],
+            a, a.shape[1], tau, result, result.shape[1])
           :
 
-          NMatrix::LAPACK::lapacke_ormqr(:row, :left, false, result.shape[0], result.shape[1], tau.shape[0], 
-                                                                a, a.shape[1], tau, result, result.shape[1])
+          NMatrix::LAPACK.lapacke_ormqr(:row, :left, false, result.shape[0], result.shape[1], tau.shape[0],
+            a, a.shape[1], tau, result, result.shape[1])
 
-        x = NMatrix.new([2,2], [-1.6565668262559257 , -1.1206187354084205, 
-                                -1.1206187354084205 , 1.6565668262559263], dtype: dtype)
+        x = NMatrix.new([2, 2], [-1.6565668262559257, -1.1206187354084205,
+                                 -1.1206187354084205, 1.6565668262559263,], dtype: dtype)
 
         err = case dtype
                 when :float32, :complex64
                   1e-4
                 when :float64, :complex128
                   1e-14
-              end
+        end
 
-        expect(result).to be_within(err).of(x)      
+        expect(result).to be_within(err).of(x)
       end
-      
+
       it "calculates the orthogonal matrix Q using ormqr/unmqr after geqrf!" do
-        a = NMatrix.new([4,2], [34.0,  21.0, 
-                                23.0,  53.0, 
-                                26.0, 346.0, 
-                                23.0, 121.0] , dtype: dtype)
-        
-        # get tau from geqrf, use for ormqr  
+        a = NMatrix.new([4, 2], [34.0, 21.0,
+                                 23.0, 53.0,
+                                 26.0, 346.0,
+                                 23.0, 121.0,], dtype: dtype)
+
+        # get tau from geqrf, use for ormqr
         tau = a.geqrf!
 
-        #Q is stored in result 
+        # Q is stored in result
         result = a.complex_dtype? ? a.unmqr(tau) : a.ormqr(tau)
-          
 
-        x = NMatrix.new([4,4], Q_SOLUTION_ARRAY_1, dtype: dtype)
+        x = NMatrix.new([4, 4], Q_SOLUTION_ARRAY_1, dtype: dtype)
 
         err = case dtype
                 when :float32, :complex64
                   1e-4
                 when :float64, :complex128
                   1e-14
-              end
+        end
 
-        expect(result).to be_within(err).of(x)      
+        expect(result).to be_within(err).of(x)
       end
     end
-    
+
     it "calculates the transpose of Q using ormqr/unmqr after geqrf!" do
-        a = NMatrix.new([4,2], [34.0,  21.0, 
-                                23.0,  53.0, 
-                                26.0, 346.0, 
-                                23.0, 121.0] , dtype: dtype)
-        
-        # get tau from geqrf, use for ormqr  
-        tau = a.geqrf!
+      a = NMatrix.new([4, 2], [34.0,  21.0,
+                               23.0, 53.0,
+                               26.0, 346.0,
+                               23.0, 121.0,], dtype: dtype)
 
-        #Q is stored in result 
-        result = a.complex_dtype? ? a.unmqr(tau, :left, :complex_conjugate) : a.ormqr(tau, :left, :transpose)
-          
+      # get tau from geqrf, use for ormqr
+      tau = a.geqrf!
 
-        x = NMatrix.new([4,4], Q_SOLUTION_ARRAY_1, dtype: dtype)
-        x = x.transpose
+      # Q is stored in result
+      result = a.complex_dtype? ? a.unmqr(tau, :left, :complex_conjugate) : a.ormqr(tau, :left, :transpose)
 
-        err = case dtype
-                when :float32, :complex64
-                  1e-4
-                when :float64, :complex128
-                  1e-14
-              end
+      x = NMatrix.new([4, 4], Q_SOLUTION_ARRAY_1, dtype: dtype)
+      x = x.transpose
 
-        expect(result).to be_within(err).of(x)      
+      err = case dtype
+              when :float32, :complex64
+                1e-4
+              when :float64, :complex128
+                1e-14
+      end
+
+      expect(result).to be_within(err).of(x)
     end
 
     it "calculates the multiplication c * Q using ormqr/unmqr after geqrf!" do
-        a = NMatrix.new(3, [12.0, -51.0,   4.0, 
-                             6.0, 167.0, -68.0, 
-                            -4.0,  24.0, -41.0] , dtype: dtype)
-        
-        # get tau from geqrf, use for ormqr  
-        tau = a.geqrf!
-        c = NMatrix.new([2,3], [1,0,1,0,0,1], dtype: dtype)
+      a = NMatrix.new(3, [12.0, -51.0, 4.0,
+                          6.0, 167.0, -68.0,
+                          -4.0, 24.0, -41.0,], dtype: dtype)
 
-        #Q is stored in result 
-        result = a.complex_dtype? ? a.unmqr(tau, :right, false, c) : a.ormqr(tau, :right, false, c)
-          
-        solution = NMatrix.new([2,3], [-0.5714285714285714,   0.2228571428571429, 1.2742857142857142,
-                                        0.28571428571428575, -0.1714285714285714, 0.9428571428571428] , dtype: dtype)
-        err = case dtype
-                when :float32, :complex64
-                  1e-4
-                when :float64, :complex128
-                  1e-14
-              end
+      # get tau from geqrf, use for ormqr
+      tau = a.geqrf!
+      c = NMatrix.new([2, 3], [1, 0, 1, 0, 0, 1], dtype: dtype)
 
-        expect(result).to be_within(err).of(solution)      
+      # Q is stored in result
+      result = a.complex_dtype? ? a.unmqr(tau, :right, false, c) : a.ormqr(tau, :right, false, c)
+
+      solution = NMatrix.new([2, 3], [-0.5714285714285714, 0.2228571428571429, 1.2742857142857142,
+                                      0.28571428571428575, -0.1714285714285714, 0.9428571428571428,], dtype: dtype)
+      err = case dtype
+              when :float32, :complex64
+                1e-4
+              when :float64, :complex128
+                1e-14
+      end
+
+      expect(result).to be_within(err).of(solution)
     end
   end
 end

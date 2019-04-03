@@ -25,8 +25,8 @@
 # Specs for the shortcuts used in NMatrix and in NVector.
 #
 
-require 'spec_helper'
-require 'pry'
+require "spec_helper"
+require "pry"
 
 describe NMatrix do
   it "zeros() creates a matrix of zeros" do
@@ -59,71 +59,71 @@ describe NMatrix do
 
     m = NMatrix.hilbert(3)
     hilbert3 = NMatrix.new([3, 3], [1.0, 0.5, 0.3333333333333333,\
-     0.5, 0.3333333333333333, 0.25, 0.3333333333333333, 0.25, 0.2])
+                                    0.5, 0.3333333333333333, 0.25, 0.3333333333333333, 0.25, 0.2,])
     expect(m).to eq hilbert3
     0.upto(2) do |i|
       0.upto(2) do |j|
-        expect(m[i, j]).to be_within(0.000001).of(hilbert3[i,j])
+        expect(m[i, j]).to be_within(0.000001).of(hilbert3[i, j])
       end
     end
   end
 
   it "inv_hilbert() creates an inverse hilbert matrix" do
     m = NMatrix.inv_hilbert(6)
-    inv_hilbert6 = [3360.0,  -88200.0,   564480.0, -1411200.0]
-    expect(m[2,0]).to be_within(0.000001).of(inv_hilbert6[0])
-    expect(m[2,1]).to be_within(0.000001).of(inv_hilbert6[1])
-    expect(m[2,2]).to be_within(0.000001).of(inv_hilbert6[2])
-    expect(m[2,3]).to be_within(0.000001).of(inv_hilbert6[3])
+    inv_hilbert6 = [3360.0, -88200.0, 564480.0, -1411200.0]
+    expect(m[2, 0]).to be_within(0.000001).of(inv_hilbert6[0])
+    expect(m[2, 1]).to be_within(0.000001).of(inv_hilbert6[1])
+    expect(m[2, 2]).to be_within(0.000001).of(inv_hilbert6[2])
+    expect(m[2, 3]).to be_within(0.000001).of(inv_hilbert6[3])
 
     m = NMatrix.inv_hilbert(3)
-    inv_hilbert3 = NMatrix.new([3, 3], [  9.0,  -36.0,   30.0, -36.0,  192.0, -180.0, 30.0, -180.0,  180.0] )
+    inv_hilbert3 = NMatrix.new([3, 3], [9.0, -36.0, 30.0, -36.0, 192.0, -180.0, 30.0, -180.0, 180.0])
     0.upto(2) do |i|
       0.upto(2) do |j|
-        expect(m[i, j]).to be_within(0.000001).of(inv_hilbert3[i,j])
+        expect(m[i, j]).to be_within(0.000001).of(inv_hilbert3[i, j])
       end
     end
   end
 
   it "diag() creates a matrix with pre-supplied diagonal" do
-    arr = [1,2,3,4]
+    arr = [1, 2, 3, 4]
     m = NMatrix.diag(arr)
     expect(m.is_a?(NMatrix)).to be true
   end
 
   it "diagonals() contains the seeded values on the diagonal" do
-    arr = [1,2,3,4]
+    arr = [1, 2, 3, 4]
     m = NMatrix.diagonals(arr)
-    expect(m[0,0]).to eq(arr[0])
-    expect(m[1,1]).to eq(arr[1])
-    expect(m[2,2]).to eq(arr[2])
-    expect(m[3,3]).to eq(arr[3])
+    expect(m[0, 0]).to eq(arr[0])
+    expect(m[1, 1]).to eq(arr[1])
+    expect(m[2, 2]).to eq(arr[2])
+    expect(m[3, 3]).to eq(arr[3])
   end
 
   ALL_DTYPES.each do |dtype|
     [:dense, :yale, :list].each do |stype|
       context "#block_diagonal #{dtype} #{stype}" do
         it "block_diagonal() creates a block-diagonal NMatrix" do
-          pending("not yet implemented for NMatrix-JRuby") if jruby? and dtype == :object
-          a = NMatrix.new([2,2], [1,2,
-                                  3,4])
-          b = NMatrix.new([1,1], [123.0])
-          c = NMatrix.new([3,3], [1,2,3,
-                                  1,2,3,
-                                  1,2,3])
-          d = Array[ [1,1,1], [2,2,2], [3,3,3] ]
+          pending("not yet implemented for NMatrix-JRuby") if jruby? && (dtype == :object)
+          a = NMatrix.new([2, 2], [1, 2,
+                                   3, 4,])
+          b = NMatrix.new([1, 1], [123.0])
+          c = NMatrix.new([3, 3], [1, 2, 3,
+                                   1, 2, 3,
+                                   1, 2, 3,])
+          d = Array[[1, 1, 1], [2, 2, 2], [3, 3, 3]]
           e = 12
           m = NMatrix.block_diagonal(a, b, c, d, e, dtype: dtype, stype: stype)
-          expect(m).to eq(NMatrix.new([10,10], [1, 2,   0, 0, 0, 0, 0, 0, 0,  0,
-                                                3, 4,   0, 0, 0, 0, 0, 0, 0,  0,
-                                                0, 0, 123, 0, 0, 0, 0, 0, 0,  0,
-                                                0, 0,   0, 1, 2, 3, 0, 0, 0,  0,
-                                                0, 0,   0, 1, 2, 3, 0, 0, 0,  0,
-                                                0, 0,   0, 1, 2, 3, 0, 0, 0,  0,
-                                                0, 0,   0, 0, 0, 0, 1, 1, 1,  0,
-                                                0, 0,   0, 0, 0, 0, 2, 2, 2,  0,
-                                                0, 0,   0, 0, 0, 0, 3, 3, 3,  0,
-                                                0, 0,   0, 0, 0, 0, 0, 0, 0, 12], dtype: dtype, stype: stype))
+          expect(m).to eq(NMatrix.new([10, 10], [1, 2, 0, 0, 0, 0, 0, 0, 0, 0,
+                                                 3, 4, 0, 0, 0, 0, 0, 0, 0, 0,
+                                                 0, 0, 123, 0, 0, 0, 0, 0, 0,  0,
+                                                 0, 0,   0, 1, 2, 3, 0, 0, 0,  0,
+                                                 0, 0,   0, 1, 2, 3, 0, 0, 0,  0,
+                                                 0, 0,   0, 1, 2, 3, 0, 0, 0,  0,
+                                                 0, 0,   0, 0, 0, 0, 1, 1, 1,  0,
+                                                 0, 0,   0, 0, 0, 0, 2, 2, 2,  0,
+                                                 0, 0,   0, 0, 0, 0, 3, 3, 3,  0,
+                                                 0, 0,   0, 0, 0, 0, 0, 0, 0, 12,], dtype: dtype, stype: stype))
         end
       end
     end
@@ -138,22 +138,20 @@ describe NMatrix do
     end
 
     it "creates a matrix of random numbers with defined seed value" do
-      m1 = NMatrix.random(2,:seed => 62)
-      m2 = NMatrix.random(2,:seed => 62)
-      m3 = NMatrix.random(2,:seed => 65)
-
+      m1 = NMatrix.random(2, seed: 62)
+      m2 = NMatrix.random(2, seed: 62)
+      m3 = NMatrix.random(2, seed: 65)
 
       expect(m1).to eq(m2)
       expect(m1).not_to eq(m3)
-
     end
 
     it "creates a complex matrix of random numbers" do
-      m = NMatrix.random(2, :dtype => :complex128)
+      m = NMatrix.random(2, dtype: :complex128)
     end
 
     it "correctly accepts :scale parameter" do
-      m = NMatrix.random([2,2], dtype: :byte, scale: 255)
+      m = NMatrix.random([2, 2], dtype: :byte, scale: 255)
       m.each do |v|
         expect(v).to be >= 0
         expect(v).to be < 255
@@ -172,21 +170,20 @@ describe NMatrix do
   end
 
   context "::magic" do
-
     ALL_DTYPES.each do |dtype|
       context dtype do
         it "creates a matrix with numbers from 1 to n^n(n squared)" do
           pending("not yet implemented for NMatrix-JRuby") if jruby?
           a = NMatrix.magic(3, dtype: dtype)
-          magic3 = NMatrix.new([3,3], [4, 9, 2, 3, 5, 7, 8, 1, 6], dtype: dtype)
+          magic3 = NMatrix.new([3, 3], [4, 9, 2, 3, 5, 7, 8, 1, 6], dtype: dtype)
           expect(a).to eq magic3
 
           b = NMatrix.magic(4, dtype: dtype)
-          magic4 = NMatrix.new([4,4], [1, 15, 14,  4, 12,  6,  7, 9, 8, 10, 11, 5, 13, 3, 2, 16], dtype: dtype)
+          magic4 = NMatrix.new([4, 4], [1, 15, 14, 4, 12, 6, 7, 9, 8, 10, 11, 5, 13, 3, 2, 16], dtype: dtype)
           expect(b).to eq magic4
 
           c = NMatrix.magic(6, dtype: dtype)
-          magic6 = NMatrix.new([6,6], [31, 9, 2, 22, 27, 20, 3, 32, 7, 21, 23, 25, 35, 1, 6, 26, 19, 24, 4, 36, 29, 13, 18, 11, 30, 5, 34, 12, 14, 16, 8, 28, 33, 17, 10, 15], dtype: dtype)
+          magic6 = NMatrix.new([6, 6], [31, 9, 2, 22, 27, 20, 3, 32, 7, 21, 23, 25, 35, 1, 6, 26, 19, 24, 4, 36, 29, 13, 18, 11, 30, 5, 34, 12, 14, 16, 8, 28, 33, 17, 10, 15], dtype: dtype)
           expect(c).to eq magic6
         end
       end
@@ -205,10 +202,10 @@ describe NMatrix do
     it "creates a row vector when given only one shape parameter" do
       pending("not yet implemented for NMatrix-JRuby") if jruby?
       v = NMatrix.linspace(1, 10, 4)
-      #Expect a row vector only
+      # Expect a row vector only
       expect(v.shape.length).to eq(1)
 
-      ans = [1.0,4.0,7.0,10.0]
+      ans = [1.0, 4.0, 7.0, 10.0]
 
       expect(v[0]).to be_within(0.000001).of(ans[0])
       expect(v[1]).to be_within(0.000001).of(ans[1])
@@ -218,15 +215,15 @@ describe NMatrix do
 
     it "creates a matrix of input shape with each entry linearly spaced in row major order" do
       pending("not yet implemented for NMatrix-JRuby") if jruby?
-      v = NMatrix.linspace(1, Math::PI, [2,2])
+      v = NMatrix.linspace(1, Math::PI, [2, 2])
       expect(v.dtype).to eq(:float64)
 
       ans = [1.0, 1.7138642072677612, 2.4277284145355225, 3.1415927410125732]
 
-      expect(v[0,0]).to be_within(0.000001).of(ans[0])
-      expect(v[0,1]).to be_within(0.000001).of(ans[1])
-      expect(v[1,0]).to be_within(0.000001).of(ans[2])
-      expect(v[1,1]).to be_within(0.000001).of(ans[3])
+      expect(v[0, 0]).to be_within(0.000001).of(ans[0])
+      expect(v[0, 1]).to be_within(0.000001).of(ans[1])
+      expect(v[1, 0]).to be_within(0.000001).of(ans[2])
+      expect(v[1, 1]).to be_within(0.000001).of(ans[3])
     end
   end
 
@@ -237,7 +234,7 @@ describe NMatrix do
 
       expect(v.shape.length).to eq(1)
 
-      #Unit test taken from Matlab R2015b output of logspace(1,2,10)
+      # Unit test taken from Matlab R2015b output of logspace(1,2,10)
       ans = [10.0000, 12.9155, 16.6810, 21.5443, 27.8256, 35.9381, 46.4159, 59.9484, 77.4264, 100.0000]
 
       expect(v[0].round(4)).to be_within(0.000001).of(ans[0])
@@ -256,7 +253,7 @@ describe NMatrix do
       pending("not yet implemented for NMatrix-JRuby") if jruby?
       v = NMatrix.logspace(1, :pi, 7)
 
-      #Unit test taken from Matlab R2015b output of logspace(1,pi,10)
+      # Unit test taken from Matlab R2015b output of logspace(1,pi,10)
       ans = [10.0000, 8.2450, 6.7980, 5.6050, 4.6213, 3.8103, 3.1416]
 
       expect(v[0].round(4)).to be_within(0.000001).of(ans[0])
@@ -270,16 +267,16 @@ describe NMatrix do
 
     it "creates a matrix of input shape with each entry logarithmically spaced in row major order" do
       pending("not yet implemented for NMatrix-JRuby") if jruby?
-      v = NMatrix.logspace(1, 2, [3,2])
+      v = NMatrix.logspace(1, 2, [3, 2])
 
       ans = [10.0, 15.8489, 25.1189, 39.8107, 63.0957, 100.0]
 
-      expect(v[0,0].round(4)).to be_within(0.000001).of(ans[0])
-      expect(v[0,1].round(4)).to be_within(0.000001).of(ans[1])
-      expect(v[1,0].round(4)).to be_within(0.000001).of(ans[2])
-      expect(v[1,1].round(4)).to be_within(0.000001).of(ans[3])
-      expect(v[2,0].round(4)).to be_within(0.000001).of(ans[4])
-      expect(v[2,1].round(4)).to be_within(0.000001).of(ans[5])
+      expect(v[0, 0].round(4)).to be_within(0.000001).of(ans[0])
+      expect(v[0, 1].round(4)).to be_within(0.000001).of(ans[1])
+      expect(v[1, 0].round(4)).to be_within(0.000001).of(ans[2])
+      expect(v[1, 1].round(4)).to be_within(0.000001).of(ans[3])
+      expect(v[2, 0].round(4)).to be_within(0.000001).of(ans[4])
+      expect(v[2, 1].round(4)).to be_within(0.000001).of(ans[5])
     end
   end
 
@@ -289,7 +286,7 @@ describe NMatrix do
 
     2.times do |i|
       2.times do |j|
-        expect(m[i,j]).to eq(value)
+        expect(m[i, j]).to eq(value)
         value += 1
       end
     end
@@ -313,7 +310,7 @@ describe NMatrix do
 
     2.times do |i|
       2.times do |j|
-        expect(m[i, j]/10).to be_within(Float::EPSILON).of(value.to_f/10)
+        expect(m[i, j] / 10).to be_within(Float::EPSILON).of(value.to_f / 10)
         value += 1
       end
     end
@@ -357,24 +354,24 @@ describe NMatrix do
   end
 
   it "diagonals() creates an NMatrix" do
-    arr = [1,2,3,4]
+    arr = [1, 2, 3, 4]
     m = NMatrix.diagonals(arr)
     expect(m.is_a?(NMatrix)).to be true
   end
 
   it "diagonals() contains the seeded values on the diagonal" do
-    arr = [1,2,3,4]
+    arr = [1, 2, 3, 4]
     m = NMatrix.diagonals(arr)
-    expect(m[0,0]).to eq(arr[0])
-    expect(m[1,1]).to eq(arr[1])
-    expect(m[2,2]).to eq(arr[2])
-    expect(m[3,3]).to eq(arr[3])
+    expect(m[0, 0]).to eq(arr[0])
+    expect(m[1, 1]).to eq(arr[1])
+    expect(m[2, 2]).to eq(arr[2])
+    expect(m[3, 3]).to eq(arr[3])
   end
 
   context "_like constructors" do
     before :each do
-      @nm_1d = NMatrix[5.0,0.0,1.0,2.0,3.0]
-      @nm_2d = NMatrix[[0.0,1.0],[2.0,3.0]]
+      @nm_1d = NMatrix[5.0, 0.0, 1.0, 2.0, 3.0]
+      @nm_2d = NMatrix[[0.0, 1.0], [2.0, 3.0]]
     end
 
     it "should create an nmatrix of ones with dimensions and type the same as its argument" do
@@ -388,11 +385,9 @@ describe NMatrix do
       expect(NMatrix.zeros_like(@nm_2d)).to eq NMatrix[[0.0, 0.0], [0.0, 0.0]]
     end
   end
-
 end
 
 describe "NVector" do
-
   it "zeros() creates a vector of zeros" do
     v = NVector.zeros(4)
 
@@ -419,7 +414,7 @@ describe "NVector" do
 
   it "seq() creates a vector of integers, sequentially" do
     v = NVector.seq(7)
-    expect(v).to eq(NMatrix.new([7,1], [0, 1, 2, 3, 4, 5, 6]))
+    expect(v).to eq(NMatrix.new([7, 1], [0, 1, 2, 3, 4, 5, 6]))
   end
 
   it "seq() only accepts integers as dimension" do
@@ -431,40 +426,39 @@ describe "NVector" do
 
   it "indgen() creates a vector of integers as well as seq()" do
     v = NVector.indgen(7)
-    expect(v).to eq(NMatrix.new([7,1], [0, 1, 2, 3, 4, 5, 6]))
+    expect(v).to eq(NMatrix.new([7, 1], [0, 1, 2, 3, 4, 5, 6]))
   end
 
   it "findgen creates a vector of floats, sequentially" do
     v = NVector.findgen(2)
-    expect(v).to eq(NMatrix.new([2,1], [0.0, 1.0]))
+    expect(v).to eq(NMatrix.new([2, 1], [0.0, 1.0]))
   end
 
   it "bindgen() creates a vector of bytes, sequentially" do
     v = NVector.bindgen(4)
-    expect(v).to eq(NMatrix.new([4,1], [0, 1, 2, 3], dtype: :byte))
+    expect(v).to eq(NMatrix.new([4, 1], [0, 1, 2, 3], dtype: :byte))
   end
 
   it "cindgen() creates a vector of complexes, sequentially" do
     pending("not yet implemented for NMatrix-JRuby") if jruby?
     v = NVector.cindgen(2)
-    expect(v).to eq(NMatrix.new([2,1], [Complex(0.0, 0.0), Complex(1.0, 0.0)], dtype: :complex64))
+    expect(v).to eq(NMatrix.new([2, 1], [Complex(0.0, 0.0), Complex(1.0, 0.0)], dtype: :complex64))
   end
 
   it "linspace() creates a vector with n values equally spaced between a and b" do
     pending("not yet implemented for NMatrix-JRuby") if jruby?
     v = NVector.linspace(0, 2, 5)
-    expect(v).to eq(NMatrix.new([5,1], [0.0, 0.5, 1.0, 1.5, 2.0]))
+    expect(v).to eq(NMatrix.new([5, 1], [0.0, 0.5, 1.0, 1.5, 2.0]))
   end
 
   it "logspace() creates a vector with n values logarithmically spaced between decades 10^a and 10^b" do
     pending("not yet implemented for NMatrix-JRuby") if jruby?
     v = NVector.logspace(0, 3, 4)
-    expect(v).to eq(NMatrix.new([4,1], [1.0, 10.0, 100.0, 1000.0]))
+    expect(v).to eq(NMatrix.new([4, 1], [1.0, 10.0, 100.0, 1000.0]))
   end
 end
 
 describe "Inline constructor" do
-
   it "creates a NMatrix with the given values" do
     m = NMatrix.new([2, 2], [1, 4, 6, 7])
     n = NMatrix[[1, 4], [6, 7]]
