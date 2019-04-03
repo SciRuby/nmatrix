@@ -25,4 +25,4 @@
 # This file is a stub that only loads the main NMatrix file.
 #
 
-require 'nmatrix/nmatrix.rb'
+require "nmatrix/nmatrix.rb"

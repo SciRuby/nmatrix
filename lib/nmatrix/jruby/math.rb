@@ -29,7 +29,6 @@
 #++
 
 class NMatrix
-
   #
   # call-seq:
   #     getrf! -> Array
@@ -51,8 +50,8 @@ class NMatrix
   #   - +StorageTypeError+ -> ATLAS functions only work on dense matrices.
   #
   def getrf!
-    ipiv = LUDecomposition.new(self.twoDMat).getPivot.to_a
-    return ipiv
+    ipiv = LUDecomposition.new(twoDMat).getPivot.to_a
+    ipiv
   end
 
   #
@@ -114,10 +113,9 @@ class NMatrix
   #   - +TypeError+ -> Works only on floating point matrices, use unmqr for complex types
   #   - +TypeError+ -> c must have the same dtype as the calling NMatrix
   #
-  def ormqr(tau, side=:left, transpose=false, c=nil)
+  def ormqr(tau, side = :left, transpose = false, c = nil)
     # The real implementation is in lib/nmatrix/lapacke.rb
     raise(NotImplementedError, "ormqr requires the nmatrix-lapacke gem")
-
   end
 
   #
@@ -148,7 +146,7 @@ class NMatrix
   #   - +TypeError+ -> Works only on floating point matrices, use unmqr for complex types
   #   - +TypeError+ -> c must have the same dtype as the calling NMatrix
   #
-  def unmqr(tau, side=:left, transpose=false, c=nil)
+  def unmqr(tau, side = :left, transpose = false, c = nil)
     # The real implementation is in lib/nmatrix/lapacke.rb
     raise(NotImplementedError, "unmqr requires the nmatrix-lapacke gem")
   end
@@ -178,7 +176,7 @@ class NMatrix
   #
   def potrf!(which)
     # The real implementation is in the plugin files.
-    cholesky = CholeskyDecomposition.new(self.twoDMat)
+    cholesky = CholeskyDecomposition.new(twoDMat)
     if which == :upper
       u = create_dummy_nmatrix
       twoDMat = cholesky.getLT
@@ -200,7 +198,6 @@ class NMatrix
     potrf! :lower
   end
 
-
   #
   # call-seq:
   #     factorize_cholesky -> [upper NMatrix, lower NMatrix]
@@ -214,14 +211,14 @@ class NMatrix
   # sure it is positive-definite.
   def factorize_cholesky
     # raise "Matrix must be symmetric/Hermitian for Cholesky factorization" unless self.hermitian?
-    cholesky = CholeskyDecomposition.new(self.twoDMat)
+    cholesky = CholeskyDecomposition.new(twoDMat)
     l = create_dummy_nmatrix
     twoDMat = cholesky.getL
     l.s = ArrayRealVector.new(ArrayGenerator.getArrayDouble(twoDMat.getData, @shape[0], @shape[1]))
     u = create_dummy_nmatrix
     twoDMat = cholesky.getLT
     u.s = ArrayRealVector.new(ArrayGenerator.getArrayDouble(twoDMat.getData, @shape[0], @shape[1]))
-    return [u,l]
+    [u, l]
   end
 
   #
@@ -237,14 +234,14 @@ class NMatrix
   # +with_permutation_matrix+ - If set to *true* will return the permutation
   #   matrix alongwith the LU factorization as a second return value.
   #
-  def factorize_lu with_permutation_matrix=nil
-    raise(NotImplementedError, "only implemented for dense storage") unless self.stype == :dense
-    raise(NotImplementedError, "matrix is not 2-dimensional") unless self.dimensions == 2
-    t = self.clone
+  def factorize_lu with_permutation_matrix = nil
+    raise(NotImplementedError, "only implemented for dense storage") unless stype == :dense
+    raise(NotImplementedError, "matrix is not 2-dimensional") unless dimensions == 2
+    t = clone
     pivot = create_dummy_nmatrix
     twoDMat = LUDecomposition.new(self.twoDMat).getP
     pivot.s = ArrayRealVector.new(ArrayGenerator.getArrayDouble(twoDMat.getData, @shape[0], @shape[1]))
-    return [t,pivot]
+    [t, pivot]
   end
 
   #
@@ -265,10 +262,9 @@ class NMatrix
   #   - +ShapeError+ -> Input must be a 2-dimensional matrix to have a QR decomposition.
   #
   def factorize_qr
-
-    raise(NotImplementedError, "only implemented for dense storage") unless self.stype == :dense
-    raise(ShapeError, "Input must be a 2-dimensional matrix to have a QR decomposition") unless self.dim == 2
-    qrdecomp = QRDecomposition.new(self.twoDMat)
+    raise(NotImplementedError, "only implemented for dense storage") unless stype == :dense
+    raise(ShapeError, "Input must be a 2-dimensional matrix to have a QR decomposition") unless dim == 2
+    qrdecomp = QRDecomposition.new(twoDMat)
 
     qmat = create_dummy_nmatrix
     qtwoDMat = qrdecomp.getQ
@@ -277,8 +273,7 @@ class NMatrix
     rmat = create_dummy_nmatrix
     rtwoDMat = qrdecomp.getR
     rmat.s = ArrayRealVector.new(ArrayGenerator.getArrayDouble(rtwoDMat.getData, @shape[0], @shape[1]))
-    return [qmat,rmat]
-
+    [qmat, rmat]
   end
 
   # Solve the matrix equation AX = B, where A is +self+, B is the first
@@ -325,33 +320,32 @@ class NMatrix
   #   #  upper_tri    0.180000   0.000000   0.180000 (  0.182491)
   #
   def solve(b, opts = {})
-    raise(ShapeError, "Must be called on square matrix") unless self.dim == 2 && self.shape[0] == self.shape[1]
+    raise(ShapeError, "Must be called on square matrix") unless dim == 2 && shape[0] == shape[1]
     raise(ShapeError, "number of rows of b must equal number of cols of self") if
-      self.shape[1] != b.shape[0]
-    raise(ArgumentError, "only works with dense matrices") if self.stype != :dense
+      shape[1] != b.shape[0]
+    raise(ArgumentError, "only works with dense matrices") if stype != :dense
     raise(ArgumentError, "only works for non-integer, non-object dtypes") if
-      integer_dtype? or object_dtype? or b.integer_dtype? or b.object_dtype?
+      integer_dtype? || object_dtype? || b.integer_dtype? || b.object_dtype?
 
-    opts = { form: :general }.merge(opts)
+    opts = {form: :general}.merge(opts)
     x    = b.clone
-    n    = self.shape[0]
+    n    = shape[0]
     nrhs = b.shape[1]
 
     nmatrix = create_dummy_nmatrix
     case opts[:form]
     when :general, :upper_tri, :upper_triangular, :lower_tri, :lower_triangular
-      #LU solver
-      solver = LUDecomposition.new(self.twoDMat).getSolver
+      # LU solver
+      solver = LUDecomposition.new(twoDMat).getSolver
       nmatrix.s = solver.solve(b.s)
       return nmatrix
     when :pos_def, :positive_definite
-      solver = CholeskyDecomposition.new(self.twoDMat).getSolver
+      solver = CholeskyDecomposition.new(twoDMat).getSolver
       nmatrix.s = solver.solve(b.s)
       return nmatrix
     else
       raise(ArgumentError, "#{opts[:form]} is not a valid form option")
     end
-
   end
 
   #
@@ -380,8 +374,8 @@ class NMatrix
   #   - +ShapeError+ -> Must be used on square matrices.
   #
   def det
-    raise(ShapeError, "determinant can be calculated only for square matrices") unless self.dim == 2 && self.shape[0] == self.shape[1]
-    self.det_exact2
+    raise(ShapeError, "determinant can be calculated only for square matrices") unless dim == 2 && shape[0] == shape[1]
+    det_exact2
   end
 
   #
@@ -401,8 +395,8 @@ class NMatrix
   # * *Returns* :
   #   - If the original NMatrix isn't complex, the result is a +:complex128+ NMatrix. Otherwise, it's the original dtype.
   #
-  def complex_conjugate(new_stype = self.stype)
-    self.cast(new_stype, NMatrix::upcast(dtype, :complex64)).complex_conjugate!
+  def complex_conjugate(new_stype = stype)
+    cast(new_stype, NMatrix.upcast(dtype, :complex64)).complex_conjugate!
   end
 
   #
@@ -416,7 +410,7 @@ class NMatrix
   #   - The conjugate transpose of the matrix as a copy.
   #
   def conjugate_transpose
-    self.transpose.complex_conjugate!
+    transpose.complex_conjugate!
   end
 
   #
@@ -428,15 +422,15 @@ class NMatrix
   #   - +n+ -> the number of elements to include
   #
   # Return the sum of the contents of the vector. This is the BLAS asum routine.
-  def asum incx=1, n=nil
-    if self.shape == [1]
-      return self[0].abs unless self.complex_dtype?
+  def asum incx = 1, n = nil
+    if shape == [1]
+      return self[0].abs unless complex_dtype?
       return self[0].real.abs + self[0].imag.abs
     end
     return method_missing(:asum, incx, n) unless vector?
-    NMatrix::BLAS::asum(self, incx, self.size / incx)
+    NMatrix::BLAS.asum(self, incx, size / incx)
   end
-  alias :absolute_sum :asum
+  alias absolute_sum asum
 
   #
   # call-seq:
@@ -447,10 +441,10 @@ class NMatrix
   #   - +n+ -> the number of elements to include
   #
   # Return the 2-norm of the vector. This is the BLAS nrm2 routine.
-  def nrm2 incx=1, n=nil
-    self.twoDMat.getFrobeniusNorm()
+  def nrm2 incx = 1, n = nil
+    twoDMat.getFrobeniusNorm
   end
-  alias :norm2 :nrm2
+  alias norm2 nrm2
 
   #
   # call-seq:
@@ -464,14 +458,14 @@ class NMatrix
   # This is a destructive method, modifying the source NMatrix.  See also #scale.
   # Return the scaling result of the matrix. BLAS scal will be invoked if provided.
 
-  def scale!(alpha, incx=1, n=nil)
-    #FIXME
+  def scale!(alpha, incx = 1, n = nil)
+    # FIXME
     # raise(DataTypeError, "Incompatible data type for the scaling factor") unless
     #     NMatrix::upcast(self.dtype, NMatrix::min_dtype(alpha)) == self.dtype
     raise(DataTypeError, "Incompatible data type for the scaling factor") if
-        self.dtype == :int8
+        dtype == :int8
     @s.mapMultiplyToSelf(alpha)
-    return self
+    self
   end
 
   #
@@ -485,17 +479,16 @@ class NMatrix
   #
   # Return the scaling result of the matrix. BLAS scal will be invoked if provided.
 
-  def scale(alpha, incx=1, n=nil)
+  def scale(alpha, incx = 1, n = nil)
     # FIXME
     # raise(DataTypeError, "Incompatible data type for the scaling factor") unless
     #     NMatrix::upcast(self.dtype, NMatrix::min_dtype(alpha)) == self.dtype
     raise(DataTypeError, "Incompatible data type for the scaling factor") if
-        self.dtype == :byte || self.dtype == :int8 || self.dtype == :int16 ||
-        self.dtype == :int32 || self.dtype == :int64
+        dtype == :byte || dtype == :int8 || dtype == :int16 ||
+          dtype == :int32 || dtype == :int64
     nmatrix = NMatrix.new :copy
     nmatrix.shape = @shape.clone
     nmatrix.s = ArrayRealVector.new(@s.toArray.clone).mapMultiplyToSelf(alpha)
-    return nmatrix
+    nmatrix
   end
-
 end

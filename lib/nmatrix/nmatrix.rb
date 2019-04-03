@@ -37,26 +37,26 @@ def jruby?
 end
 
 if jruby?
-  require_relative 'jruby/nmatrix_java'
+  require_relative "jruby/nmatrix_java"
 else
-  if File.exist?("lib/nmatrix/nmatrix.so") #|| File.exist?("lib/nmatrix/nmatrix.bundle")
+  if File.exist?("lib/nmatrix/nmatrix.so") # || File.exist?("lib/nmatrix/nmatrix.bundle")
     # Development
     require_relative "nmatrix/nmatrix.so"
   else
     # Gem
     require_relative "../nmatrix.so"
-    require_relative './io/mat_reader'
-    require_relative './io/mat5_reader'
-    require_relative './io/market'
-    require_relative './io/point_cloud'
+    require_relative "./io/mat_reader"
+    require_relative "./io/mat5_reader"
+    require_relative "./io/market"
+    require_relative "./io/point_cloud"
 
-    require_relative './lapack_core.rb'
-    require_relative './yale_functions.rb'
+    require_relative "./lapack_core.rb"
+    require_relative "./yale_functions.rb"
   end
 end
 
-require_relative './math.rb'
-require_relative './monkeys'
+require_relative "./math.rb"
+require_relative "./monkeys"
 
 # NMatrix is a matrix class that supports both multidimensional arrays
 # (`:dense` stype) and sparse storage (`:list` or `:yale` stypes) and 13 data
@@ -83,7 +83,7 @@ class NMatrix
         def load_mat(file_path)
           NMatrix::IO::Matlab::Mat5Reader.new(File.open(file_path, "rb+")).to_ruby
         end
-        alias :load :load_mat
+        alias load load_mat
       end
     end
   end
@@ -97,7 +97,7 @@ class NMatrix
     # * *Returns* :
     #   - A Mat5Reader object.
     def load_matlab_file(file_path)
-      NMatrix::IO::Matlab::Mat5Reader.new(File.open(file_path, 'rb')).to_ruby
+      NMatrix::IO::Matlab::Mat5Reader.new(File.open(file_path, "rb")).to_ruby
     end
 
     # call-seq:
@@ -113,8 +113,8 @@ class NMatrix
 
     # Calculate the size of an NMatrix of a given shape.
     def size(shape)
-      shape = [shape,shape] unless shape.is_a?(Array)
-      (0...shape.size).inject(1) { |x,i| x * shape[i] }
+      shape = [shape, shape] unless shape.is_a?(Array)
+      (0...shape.size).inject(1) { |x, i| x * shape[i] }
     end
 
     # Make N-D coordinate arrays for vectorized evaluations of
@@ -145,27 +145,27 @@ class NMatrix
     #     x.to_a #<= [[1, 1], [2, 2], [3, 3]]
     #     y.to_a #<= [[4, 5], [4, 5], [4, 5]]
     def meshgrid(vectors, options = {})
-      raise(ArgumentError, 'Expected at least 2 arrays.') if vectors.size < 2
+      raise(ArgumentError, "Expected at least 2 arrays.") if vectors.size < 2
       options[:indexing] ||= :xy
-      raise(ArgumentError, 'Indexing must be :xy of :ij') unless [:ij, :xy].include? options[:indexing]
+      raise(ArgumentError, "Indexing must be :xy of :ij") unless [:ij, :xy].include? options[:indexing]
       mats = vectors.map { |arr| arr.respond_to?(:flatten) ? arr.flatten : arr.to_flat_array }
       mats[0], mats[1] = mats[1], mats[0] if options[:indexing] == :xy
       new_dim = mats.size
       lengths = mats.map(&:size)
-      result = mats.map.with_index do |matrix, axis|
+      result = mats.map.with_index { |matrix, axis|
         if options[:sparse]
           new_shape = Array.new(new_dim, 1)
           new_shape[axis] = lengths[axis]
           new_elements = matrix
         else
           before_axis = lengths[0...axis].reduce(:*)
-          after_axis = lengths[(axis+1)..-1].reduce(:*)
+          after_axis = lengths[(axis + 1)..-1].reduce(:*)
           new_shape = lengths
-          new_elements = after_axis ? matrix.map{ |el| [el] * after_axis }.flatten : matrix
+          new_elements = after_axis ? matrix.map { |el| [el] * after_axis }.flatten : matrix
           new_elements *= before_axis if before_axis
         end
         NMatrix.new(new_shape, new_elements)
-      end
+      }
       result[0], result[1] = result[1], result[0] if options[:indexing] == :xy
       result
     end
@@ -173,27 +173,27 @@ class NMatrix
 
   # TODO: Make this actually pretty.
   def pretty_print(q) #:nodoc:
-    if self.shape.size > 1 and self.shape[1] > 100
-      self.inspect.pretty_print(q)
-    elsif self.dim > 3 || self.dim == 1
-      self.to_a.pretty_print(q)
+    if (shape.size > 1) && (shape[1] > 100)
+      inspect.pretty_print(q)
+    elsif dim > 3 || dim == 1
+      to_a.pretty_print(q)
     else
       # iterate through the whole matrix and find the longest number
-      longest = Array.new(self.shape[1], 0)
-      self.each_column.with_index do |col, j|
+      longest = Array.new(shape[1], 0)
+      each_column.with_index do |col, j|
         col.each do |elem|
           elem_len   = elem.inspect.size
           longest[j] = elem_len if longest[j] < elem_len
         end
       end
 
-      if self.dim == 3
+      if dim == 3
         q.group(0, "\n{ layers:", "}") do
-          self.each_layer.with_index do |layer,k|
+          each_layer.with_index do |layer, k|
             q.group(0, "\n  [\n", "  ]\n") do
-              layer.each_row.with_index do |row,i|
+              layer.each_row.with_index do |row, i|
                 q.group(0, "    [", "]\n") do
-                  q.seplist(self[i,0...self.shape[1],k].to_flat_array, lambda { q.text ", "}, :each_with_index) { |v,j| q.text v.inspect.rjust(longest[j]) }
+                  q.seplist(self[i, 0...shape[1], k].to_flat_array, lambda { q.text ", "}, :each_with_index) { |v, j| q.text v.inspect.rjust(longest[j]) }
                 end
               end
             end
@@ -201,13 +201,13 @@ class NMatrix
         end
       else # dim 2
         q.group(0, "\n[\n ", "]") do
-          self.each_row.with_index do |row, i|
+          each_row.with_index do |row, i|
             q.group(1, " [", "]\n") do
-              q.seplist(row.to_a, -> { q.text ", " }, :each_with_index) do |v,j|
+              q.seplist(row.to_a, -> { q.text ", " }, :each_with_index) do |v, j|
                 q.text v.inspect.rjust(longest[j])
               end
             end
-            q.breakable unless i + 1 == self.shape[0]
+            q.breakable unless i + 1 == shape[0]
           end
         end
       end
@@ -237,27 +237,25 @@ class NMatrix
   # provide a :default, as 0 may behave differently from its Float or Complex equivalent. If no option
   # is given, Integer 0 will be used.
   def cast(*params)
-    if (params.size > 0 && params[0].is_a?(Hash))
+    if params.size > 0 && params[0].is_a?(Hash)
       opts = {
-          :stype => self.stype,
-          :dtype => self.dtype,
-          :default => self.stype == :dense ? 0 : self.default_value
+        stype: stype,
+        dtype: dtype,
+        default: stype == :dense ? 0 : default_value,
       }.merge(params[0])
 
-      self.cast_full(opts[:stype], opts[:dtype], opts[:default])
+      cast_full(opts[:stype], opts[:dtype], opts[:default])
     else
-      params << self.stype if params.size == 0
-      params << self.dtype if params.size == 1
-      #HACK: the default value can cause an exception if dtype is not complex
-      #and default_value is. (The ruby C code apparently won't convert these.)
-      #Perhaps this should be fixed in the C code (in rubyval_to_cval).
+      params << stype if params.size == 0
+      params << dtype if params.size == 1
+      # HACK: the default value can cause an exception if dtype is not complex
+      # and default_value is. (The ruby C code apparently won't convert these.)
+      # Perhaps this should be fixed in the C code (in rubyval_to_cval).
       default_value = maybe_get_noncomplex_default_value(params[1])
-      params << (self.stype == :dense ? 0 : default_value) if params.size == 2
-      self.cast_full(*params)
+      params << (stype == :dense ? 0 : default_value) if params.size == 2
+      cast_full(*params)
     end
-
   end
-
 
   #
   # call-seq:
@@ -291,18 +289,18 @@ class NMatrix
   # == References
   #
   # * http://en.wikipedia.org/wiki/Main_diagonal
-  def diagonal main_diagonal=true
+  def diagonal main_diagonal = true
     diag_size = [cols, rows].min
     diag = NMatrix.new [diag_size], dtype: dtype
 
     if main_diagonal
-      0.upto(diag_size-1) do |i|
-        diag[i] = self[i,i]
+      0.upto(diag_size - 1) do |i|
+        diag[i] = self[i, i]
       end
     else
       row = 0
-      (diag_size-1).downto(0) do |col|
-        diag[row] = self[row,col]
+      (diag_size - 1).downto(0) do |col|
+        diag[row] = self[row, col]
         row += 1
       end
     end
@@ -319,9 +317,9 @@ class NMatrix
   def to_hash
     if stype == :yale
       h = {}
-      each_stored_with_indices do |val,i,j|
+      each_stored_with_indices do |val, i, j|
         next if val == 0 # Don't bother storing the diagonal zero values -- only non-zeros.
-        if h.has_key?(i)
+        if h.key?(i)
           h[i][j] = val
         else
           h[i] = {j => val}
@@ -330,25 +328,23 @@ class NMatrix
       h
     else # dense and list should use a C internal function.
       # FIXME: Write a C internal to_h function.
-      m = stype == :dense ? self.cast(:list, self.dtype) : self
+      m = stype == :dense ? cast(:list, dtype) : self
       m.__list_to_hash__
     end
   end
-  alias :to_h :to_hash
-
+  alias to_h to_hash
 
   def inspect #:nodoc:
     original_inspect = super()
-    original_inspect = original_inspect[0...original_inspect.size-1]
+    original_inspect = original_inspect[0...original_inspect.size - 1]
     original_inspect + " " + inspect_helper.join(" ") + ">"
   end
 
   def __yale_ary__to_s(sym) #:nodoc:
-    ary = self.send("__yale_#{sym.to_s}__".to_sym)
+    ary = send("__yale_#{sym}__".to_sym)
 
-    '[' + ary.collect { |a| a ? a : 'nil'}.join(',') + ']'
+    "[" + ary.collect { |a| a || "nil"}.join(",") + "]"
   end
-
 
   # call-seq:
   #   integer_dtype?() -> Boolean
@@ -356,7 +352,7 @@ class NMatrix
   # Checks if dtype is an integer type
   #
   def integer_dtype?
-    [:byte, :int8, :int16, :int32, :int64].include?(self.dtype)
+    [:byte, :int8, :int16, :int32, :int64].include?(dtype)
   end
 
   # call-seq:
@@ -375,7 +371,7 @@ class NMatrix
   # Checks if dtype is a complex type
   #
   def complex_dtype?
-    [:complex64, :complex128].include?(self.dtype)
+    [:complex64, :complex128].include?(dtype)
   end
 
   ##
@@ -388,7 +384,6 @@ class NMatrix
     dtype == :object
   end
 
-
   #
   # call-seq:
   #     to_f -> Float
@@ -399,7 +394,7 @@ class NMatrix
   # Raises an IndexError if the matrix does not have just a single element.
   #
   def to_f
-    raise IndexError, 'to_f only valid for matrices with a single element' unless shape.all? { |e| e == 1 }
+    raise IndexError, "to_f only valid for matrices with a single element" unless shape.all? { |e| e == 1 }
     self[*Array.new(shape.size, 0)]
   end
 
@@ -411,11 +406,11 @@ class NMatrix
   # Converts an NMatrix to a one-dimensional Ruby Array.
   #
   def to_flat_array
-    ary = Array.new(self.size)
-    self.each.with_index { |v,i| ary[i] = v }
+    ary = Array.new(size)
+    each.with_index { |v, i| ary[i] = v }
     ary
   end
-  alias :to_flat_a :to_flat_array
+  alias to_flat_a to_flat_array
 
   #
   # call-seq:
@@ -424,12 +419,11 @@ class NMatrix
   # Returns the total size of the NMatrix based on its shape.
   #
   def size
-    NMatrix.size(self.shape)
+    NMatrix.size(shape)
   end
 
-
   def to_s #:nodoc:
-    self.to_flat_array.to_s
+    to_flat_array.to_s
   end
 
   #
@@ -440,7 +434,7 @@ class NMatrix
   # Useful when we take slices of n-dimensional matrices where n > 2.
   #
   def nvector?
-    self.effective_dim < self.dim
+    effective_dim < dim
   end
 
   #
@@ -450,9 +444,8 @@ class NMatrix
   # Shortcut function for determining whether the effective dimension is 1. See also #nvector?
   #
   def vector?
-    self.effective_dim == 1
+    effective_dim == 1
   end
-
 
   #
   # call-seq:
@@ -461,27 +454,26 @@ class NMatrix
   # Converts an NMatrix to an array of arrays, or an NMatrix of effective dimension 1 to an array.
   #
   # Does not yet work for dimensions > 2
-  def to_a(dimen=nil)
-    if self.dim == 2
+  def to_a(dimen = nil)
+    if dim == 2
 
-      return self.to_flat_a if self.shape[0] == 1
+      return to_flat_a if shape[0] == 1
 
       ary = []
       begin
-        self.each_row do |row|
+        each_row do |row|
           ary << row.to_flat_a
         end
-      #rescue NotImplementedError # Oops. Try copying instead
-      #  self.each_row(:copy) do |row|
-      #    ary << row.to_a.flatten
-      #  end
+        # rescue NotImplementedError # Oops. Try copying instead
+        #  self.each_row(:copy) do |row|
+        #    ary << row.to_a.flatten
+        #  end
       end
       ary
     else
       to_a_rec(0)
     end
   end
-
 
   #
   # call-seq:
@@ -492,17 +484,16 @@ class NMatrix
   #
   # See @row (dimension = 0), @column (dimension = 1)
   def rank(shape_idx, rank_idx, meth = :copy)
-
-    if shape_idx > (self.dim-1)
+    if shape_idx > (dim - 1)
       raise(RangeError, "#rank call was out of bounds")
     end
 
-    params = Array.new(self.dim)
-    params.each.with_index do |v,d|
-      params[d] = d == shape_idx ? rank_idx : 0...self.shape[d]
+    params = Array.new(dim)
+    params.each.with_index do |v, d|
+      params[d] = d == shape_idx ? rank_idx : 0...shape[d]
     end
 
-    meth == :reference ? self[*params] : self.slice(*params)
+    meth == :reference ? self[*params] : slice(*params)
   end
 
   #
@@ -530,7 +521,7 @@ class NMatrix
     rank(1, column_number, get_by)
   end
 
-  alias :col :column
+  alias col column
 
   #
   # call-seq:
@@ -554,9 +545,8 @@ class NMatrix
   # Returns the last element stored in an NMatrix
   #
   def last
-    self[*Array.new(self.dim, -1)]
+    self[*Array.new(dim, -1)]
   end
-
 
   #
   # call-seq:
@@ -570,19 +560,18 @@ class NMatrix
   # * *Returns* :
   #   - A copy with a different shape.
   #
-  def reshape new_shape,*shapes
-    if new_shape.is_a?Integer
-      newer_shape =  [new_shape]+shapes
-    else  # new_shape is an Array
-      newer_shape = new_shape
+  def reshape new_shape, *shapes
+    newer_shape = if new_shape.is_a? Integer
+      [new_shape] + shapes
+    else # new_shape is an Array
+      new_shape
     end
     t = reshape_clone_structure(newer_shape)
-    left_params  = [:*]*newer_shape.size
-    right_params = [:*]*self.shape.size
+    left_params  = [:*] * newer_shape.size
+    right_params = [:*] * shape.size
     t[*left_params] = self[*right_params]
     t
   end
-
 
   #
   # call-seq:
@@ -595,16 +584,16 @@ class NMatrix
   # * *Arguments* :
   #   - +new_shape+ -> Array of positive Integer.
   #
-  def reshape! new_shape,*shapes
-    if self.is_ref?
+  def reshape! new_shape, *shapes
+    if is_ref?
       raise(ArgumentError, "This operation cannot be performed on reference slices")
     else
-      if new_shape.is_a?Integer
-        shape =  [new_shape]+shapes
-      else  # new_shape is an Array
-        shape = new_shape
+      shape = if new_shape.is_a? Integer
+        [new_shape] + shapes
+      else # new_shape is an Array
+        new_shape
       end
-      self.reshape_bang(shape)
+      reshape_bang(shape)
     end
   end
 
@@ -624,52 +613,51 @@ class NMatrix
   #
   def transpose(permute = nil)
     if permute.nil?
-      if self.dim == 1
-        return self.clone
-      elsif self.dim == 2
-        new_shape = [self.shape[1], self.shape[0]]
+      if dim == 1
+        return clone
+      elsif dim == 2
+        new_shape = [shape[1], shape[0]]
       else
-        raise(ArgumentError, "need permutation array of size #{self.dim}")
+        raise(ArgumentError, "need permutation array of size #{dim}")
       end
-    elsif !permute.is_a?(Array) || permute.sort.uniq != (0...self.dim).to_a
+    elsif !permute.is_a?(Array) || permute.sort.uniq != (0...dim).to_a
       raise(ArgumentError, "invalid permutation array")
     else
       # Figure out the new shape based on the permutation given as an argument.
-      new_shape = permute.map { |p| self.shape[p] }
+      new_shape = permute.map { |p| shape[p] }
     end
 
-    if self.dim > 2 # FIXME: For dense, several of these are basically equivalent to reshape.
+    if dim > 2 # FIXME: For dense, several of these are basically equivalent to reshape.
 
       # Make the new data structure.
-      t = self.reshape_clone_structure(new_shape)
+      t = reshape_clone_structure(new_shape)
 
-      self.each_stored_with_indices do |v,*indices|
+      each_stored_with_indices do |v, *indices|
         p_indices = permute.map { |p| indices[p] }
         t[*p_indices] = v
       end
       t
-    elsif self.list? # TODO: Need a C list transposition algorithm.
+    elsif list? # TODO: Need a C list transposition algorithm.
       # Make the new data structure.
-      t = self.reshape_clone_structure(new_shape)
+      t = reshape_clone_structure(new_shape)
 
-      self.each_column.with_index do |col,j|
-        t[j,:*] = col.to_flat_array
+      each_column.with_index do |col, j|
+        t[j, :*] = col.to_flat_array
       end
       t
     else
       # Call C versions of Yale and List transpose, which do their own copies
       if jruby?
         nmatrix = NMatrix.new :copy
-        nmatrix.shape = [@shape[1],@shape[0]]
+        nmatrix.shape = [@shape[1], @shape[0]]
         twoDMat = self.twoDMat.transpose
-        nmatrix.s = ArrayRealVector.new(ArrayGenerator.getArrayDouble(twoDMat.getData(), shape[1],shape[0]))
+        nmatrix.s = ArrayRealVector.new(ArrayGenerator.getArrayDouble(twoDMat.getData, shape[1], shape[0]))
         return nmatrix
       else
-        self.clone_transpose
+        clone_transpose
       end
     end
   end
-
 
   # call-seq:
   #     matrix1.concat(*m2) -> NMatrix
@@ -698,8 +686,8 @@ class NMatrix
 
     # Find the first matching dimension and concatenate along that (unless rank is specified)
     if rank.nil?
-      rank = self.dim-1
-      self.shape.reverse_each.with_index do |s,i|
+      rank = dim - 1
+      shape.reverse_each.with_index do |s, i|
         matrices.each do |m|
           if m.shape[i] != s
             rank -= 1
@@ -708,23 +696,23 @@ class NMatrix
         end
       end
     elsif rank.is_a?(Symbol) # Convert to numeric
-      rank = {:row => 0, :column => 1, :col => 1, :lay => 2, :layer => 2}[rank]
+      rank = {row: 0, column: 1, col: 1, lay: 2, layer: 2}[rank]
     end
 
     # Need to figure out the new shape.
-    new_shape = self.shape.dup
-    new_shape[rank] = matrices.inject(self.shape[rank]) { |total,m| total + m.shape[rank] }
+    new_shape = shape.dup
+    new_shape[rank] = matrices.inject(shape[rank]) { |total, m| total + m.shape[rank] }
 
     # Now figure out the options for constructing the concatenated matrix.
-    opts = {stype: self.stype, default: self.default_value, dtype: self.dtype}
-    if self.yale?
+    opts = {stype: stype, default: default_value, dtype: dtype}
+    if yale?
       # We can generally predict the new capacity for Yale. Subtract out the number of rows
       # for each matrix being concatenated, and then add in the number of rows for the new
       # shape. That takes care of the diagonal. The rest of the capacity is represented by
       # the non-diagonal non-default values.
-      new_cap = matrices.inject(self.capacity - self.shape[0]) do |total,m|
+      new_cap = matrices.inject(capacity - shape[0]) { |total, m|
         total + m.capacity - m.shape[0]
-      end - self.shape[0] + new_shape[0]
+      } - shape[0] + new_shape[0]
       opts = {capacity: new_cap}.merge(opts)
     end
 
@@ -733,13 +721,13 @@ class NMatrix
 
     # Figure out where to start concatenation. We don't know where it will end,
     # because each matrix may have own size along concat dimension.
-    pos = Array.new(self.dim) { 0 }
+    pos = Array.new(dim) { 0 }
 
     matrices.unshift(self)
     matrices.each do |m|
       # Figure out where to start and stop the concatenation. We'll use
       # NMatrices instead of Arrays because then we can do elementwise addition.
-      ranges = m.shape.map.with_index { |s,i| pos[i]...(pos[i] + s) }
+      ranges = m.shape.map.with_index { |s, i| pos[i]...(pos[i] + s) }
 
       n[*ranges] = m
 
@@ -765,7 +753,6 @@ class NMatrix
     concat(*matrices, :layer)
   end
 
-
   #
   # call-seq:
   #     upper_triangle -> NMatrix
@@ -780,21 +767,20 @@ class NMatrix
   #   - +k+ -> Positive integer. How many extra diagonals to include in the upper triangular portion.
   #
   def upper_triangle(k = 0)
-    raise(NotImplementedError, "only implemented for 2D matrices") if self.shape.size > 2
+    raise(NotImplementedError, "only implemented for 2D matrices") if shape.size > 2
 
-    t = self.clone_structure
-    (0...self.shape[0]).each do |i|
+    t = clone_structure
+    (0...shape[0]).each do |i|
       if i - k < 0
         t[i, :*] = self[i, :*]
       else
-        t[i, 0...(i-k)]             = 0
-        t[i, (i-k)...self.shape[1]] = self[i, (i-k)...self.shape[1]]
+        t[i, 0...(i - k)] = 0
+        t[i, (i - k)...shape[1]] = self[i, (i - k)...shape[1]]
       end
     end
     t
   end
-  alias :triu :upper_triangle
-
+  alias triu upper_triangle
 
   #
   # call-seq:
@@ -809,17 +795,16 @@ class NMatrix
   #   - +k+ -> Integer. How many extra diagonals to include in the deletion.
   #
   def upper_triangle!(k = 0)
-    raise(NotImplementedError, "only implemented for 2D matrices") if self.shape.size > 2
+    raise(NotImplementedError, "only implemented for 2D matrices") if shape.size > 2
 
-    (0...self.shape[0]).each do |i|
+    (0...shape[0]).each do |i|
       if i - k >= 0
-        self[i, 0...(i-k)] = 0
+        self[i, 0...(i - k)] = 0
       end
     end
     self
   end
-  alias :triu! :upper_triangle!
-
+  alias triu! upper_triangle!
 
   #
   # call-seq:
@@ -835,21 +820,20 @@ class NMatrix
   #   - +k+ -> Integer. How many extra diagonals to include in the lower triangular portion.
   #
   def lower_triangle(k = 0)
-    raise(NotImplementedError, "only implemented for 2D matrices") if self.shape.size > 2
+    raise(NotImplementedError, "only implemented for 2D matrices") if shape.size > 2
 
-    t = self.clone_structure
-    (0...self.shape[0]).each do |i|
+    t = clone_structure
+    (0...shape[0]).each do |i|
       if i + k >= shape[0]
         t[i, :*] = self[i, :*]
       else
-        t[i, (i+k+1)...self.shape[1]] = 0
-        t[i, 0..(i+k)] = self[i, 0..(i+k)]
+        t[i, (i + k + 1)...shape[1]] = 0
+        t[i, 0..(i + k)] = self[i, 0..(i + k)]
       end
     end
     t
   end
-  alias :tril :lower_triangle
-
+  alias tril lower_triangle
 
   #
   # call-seq:
@@ -864,17 +848,16 @@ class NMatrix
   #   - +k+ -> Integer. How many extra diagonals to include in the deletion.
   #
   def lower_triangle!(k = 0)
-    raise(NotImplementedError, "only implemented for 2D matrices") if self.shape.size > 2
+    raise(NotImplementedError, "only implemented for 2D matrices") if shape.size > 2
 
-    (0...self.shape[0]).each do |i|
+    (0...shape[0]).each do |i|
       if i + k < shape[0]
-        self[i, (i+k+1)...self.shape[1]] = 0
+        self[i, (i + k + 1)...shape[1]] = 0
       end
     end
     self
   end
-  alias :tril! :lower_triangle!
-
+  alias tril! lower_triangle!
 
   #
   # call-seq:
@@ -898,10 +881,7 @@ class NMatrix
     else
       layer
     end
-
   end
-
-
 
   #
   # call-seq:
@@ -913,13 +893,12 @@ class NMatrix
   # TODO: Write more efficient version for Yale, list.
   # TODO: Generalize for more dimensions.
   def shuffle!(*args)
-    method_missing(:shuffle!, *args) if self.effective_dim > 1
-    ary = self.to_flat_a
+    method_missing(:shuffle!, *args) if effective_dim > 1
+    ary = to_flat_a
     ary.shuffle!(*args)
-    ary.each.with_index { |v,idx| self[idx] = v }
+    ary.each.with_index { |v, idx| self[idx] = v }
     self
   end
-
 
   #
   # call-seq:
@@ -931,11 +910,10 @@ class NMatrix
   # TODO: Write more efficient version for Yale, list.
   # TODO: Generalize for more dimensions.
   def shuffle(*args)
-    method_missing(:shuffle!, *args) if self.effective_dim > 1
-    t = self.clone
+    method_missing(:shuffle!, *args) if effective_dim > 1
+    t = clone
     t.shuffle!(*args)
   end
-
 
   #
   # call-seq:
@@ -945,10 +923,9 @@ class NMatrix
   #
   def sorted_indices
     return method_missing(:sorted_indices) unless vector?
-    ary = self.to_flat_array
-    ary.each_index.sort_by { |i| ary[i] }  # from: http://stackoverflow.com/a/17841159/170300
+    ary = to_flat_array
+    ary.each_index.sort_by { |i| ary[i] } # from: http://stackoverflow.com/a/17841159/170300
   end
-
 
   #
   # call-seq:
@@ -959,42 +936,39 @@ class NMatrix
   #
   def binned_sorted_indices
     return method_missing(:sorted_indices) unless vector?
-    ary = self.to_flat_array
+    ary = to_flat_array
     ary2 = []
-    last_bin = ary.each_index.sort_by { |i| [ary[i]] }.inject([]) do |result, element|
+    last_bin = ary.each_index.sort_by { |i| [ary[i]] }.inject([]) { |result, element|
       if result.empty? || ary[result[-1]] == ary[element]
         result << element
       else
         ary2 << result
         [element]
       end
-    end
+    }
     ary2 << last_bin unless last_bin.empty?
     ary2
   end
 
-
   def method_missing name, *args, &block #:nodoc:
-    if name.to_s =~ /^__list_elementwise_.*__$/
+    if /^__list_elementwise_.*__$/.match?(name.to_s)
       raise NotImplementedError, "requested undefined list matrix element-wise operation"
-    elsif name.to_s =~ /^__yale_scalar_.*__$/
+    elsif /^__yale_scalar_.*__$/.match?(name.to_s)
       raise NotImplementedError, "requested undefined yale scalar element-wise operation"
     else
       super(name, *args, &block)
     end
   end
 
-
   def respond_to?(method, include_all = false) #:nodoc:
     if [:shuffle, :shuffle!, :each_with_index, :sorted_indices, :binned_sorted_indices, :nrm2, :asum].include?(method.intern) # vector-only methods
-      return vector?
+      vector?
     elsif [:each_layer, :layer].include?(method.intern) # 3-or-more dimensions only
-      return dim > 2
+      dim > 2
     else
       super
     end
   end
-
 
   #
   # call-seq:
@@ -1003,8 +977,8 @@ class NMatrix
   # This overrides the inject function to use map_stored for yale matrices
   #
   def inject(sym)
-    return super(sym) unless self.yale?
-    return self.map_stored.inject(sym)
+    return super(sym) unless yale?
+    map_stored.inject(sym)
   end
 
   # Returns the index of the first occurence of the specified value. Returns
@@ -1013,7 +987,7 @@ class NMatrix
   def index(value)
     index = nil
 
-    self.each_with_indices do |yields|
+    each_with_indices do |yields|
       if yields.first == value
         yields.shift
         index = yields
@@ -1034,9 +1008,9 @@ class NMatrix
   # you should probably use +zeros_like+.
   #
   def clone_structure(capacity = nil)
-    opts = {stype: self.stype, default: self.default_value, dtype: self.dtype}
-    opts = {capacity: capacity}.merge(opts) if self.yale?
-    NMatrix.new(self.shape, opts)
+    opts = {stype: stype, default: default_value, dtype: dtype}
+    opts = {capacity: capacity}.merge(opts) if yale?
+    NMatrix.new(shape, opts)
   end
 
   #
@@ -1053,7 +1027,7 @@ class NMatrix
   #     m.repeat(2, 0).to_a #<= [[1, 2], [3, 4], [1, 2], [3, 4]]
   #     m.repeat(2, 1).to_a #<= [[1, 2, 1, 2], [3, 4, 3, 4]]
   def repeat(count, axis)
-    raise(ArgumentError, 'Matrix should be repeated at least 2 times.') if count < 2
+    raise(ArgumentError, "Matrix should be repeated at least 2 times.") if count < 2
     new_shape = shape
     new_shape[axis] *= count
     new_matrix = NMatrix.new(new_shape, dtype: dtype)
@@ -1067,14 +1041,14 @@ class NMatrix
   end
 
   # This is how you write an individual element-wise operation function:
-  #def __list_elementwise_add__ rhs
+  # def __list_elementwise_add__ rhs
   #  self.__list_map_merged_stored__(rhs){ |l,r| l+r }.cast(self.stype, NMatrix.upcast(self.dtype, rhs.dtype))
-  #end
-protected
+  # end
+  protected
 
   def inspect_helper #:nodoc:
     ary = []
-    ary << "shape:[#{shape.join(',')}]" << "dtype:#{dtype}" << "stype:#{stype}"
+    ary << "shape:[#{shape.join(",")}]" << "dtype:#{dtype}" << "stype:#{stype}"
 
     if stype == :yale
       ary << "capacity:#{capacity}"
@@ -1091,38 +1065,34 @@ protected
     ary
   end
 
-
   # Clone the structure as needed for a reshape
   def reshape_clone_structure(new_shape) #:nodoc:
-    raise(ArgumentError, "reshape cannot resize; size of new and old matrices must match") unless self.size == new_shape.inject(1) { |p,i| p *= i }
+    raise(ArgumentError, "reshape cannot resize; size of new and old matrices must match") unless size == new_shape.inject(1) { |p, i| p *= i }
 
-    opts = {stype: self.stype, default: self.default_value, dtype: self.dtype}
-    if self.yale?
+    opts = {stype: stype, default: default_value, dtype: dtype}
+    if yale?
       # We can generally predict the change in capacity for Yale.
-      opts = {capacity: self.capacity - self.shape[0] + new_shape[0]}.merge(opts)
+      opts = {capacity: capacity - shape[0] + new_shape[0]}.merge(opts)
     end
     NMatrix.new(new_shape, opts)
   end
 
-
   # Helper for converting a matrix into an array of arrays recursively
   def to_a_rec(dimen = 0) #:nodoc:
-    return self.flat_map { |v| v } if dimen == self.dim-1
+    return flat_map { |v| v } if dimen == dim - 1
 
     ary = []
-    self.each_rank(dimen) do |sect|
-      ary << sect.to_a_rec(dimen+1)
+    each_rank(dimen) do |sect|
+      ary << sect.to_a_rec(dimen + 1)
     end
     ary
   end
 
-
   # NMatrix constructor helper for sparse matrices. Uses multi-slice-setting to initialize a matrix
   # with a given array of initial values.
   def __sparse_initial_set__(ary) #:nodoc:
-    self[0...self.shape[0],0...self.shape[1]] = ary
+    self[0...shape[0], 0...shape[1]] = ary
   end
-
 
   # This function assumes that the shapes of the two matrices have already
   # been tested and are the same.
@@ -1137,14 +1107,13 @@ protected
   # cast and then run the comparison. For now, let's assume that people aren't going
   # to be doing this very often, and we can optimize as needed.
   def dense_eql_sparse? m #:nodoc:
-    m.each_with_indices do |v,*indices|
+    m.each_with_indices do |v, *indices|
       return false if self[*indices] != v
     end
 
-    return true
+    true
   end
-  alias :sparse_eql_sparse? :dense_eql_sparse?
-
+  alias sparse_eql_sparse? dense_eql_sparse?
 
   #
   # See the note in #cast about why this is necessary.
@@ -1155,20 +1124,19 @@ protected
   #
   def maybe_get_noncomplex_default_value(to_dtype) #:nodoc:
     default_value = 0
-    unless self.stype == :dense then
-      if self.dtype.to_s.start_with?('complex') and not to_dtype.to_s.start_with?('complex') then
-        default_value = self.default_value.real
+    unless stype == :dense
+      default_value = if dtype.to_s.start_with?("complex") && !to_dtype.to_s.start_with?("complex")
+        self.default_value.real
       else
-        default_value = self.default_value
+        self.default_value
       end
     end
     default_value
   end
-
 end
 
-require_relative './shortcuts.rb'
-require_relative './enumerate.rb'
+require_relative "./shortcuts.rb"
+require_relative "./enumerate.rb"
 
-require_relative './version.rb'
-require_relative './blas.rb'
+require_relative "./version.rb"
+require_relative "./blas.rb"

@@ -27,10 +27,9 @@
 #
 #++
 
-require_relative './mat_reader.rb'
+require_relative "./mat_reader.rb"
 
 module NMatrix::IO::Matlab
-
   # Reader (and eventual writer) for a version 5 .mat file.
   class Mat5Reader < MatReader #:nodoc:
     attr_reader :file_header, :first_tag_field, :first_data_field
@@ -41,7 +40,7 @@ module NMatrix::IO::Matlab
       attr_reader :byte_order
 
       def initialize(stream = nil, byte_order = nil, content_or_bytes = nil)
-        @stream   = stream
+        @stream = stream
         @byte_order = byte_order
 
         if content_or_bytes.is_a?(String)
@@ -68,7 +67,7 @@ module NMatrix::IO::Matlab
       end
 
       def write_packed(packedio, options = {})
-        packedio << [compressed, {:bytes => padded_bytes}.merge(options)]
+        packedio << [compressed, {bytes: padded_bytes}.merge(options)]
       end
 
       def read_packed(packedio, options)
@@ -77,10 +76,11 @@ module NMatrix::IO::Matlab
       end
 
       protected
-      def extract
-        require 'zlib'
 
-        zstream = Zlib::Inflate.new #(-Zlib::MAX_WBITS) # No header
+      def extract
+        require "zlib"
+
+        zstream = Zlib::Inflate.new # (-Zlib::MAX_WBITS) # No header
 
         returning(zstream.inflate(@compressed)) do
           zstream.finish
@@ -90,17 +90,18 @@ module NMatrix::IO::Matlab
     end
 
     MatrixDataStruct = Struct.new(
-                                  :cells, :logical, :global, :complex,
-                                  :nonzero_max,:matlab_class, :dimensions,
-                                  :matlab_name, :real_part,:imaginary_part,
-                                  :row_index, :column_index)
+      :cells, :logical, :global, :complex,
+      :nonzero_max, :matlab_class, :dimensions,
+      :matlab_name, :real_part, :imaginary_part,
+      :row_index, :column_index
+    )
 
     class MatrixData < MatrixDataStruct #:nodoc:
       include Packable
 
       def write_packed(packedio, options)
         raise NotImplementedError
-        packedio << [info, {:bytes => padded_bytes}.merge(options)]
+        packedio << [info, {bytes: padded_bytes}.merge(options)]
       end
 
       # call-seq:
@@ -120,9 +121,9 @@ module NMatrix::IO::Matlab
       # See also to_nm, which is responsible for NMatrix instantiation.
       def to_ruby
         case matlab_class
-        when :mxSPARSE then return to_nm
-        when :mxCELL  then return self.cells.collect { |c| c.to_ruby }
-        else         return to_nm
+        when :mxSPARSE then to_nm
+        when :mxCELL then cells.collect { |c| c.to_ruby }
+        else to_nm
         end
       end
 
@@ -134,9 +135,9 @@ module NMatrix::IO::Matlab
       # TODO: Needs to be verified that unsigned MATLAB types are being
       # converted to the correct NMatrix signed dtypes.
       def guess_dtype_from_mdtype
-        dtype = MatReader::MDTYPE_TO_DTYPE[self.real_part.tag.data_type]
+        dtype = MatReader::MDTYPE_TO_DTYPE[real_part.tag.data_type]
 
-        return dtype unless self.complex
+        return dtype unless complex
 
         dtype == :float32 ? :complex64 : :complex128
       end
@@ -152,23 +153,22 @@ module NMatrix::IO::Matlab
       #
       def unpacked_data(real_mdtype = nil, imag_mdtype = nil)
         # Get Matlab data type and unpack args
-        real_mdtype ||= self.real_part.tag.data_type
+        real_mdtype ||= real_part.tag.data_type
         real_unpack_args = MatReader::MDTYPE_UNPACK_ARGS[real_mdtype]
 
         # zip real and complex components together, or just return real component
-        if self.complex
-          imag_mdtype ||= self.imaginary_part.tag.data_type
+        if complex
+          imag_mdtype ||= imaginary_part.tag.data_type
           imag_unpack_args = MatReader::MDTYPE_UNPACK_ARGS[imag_mdtype]
 
-          unpacked_real = self.real_part.data.unpack(real_unpack_args)
-          unpacked_imag = self.imaginary_part.data.unpack(imag_unpack_args)
+          unpacked_real = real_part.data.unpack(real_unpack_args)
+          unpacked_imag = imaginary_part.data.unpack(imag_unpack_args)
 
           unpacked_real.zip(unpacked_imag).flatten
         else
-          length = self.dimensions.inject(1) { |a,b| a * b } # get the product
-          self.real_part.data.unpack(*(real_unpack_args*length))
+          length = dimensions.inject(1) { |a, b| a * b } # get the product
+          real_part.data.unpack(*(real_unpack_args * length))
         end
-
       end
 
       # Unpacks and repacks data into the appropriate format for NMatrix.
@@ -185,8 +185,7 @@ module NMatrix::IO::Matlab
       # This function calls repack and complex_merge, which are both defined in
       # io.cpp.
       def repacked_data(to_dtype = nil)
-
-        real_mdtype = self.real_part.tag.data_type
+        real_mdtype = real_part.tag.data_type
 
         # Figure out what dtype to use based on the MATLAB data-types
         # (mdtypes). They could be different for real and imaginary, so call
@@ -194,12 +193,12 @@ module NMatrix::IO::Matlab
 
         components = [] # real and imaginary parts or just the real part
 
-        if self.complex
-          imag_mdtype = self.imaginary_part.tag.data_type
+        if complex
+          imag_mdtype = imaginary_part.tag.data_type
 
           # Make sure we convert both mdtypes do the same dtype
           to_dtype ||= NMatrix.upcast(MatReader::MDTYPE_TO_DTYPE[real_mdtype], \
-           MatReader::MDTYPE_TO_DTYPE[imag_mdtype])
+            MatReader::MDTYPE_TO_DTYPE[imag_mdtype])
 
           # Let's make sure we don't try to send NMatrix complex integers.
           #  We need complex floating points.
@@ -209,8 +208,8 @@ module NMatrix::IO::Matlab
 
           STDERR.puts "imag: Requesting dtype #{to_dtype.inspect}"
           # Repack the imaginary part
-          components[1] = ::NMatrix::IO::Matlab.repack( self.imaginary_part.data, \
-           imag_mdtype, :dtype => to_dtype )
+          components[1] = ::NMatrix::IO::Matlab.repack(imaginary_part.data, \
+            imag_mdtype, dtype: to_dtype)
 
         else
 
@@ -219,7 +218,7 @@ module NMatrix::IO::Matlab
           # Sometimes repacking isn't necessary -- sometimes the format is already good
           if MatReader::NO_REPACK.include?(real_mdtype)
             STDERR.puts "No repack"
-            return [self.real_part.data, to_dtype]
+            return [real_part.data, to_dtype]
           end
 
         end
@@ -227,12 +226,14 @@ module NMatrix::IO::Matlab
         # Repack the real part
         STDERR.puts "real: Requesting dtype #{to_dtype.inspect}"
         components[0] = ::NMatrix::IO::Matlab.repack( \
-         self.real_part.data, real_mdtype, :dtype => to_dtype )
+          real_part.data, real_mdtype, dtype: to_dtype
+        )
 
         # Merge the two parts if complex, or just return the real part.
-        [self.complex ? ::NMatrix::IO::Matlab.complex_merge( \
-         components[0], components[1], to_dtype ) : components[0],
-         to_dtype]
+        [complex ? ::NMatrix::IO::Matlab.complex_merge( \
+          components[0], components[1], to_dtype
+        ) : components[0],
+         to_dtype,]
       end
 
       # Unpacks and repacks index data into the appropriate format for NMatrix.
@@ -241,9 +242,11 @@ module NMatrix::IO::Matlab
       # repack, just returns directly.
       def repacked_indices
         repacked_row_indices = ::NMatrix::IO::Matlab.repack( \
-         self.row_index.data, :miINT32, :itype )
+          row_index.data, :miINT32, :itype
+        )
         repacked_col_indices = ::NMatrix::IO::Matlab.repack( \
-         self.column_index.data, :miINT32, :itype )
+          column_index.data, :miINT32, :itype
+        )
 
         [repacked_row_indices, repacked_col_indices]
       end
@@ -271,26 +274,26 @@ module NMatrix::IO::Matlab
       #
       def to_nm(dtype = nil)
         # Hardest part is figuring out from_dtype, from_index_dtype, and dtype.
-        dtype   ||= guess_dtype_from_mdtype
-        from_dtype = MatReader::MDTYPE_TO_DTYPE[self.real_part.tag.data_type]
+        dtype ||= guess_dtype_from_mdtype
+        from_dtype = MatReader::MDTYPE_TO_DTYPE[real_part.tag.data_type]
 
         # Create the same kind of matrix that MATLAB saved.
         case matlab_class
         when :mxSPARSE
           raise(NotImplementedError, "expected .mat row indices to be of type :miINT32") unless row_index.tag.data_type == :miINT32
           raise(NotImplementedError, "expected .mat column indices to be of type :miINT32") unless column_index.tag.data_type == :miINT32
-          #require 'pry'
-          #binding.pry
+          # require 'pry'
+          # binding.pry
 
           # MATLAB always uses :miINT32 for indices according to the spec
           ia_ja                     = repacked_indices
           data_str, repacked_dtype  = repacked_data(dtype)
-          NMatrix.new(:yale, self.dimensions.reverse, repacked_dtype, \
-           ia_ja[0], ia_ja[1], data_str, repacked_dtype)
+          NMatrix.new(:yale, dimensions.reverse, repacked_dtype, \
+            ia_ja[0], ia_ja[1], data_str, repacked_dtype)
 
         else
           # Call regular dense constructor.
-          NMatrix.new(:dense, self.dimensions.reverse, unpacked_data, dtype).transpose
+          NMatrix.new(:dense, dimensions.reverse, unpacked_data, dtype).transpose
         end
       end
 
@@ -299,63 +302,65 @@ module NMatrix::IO::Matlab
 
         self.matlab_class   = MatReader::MCLASSES[flags_class % 16]
 
-        self.logical        = (flags_class >> 8) % 2 == 1 ? true : false
-        self.global         = (flags_class >> 9) % 2 == 1 ? true : false
-        self.complex        = (flags_class >> 10) % 2 == 1 ? true : false
+        self.logical        = (flags_class >> 8) % 2 == 1
+        self.global         = (flags_class >> 9) % 2 == 1
+        self.complex        = (flags_class >> 10) % 2 == 1
 
         dimensions_tag_data = packedio.read([Element, options])
         self.dimensions     = dimensions_tag_data.data
 
         begin
-          name_tag_data   = packedio.read([Element, options])
+          name_tag_data = packedio.read([Element, options])
           self.matlab_name = name_tag_data.data.is_a?(Array) ? \
-           name_tag_data.data.collect { |i| i.chr }.join('') : \
+           name_tag_data.data.collect { |i| i.chr }.join("") : \
            name_tag_data.data.chr
-
         rescue ElementDataIOError => e
           STDERR.puts "ERROR: Failure while trying to read Matlab variable name: #{name_tag_data.inspect}"
-          STDERR.puts 'Element Tag:'
+          STDERR.puts "Element Tag:"
           STDERR.puts "    #{e.tag}"
-          STDERR.puts 'Previously, I read these dimensions:'
+          STDERR.puts "Previously, I read these dimensions:"
           STDERR.puts "    #{dimensions_tag_data.inspect}"
           STDERR.puts "Unpack options were: #{options.inspect}"
           raise(e)
         end
 
-        if self.matlab_class == :mxCELL
+        if matlab_class == :mxCELL
           # Read what may be a series of matrices
           self.cells = []
           STDERR.puts("Warning: Cell array does not yet support reading multiple dimensions") if dimensions.size > 2 || (dimensions[0] > 1 && dimensions[1] > 1)
-          number_of_cells = dimensions.inject(1) { |prod,i| prod * i }
-          number_of_cells.times { self.cells << \
-           packedio.read([Element, options]) }
+          number_of_cells = dimensions.inject(1) { |prod, i| prod * i }
+          number_of_cells.times {
+            cells << \
+              packedio.read([Element, options])
+          }
 
         else
-          read_opts = [RawElement, {:bytes => options[:bytes], \
-           :endian => :native}]
+          read_opts = [RawElement, {bytes: options[:bytes], \
+                                    endian: :native,},]
 
-          if self.matlab_class == :mxSPARSE
+          if matlab_class == :mxSPARSE
             self.column_index = packedio.read(read_opts)
             self.row_index    = packedio.read(read_opts)
           end
 
-          self.real_part   = packedio.read(read_opts)
-          self.imaginary_part = packedio.read(read_opts) if self.complex
+          self.real_part = packedio.read(read_opts)
+          self.imaginary_part = packedio.read(read_opts) if complex
         end
       end
 
       def ignore_padding(packedio, bytes)
-        packedio.read([Integer, {:unsigned => true, \
-         :bytes => bytes}]) if bytes > 0
+        if bytes > 0
+          packedio.read([Integer, {unsigned: true, \
+                                   bytes: bytes,},])
+        end
       end
     end
 
-
     MDTYPE_UNPACK_ARGS =
       MatReader::MDTYPE_UNPACK_ARGS.merge({
-                                            :miCOMPRESSED => [Compressed, {}],
-                                            :miMATRIX   => [MatrixData, {}]
-                                          })
+        miCOMPRESSED: [Compressed, {}],
+        miMATRIX: [MatrixData, {}],
+      })
 
     FIRST_TAG_FIELD_POS = 128
 
@@ -371,13 +376,13 @@ module NMatrix::IO::Matlab
     end
 
     def to_a
-      returning(Array.new) do |ary|
-        self.each { |el| ary << el }
+      returning([]) do |ary|
+        each { |el| ary << el }
       end
     end
 
     def to_ruby
-      ary = self.to_a
+      ary = to_a
 
       if ary.size == 1
         ary.first.to_ruby
@@ -390,19 +395,19 @@ module NMatrix::IO::Matlab
       stream.seek(Header::BYTE_ORDER_POS)
       mi = stream.read(Header::BYTE_ORDER_LENGTH)
       stream.seek(0)
-      mi == 'IM' ? :little : :big
+      mi == "IM" ? :little : :big
     end
 
     def seek_and_read_file_header
       stream.seek(0)
-      stream.read(FIRST_TAG_FIELD_POS).unpack(Header, {:endian => byte_order})
+      stream.read(FIRST_TAG_FIELD_POS).unpack(Header, {endian: byte_order})
     end
 
     def each(&block)
-      stream.each(Element, {:endian => byte_order}) do |element|
+      stream.each(Element, {endian: byte_order}) do |element|
         if element.data.is_a?(Compressed)
-          StringIO.new(element.data.content, 'rb').each(Element, \
-             {:endian => byte_order}) do |compressed_element|
+          StringIO.new(element.data.content, "rb").each(Element, \
+            {endian: byte_order}) do |compressed_element|
             yield compressed_element.data
           end
 
@@ -420,42 +425,41 @@ module NMatrix::IO::Matlab
     # Internal Classes.
 
     class Header < Struct.new(:desc, :data_offset, :version, :endian) #:nodoc:
-
       include Packable
 
-      BYTE_ORDER_LENGTH  = 2
-      DESC_LENGTH     = 116
+      BYTE_ORDER_LENGTH = 2
+      DESC_LENGTH = 116
       DATA_OFFSET_LENGTH = 8
       VERSION_LENGTH   = 2
       BYTE_ORDER_POS   = 126
 
       # TODO: TEST WRITE.
       def write_packed(packedio, options)
-        packedio << [desc,    {:bytes => DESC_LENGTH    }] <<
-          [data_offset, {:bytes => DATA_OFFSET_LENGTH }] <<
-          [version,   {:bytes => VERSION_LENGTH   }] <<
-          [byte_order, {:bytes => BYTE_ORDER_LENGTH }]
+        packedio << [desc, {bytes: DESC_LENGTH}] <<
+          [data_offset, {bytes: DATA_OFFSET_LENGTH}] <<
+          [version, {bytes: VERSION_LENGTH}] <<
+          [byte_order, {bytes: BYTE_ORDER_LENGTH}]
       end
 
       def read_packed(packedio, options)
         self.desc, self.data_offset, self.version, self.endian = packedio >>
-          [String, {:bytes => DESC_LENGTH                 }] >>
-          [String, {:bytes => DATA_OFFSET_LENGTH              }] >>
-          [Integer, {:bytes => VERSION_LENGTH, :endian => options[:endian] }] >>
-          [String, {:bytes => 2                      }]
+          [String, {bytes: DESC_LENGTH}] >>
+          [String, {bytes: DATA_OFFSET_LENGTH}] >>
+          [Integer, {bytes: VERSION_LENGTH, endian: options[:endian]}] >>
+          [String, {bytes: 2}]
 
-        self.desc.strip!
-        self.data_offset.strip!
-        self.data_offset = nil if self.data_offset.empty?
+        desc.strip!
+        data_offset.strip!
+        self.data_offset = nil if data_offset.empty?
 
-        self.endian == 'IM' ? :little : :big
+        endian == "IM" ? :little : :big
       end
     end
 
     class Tag < Struct.new(:data_type, :raw_data_type, :bytes, :small) #:nodoc:
       include Packable
 
-      DATA_TYPE_OPTS = BYTES_OPTS = {:bytes => 4, :signed => false}
+      DATA_TYPE_OPTS = BYTES_OPTS = {bytes: 4, signed: false}
       LENGTH = DATA_TYPE_OPTS[:bytes] + BYTES_OPTS[:bytes]
 
       # TODO: TEST WRITE.
@@ -464,7 +468,7 @@ module NMatrix::IO::Matlab
       end
 
       def small?
-        self.bytes > 0 and self.bytes <= 4
+        (bytes > 0) && (bytes <= 4)
       end
 
       def size
@@ -473,31 +477,30 @@ module NMatrix::IO::Matlab
 
       def read_packed packedio, options
         self.raw_data_type = packedio.read([Integer, \
-         DATA_TYPE_OPTS.merge(options)])
+                                            DATA_TYPE_OPTS.merge(options),])
 
         # Borrowed from a SciPy patch
-        upper = self.raw_data_type >> 16
-        lower = self.raw_data_type & 0xFFFF
+        upper = raw_data_type >> 16
+        lower = raw_data_type & 0xFFFF
 
         if upper > 0
           # Small data element format
-          raise IOError, 'Small data element format indicated, but length is more than 4 bytes!' if upper > 4
+          raise IOError, "Small data element format indicated, but length is more than 4 bytes!" if upper > 4
 
-          self.bytes     = upper
+          self.bytes = upper
           self.raw_data_type = lower
 
         else
           self.bytes = packedio.read([Integer, BYTES_OPTS.merge(options)])
         end
 
-        self.data_type = MatReader::MDTYPES[self.raw_data_type]
+        self.data_type = MatReader::MDTYPES[raw_data_type]
       end
 
       def inspect
-        "#<#{self.class.to_s} data_type=#{data_type}[#{raw_data_type}][#{raw_data_type.to_s(2)}] bytes=#{bytes} size=#{size}#{small? ? ' small' : ''}>"
+        "#<#{self.class} data_type=#{data_type}[#{raw_data_type}][#{raw_data_type.to_s(2)}] bytes=#{bytes} size=#{size}#{small? ? " small" : ""}>"
       end
     end
-
 
     class ElementDataIOError < IOError #:nodoc:
       attr_reader :tag
@@ -512,7 +515,6 @@ module NMatrix::IO::Matlab
       end
     end
 
-
     class Element < Struct.new(:tag, :data) #:nodoc:
       include Packable
 
@@ -521,10 +523,10 @@ module NMatrix::IO::Matlab
       end
 
       def read_packed(packedio, options)
-        raise(ArgumentError, 'Missing mandatory option :endian.') \
-         unless options.has_key?(:endian)
+        raise(ArgumentError, "Missing mandatory option :endian.") \
+         unless options.key?(:endian)
 
-        tag = packedio.read([Tag, {:endian => options[:endian]}])
+        tag = packedio.read([Tag, {endian: options[:endian]}])
         data_type = MDTYPE_UNPACK_ARGS[tag.data_type]
 
         self.tag = tag
@@ -536,16 +538,15 @@ module NMatrix::IO::Matlab
           self.data = []
 
         else
-          number_of_reads = data_type[1].has_key?(:bytes) ? \
+          number_of_reads = data_type[1].key?(:bytes) ? \
            tag.bytes / data_type[1][:bytes] : 1
-          data_type[1].merge!({:endian => options[:endian]})
+          data_type[1][:endian] = options[:endian]
 
-          if number_of_reads == 1
-            self.data = packedio.read(data_type)
+          self.data = if number_of_reads == 1
+            packedio.read(data_type)
 
           else
-            self.data =
-              returning(Array.new) do |ary|
+            returning([]) do |ary|
               number_of_reads.times { ary << packedio.read(data_type) }
             end
           end
@@ -553,7 +554,6 @@ module NMatrix::IO::Matlab
           begin
             ignore_padding(packedio, (tag.bytes + tag.size) % 8) \
              unless [:miMATRIX, :miCOMPRESSED].include?(tag.data_type)
-
           rescue EOFError
             STDERR.puts self.tag.inspect
             raise(ElementDataIOError.new(tag, "Ignored too much"))
@@ -563,7 +563,7 @@ module NMatrix::IO::Matlab
 
       def ignore_padding(packedio, bytes)
         if bytes > 0
-          #STDERR.puts "Ignored #{8 - bytes} on #{self.tag.data_type}"
+          # STDERR.puts "Ignored #{8 - bytes} on #{self.tag.data_type}"
           ignored = packedio.read(8 - bytes)
           ignored_unpacked = ignored.unpack("C*")
           raise(IOError, "Nonzero padding detected: #{ignored_unpacked}") \
@@ -580,20 +580,19 @@ module NMatrix::IO::Matlab
     # manually, or pass the raw string of bytes into NMatrix.
     class RawElement < Element #:nodoc:
       def read_packed(packedio, options)
-        raise(ArgumentError, 'Missing mandatory option :endian.') \
-         unless options.has_key?(:endian)
+        raise(ArgumentError, "Missing mandatory option :endian.") \
+         unless options.key?(:endian)
 
-        self.tag = packedio.read([Tag,   {:endian => options[:endian]}])
-        self.data = packedio.read([String, {:endian => options[:endian], \
-         :bytes => tag.bytes }])
+        self.tag = packedio.read([Tag, {endian: options[:endian]}])
+        self.data = packedio.read([String, {endian: options[:endian], \
+                                            bytes: tag.bytes,},])
 
         begin
           ignore_padding(packedio, (tag.bytes + tag.size) % 8) \
            unless [:miMATRIX, :miCOMPRESSED].include?(tag.data_type)
-
         rescue EOFError
-          STDERR.puts self.tag.inspect
-          raise ElementDataIOError.new(tag, 'Ignored too much.')
+          STDERR.puts tag.inspect
+          raise ElementDataIOError.new(tag, "Ignored too much.")
         end
       end
     end
@@ -601,6 +600,5 @@ module NMatrix::IO::Matlab
     #####################
     # End of Mat5Reader #
     #####################
-
   end
 end

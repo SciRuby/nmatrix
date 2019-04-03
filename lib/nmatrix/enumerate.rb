@@ -38,13 +38,13 @@ class NMatrix
   # For dense, this actually calls a specialized each iterator (in C). For yale and list, it relies upon
   # #each_with_indices (which is about as fast as reasonably possible for C code).
   def each &bl
-    if self.stype == :dense
-      self.__dense_each__(&bl)
+    if stype == :dense
+      __dense_each__(&bl)
     elsif block_given?
-      self.each_with_indices(&bl)
+      each_with_indices(&bl)
     else # Handle case where no block is given
       Enumerator.new do |yielder|
-        self.each_with_indices do |params|
+        each_with_indices do |params|
           yielder.yield params
         end
       end
@@ -57,7 +57,7 @@ class NMatrix
   #     flat_map { |elem| block } -> Array
   #
   # Maps using Enumerator (returns an Array or an Enumerator)
-  alias_method :flat_map, :map
+  alias flat_map map
 
   ##
   # call-seq:
@@ -72,7 +72,7 @@ class NMatrix
   def map(&bl)
     return enum_for(:map) unless block_given?
     # NMatrix-jruby currently supports only doubles
-    cp  = jruby? ? self : self.cast(dtype: :object)
+    cp = jruby? ? self : cast(dtype: :object)
     cp.map!(&bl)
     cp
   end
@@ -88,19 +88,18 @@ class NMatrix
   def map!
     return enum_for(:map!) unless block_given?
     iterated = false
-    self.each_stored_with_indices do |e, *i|
+    each_stored_with_indices do |e, *i|
       iterated = true
       self[*i] = (yield e)
     end
-    #HACK: if there's a single element in a non-dense matrix, it won't iterate and
-    #won't change the default value; this ensures that it does get changed.
-    unless iterated then
-      self.each_with_indices do |e, *i|
+    # HACK: if there's a single element in a non-dense matrix, it won't iterate and
+    # won't change the default value; this ensures that it does get changed.
+    unless iterated
+      each_with_indices do |e, *i|
         self[*i] = (yield e)
       end
     end
   end
-
 
   #
   # call-seq:
@@ -115,24 +114,24 @@ class NMatrix
   #
   # @param [Fixnum] dimen the rank being iterated over.
   #
-  def each_rank(dimen=0, get_by=:reference)
+  def each_rank(dimen = 0, get_by = :reference)
     return enum_for(:each_rank, dimen, get_by) unless block_given?
-    (0...self.shape[dimen]).each do |idx|
-      yield self.rank(dimen, idx, get_by)
+    (0...shape[dimen]).each do |idx|
+      yield rank(dimen, idx, get_by)
     end
     self
   end
-  alias :each_along_dim :each_rank
+  alias each_along_dim each_rank
 
   #
   # call-seq:
   #     each_row { |row| block } -> NMatrix
   #
   # Iterate through each row, referencing it as an NMatrix slice.
-  def each_row(get_by=:reference)
+  def each_row(get_by = :reference)
     return enum_for(:each_row, get_by) unless block_given?
-    (0...self.shape[0]).each do |i|
-      yield self.row(i, get_by)
+    (0...shape[0]).each do |i|
+      yield row(i, get_by)
     end
     self
   end
@@ -142,10 +141,10 @@ class NMatrix
   #     each_column { |column| block } -> NMatrix
   #
   # Iterate through each column, referencing it as an NMatrix slice.
-  def each_column(get_by=:reference)
+  def each_column(get_by = :reference)
     return enum_for(:each_column, get_by) unless block_given?
-    (0...self.shape[1]).each do |j|
-      yield self.column(j, get_by)
+    (0...shape[1]).each do |j|
+      yield column(j, get_by)
     end
     self
   end
@@ -158,14 +157,13 @@ class NMatrix
   #
   # Note: If you have a 3-dimensional matrix, the first dimension contains rows,
   # the second contains columns, and the third contains layers.
-  def each_layer(get_by=:reference)
+  def each_layer(get_by = :reference)
     return enum_for(:each_layer, get_by) unless block_given?
-    (0...self.shape[2]).each do |k|
-      yield self.layer(k, get_by)
+    (0...shape[2]).each do |k|
+      yield layer(k, get_by)
     end
     self
   end
-
 
   #
   # call-seq:
@@ -174,21 +172,20 @@ class NMatrix
   # Allow iteration across a vector NMatrix's stored values. See also @each_stored_with_indices
   #
   def each_stored_with_index(&block)
-    raise(NotImplementedError, "only works for dim 2 vectors") unless self.dim <= 2
+    raise(NotImplementedError, "only works for dim 2 vectors") unless dim <= 2
     return enum_for(:each_stored_with_index) unless block_given?
 
-    self.each_stored_with_indices do |v, i, j|
+    each_stored_with_indices do |v, i, j|
       if shape[0] == 1
-        yield(v,j)
+        yield(v, j)
       elsif shape[1] == 1
-        yield(v,i)
+        yield(v, i)
       else
         method_missing(:each_stored_with_index, &block)
       end
     end
     self
   end
-
 
   ##
   # call-seq:
@@ -215,9 +212,8 @@ class NMatrix
   #  is the result of the reduction at that position along the specified
   #  dimension.
   #
-  def inject_rank(dimen=0, initial=nil, dtype=nil)
-
-    raise(RangeError, "requested dimension (#{dimen}) does not exist (shape: #{shape})") if dimen > self.dim
+  def inject_rank(dimen = 0, initial = nil, dtype = nil)
+    raise(RangeError, "requested dimension (#{dimen}) does not exist (shape: #{shape})") if dimen > dim
 
     return enum_for(:inject_rank, dimen, initial, dtype) unless block_given?
 
@@ -226,11 +222,11 @@ class NMatrix
 
     first_as_acc = false
 
-    if initial then
-      acc = NMatrix.new(new_shape, initial, :dtype => dtype || self.dtype, stype: self.stype)
+    if initial
+      acc = NMatrix.new(new_shape, initial, dtype: dtype || self.dtype, stype: stype)
     else
       each_rank(dimen) do |sub_mat|
-        acc = (sub_mat.is_a?(NMatrix) and !dtype.nil? and dtype != self.dtype) ? sub_mat.cast(self.stype, dtype) : sub_mat
+        acc = sub_mat.is_a?(NMatrix) && !dtype.nil? && (dtype != self.dtype) ? sub_mat.cast(stype, dtype) : sub_mat
         break
       end
       first_as_acc = true
@@ -247,7 +243,6 @@ class NMatrix
     acc
   end
 
-  alias :reduce_along_dim :inject_rank
-  alias :inject_along_dim :inject_rank
-
+  alias reduce_along_dim inject_rank
+  alias inject_along_dim inject_rank
 end

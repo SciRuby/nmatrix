@@ -29,45 +29,44 @@
 # => Returned NMatrix is of type :float64
 #++
 
-require_relative './fortran_format.rb'
+require_relative "./fortran_format.rb"
 
 class NMatrix
   module IO
     module HarwellBoeing
-
       class << self
-        # Loads the contents of a valid Harwell Boeing format file and 
+        # Loads the contents of a valid Harwell Boeing format file and
         # returns an NMatrix object with the values of the file and optionally
         # only the header info.
-        # 
+        #
         # Supports only assembled, non-symmetric, real matrices. File name must
         # have matrix type as extension.
-        # 
+        #
         # Example - test_file.rua
-        # 
+        #
         # == Arguments
-        # 
+        #
         # * +file_path+ - Path of the Harwell Boeing file  to load.
         # * +opts+      - Options for specifying whether you want
         #                 the values and  header or only the header.
-        # 
+        #
         # == Options
-        # 
+        #
         # * +:header+ - If specified as *true*, will return only the header of
         #               the HB file.Will return the NMatrix object and
         #               header as an array if left blank.
-        # 
+        #
         # == Usage
-        # 
+        #
         #   mat, head = NMatrix::IO::HarwellBoeing.load("test_file.rua")
-        # 
+        #
         #   head = NMatrix::IO::HarwellBoeing.load("test_file.rua", {header: true})
-        # 
+        #
         # == Alternate Usage
-        # 
+        #
         # You can specify the file using NMatrix::IO::Reader.new("path/to/file")
         # and then call *header* or *values* on the resulting object.
-        def load file_path, opts={}
+        def load file_path, opts = {}
           hb_obj = NMatrix::IO::HarwellBoeing::Reader.new(file_path)
 
           return hb_obj.header if opts[:header]
@@ -78,8 +77,10 @@ class NMatrix
 
       class Reader
         def initialize file_name
-          raise(IOError, "Unsupported file format. Specify file as \
-            file_name.rua.") if !file_name.match(/.*\.[rR][uU][aA]/)
+          unless /.*\.[rR][uU][aA]/.match?(file_name)
+            raise(IOError, "Unsupported file format. Specify file as \
+              file_name.rua.")
+          end
 
           @file_name   = file_name
           @header      = {}
@@ -87,7 +88,7 @@ class NMatrix
         end
 
         def header
-          return @header if !@header.empty?
+          return @header unless @header.empty?
           @file = File.open @file_name, "r"
 
           line = @file.gets
@@ -110,8 +111,10 @@ class NMatrix
 
           @header[:mxtype] = line[0...3]
 
-          raise(IOError, "Currently supports only real, assembled, unsymmetric \
-            matrices.") if !@header[:mxtype].match(/RUA/)
+          unless /RUA/.match?(@header[:mxtype])
+            raise(IOError, "Currently supports only real, assembled, unsymmetric \
+              matrices.")
+          end
 
           @header[:nrow]   = line[13...28].strip.to_i
           @header[:ncol]   = line[28...42].strip.to_i
@@ -133,30 +136,30 @@ class NMatrix
         def values
           @header      = header if @header.empty?
           @file.lineno = 5      if @file.lineno != 5
-          @matrix      = NMatrix.new([ @header[:nrow], @header[:ncol] ], 
-                                      0, dtype: :float64)
+          @matrix      = NMatrix.new([@header[:nrow], @header[:ncol]],
+            0, dtype: :float64)
 
           read_column_pointers
           read_row_indices
           read_values
 
           @file.close
-          
+
           assemble_matrix
 
           @matrix
         end
 
-       private
+        private
 
         def read_column_pointers
-          @col_ptrs  = []
+          @col_ptrs = []
           pointer_lines     = @header[:ptrcrd]
           pointers_per_line = @header[:ptrfmt][:repeat]
           pointer_width     = @header[:ptrfmt][:field_width]
 
-          @col_ptrs = read_numbers :to_i, pointer_lines, pointers_per_line, 
-                                             pointer_width
+          @col_ptrs = read_numbers :to_i, pointer_lines, pointers_per_line,
+            pointer_width
 
           @col_ptrs.map! {|c| c -= 1}
         end
@@ -167,8 +170,8 @@ class NMatrix
           indices_per_line = @header[:indfmt][:repeat]
           row_width        = @header[:indfmt][:field_width]
 
-          @row_indices = read_numbers :to_i, row_lines, indices_per_line, 
-                                      row_width
+          @row_indices = read_numbers :to_i, row_lines, indices_per_line,
+            row_width
 
           @row_indices.map! {|r| r -= 1}
         end
@@ -177,16 +180,16 @@ class NMatrix
           @vals = []
           value_lines = @header[:valcrd]
           values_per_line = @header[:valfmt][:repeat]
-          value_width    = @header[:valfmt][:field_width]
+          value_width = @header[:valfmt][:field_width]
 
-          @vals = read_numbers :to_f, value_lines, values_per_line, 
-                                  value_width
+          @vals = read_numbers :to_f, value_lines, values_per_line,
+            value_width
         end
 
         def read_numbers to_dtype, num_of_lines, numbers_per_line, number_width
           data = []
 
-          num_of_lines.times do 
+          num_of_lines.times do
             line  = @file.gets
             index = 0
 
@@ -206,7 +209,7 @@ class NMatrix
         def assemble_matrix
           col = 0
           @col_ptrs[0..-2].each_index do |index|
-            @col_ptrs[index].upto(@col_ptrs[index+1] - 1) do |row_ptr|
+            @col_ptrs[index].upto(@col_ptrs[index + 1] - 1) do |row_ptr|
               row               = @row_indices[row_ptr]
               @matrix[row, col] = @vals[row_ptr]
             end
@@ -215,7 +218,6 @@ class NMatrix
           end
         end
       end
-
     end
   end
 end

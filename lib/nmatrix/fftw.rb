@@ -27,11 +27,10 @@
 # nice ruby interfaces for FFTW functions.
 #++
 
-require 'nmatrix/nmatrix.rb'
+require "nmatrix/nmatrix.rb"
 require "nmatrix_fftw.so"
 
 class NMatrix
-
   # Compute 1D FFT of the matrix using FFTW default parameters.
   # @return [NMatrix] NMatrix of dtype :complex128 containing computed values.
   # @example Compute 1D FFT of an NMatrix.
@@ -43,8 +42,8 @@ class NMatrix
   #     ], dtype: :complex128)
   #   nm.fft
   def fft
-    input = self.dtype == :complex128 ? self : self.cast(dtype: :complex128)
-    plan  = NMatrix::FFTW::Plan.new([self.size])
+    input = dtype == :complex128 ? self : cast(dtype: :complex128)
+    plan  = NMatrix::FFTW::Plan.new([size])
     plan.set_input input
     plan.execute
     plan.output
@@ -53,9 +52,9 @@ class NMatrix
   # Compute 2D FFT of a 2D matrix using FFTW default parameters.
   # @return [NMatrix] NMatrix of dtype :complex128 containing computed values.
   def fft2
-    raise ShapeError, "Shape must be 2 (is #{self.shape})" if self.shape.size != 2
-    input = self.dtype == :complex128 ? self : self.cast(dtype: :complex128)
-    plan  = NMatrix::FFTW::Plan.new(self.shape, dim: 2)
+    raise ShapeError, "Shape must be 2 (is #{shape})" if shape.size != 2
+    input = dtype == :complex128 ? self : cast(dtype: :complex128)
+    plan  = NMatrix::FFTW::Plan.new(shape, dim: 2)
     plan.set_input input
     plan.execute
     plan.output
@@ -71,9 +70,9 @@ class NMatrix
       #
       # @see http://www.fftw.org/fftw3_doc/Real_002dto_002dReal-Transform-Kinds.html#Real_002dto_002dReal-Transform-Kinds
       REAL_REAL_FFT_KINDS_HASH = {
-        r2hc:    0,
-        hc2r:    1,
-        dht:     2,
+        r2hc: 0,
+        hc2r: 1,
+        dht: 2,
         redft00: 3,
         redft01: 4,
         redft10: 5,
@@ -81,30 +80,30 @@ class NMatrix
         rodft00: 7,
         rodft01: 9,
         rodft10: 8,
-        rodft11: 10
+        rodft11: 10,
       }
 
-      # Hash holding the numerical values of the flags that are passed in the 
+      # Hash holding the numerical values of the flags that are passed in the
       # `flags` argument of a FFTW planner routine. Multiple flags can be passed
       # to one instance of the planner. Their values are OR'd ('|') and then passed.
       # For example, for passing the FFTW_ESTIMATE constant, use :estimate.
       #
       # nmatrix-fftw supports the following flags into the planning routine:
-      # * :estimate - Equivalent to FFTW_ESTIMATE. Specifies that, instead of 
-      #   actual measurements of different algorithms, a simple heuristic is 
-      #   used to pick a (probably sub-optimal) plan quickly. With this flag, 
+      # * :estimate - Equivalent to FFTW_ESTIMATE. Specifies that, instead of
+      #   actual measurements of different algorithms, a simple heuristic is
+      #   used to pick a (probably sub-optimal) plan quickly. With this flag,
       #   the input/output arrays are not overwritten during planning.
       # * :measure - Equivalent to FFTW_MEASURE. Tells FFTW to find an optimized
       #   plan by actually computing several FFTs and measuring their execution
-      #   time. Depending on your machine, this can take some time (often a few 
+      #   time. Depending on your machine, this can take some time (often a few
       #   seconds).
       # * :patient - Equivalent to FFTW_PATIENT. Like FFTW_MEASURE, but considers
-      #   a wider range of algorithms and often produces a “more optimal” plan 
+      #   a wider range of algorithms and often produces a “more optimal” plan
       #   (especially for large transforms), but at the expense of several times
       #   longer planning time (especially for large transforms).
-      # * :exhaustive - Equivalent to FFTW_EXHAUSTIVE. Like FFTW_PATIENT, but 
-      #   considers an even wider range of algorithms, including many that we 
-      #   think are unlikely to be fast, to produce the most optimal plan but 
+      # * :exhaustive - Equivalent to FFTW_EXHAUSTIVE. Like FFTW_PATIENT, but
+      #   considers an even wider range of algorithms, including many that we
+      #   think are unlikely to be fast, to produce the most optimal plan but
       #   with a substantially increased planning time.
       #
       # @see http://www.fftw.org/fftw3_doc/Planner-Flags.html#Planner-Flags
@@ -112,28 +111,28 @@ class NMatrix
         estimate: 64,
         measure: 0,
         exhaustive: 8,
-        patient: 32
+        patient: 32,
       }
 
       # Hash holding numerical values of the direction in which a :complex_complex
       # type FFT should be performed.
       #
       # @see http://www.fftw.org/fftw3_doc/Complex-One_002dDimensional-DFTs.html#Complex-One_002dDimensional-DFTs
-      # (The fourth argument, sign, can be either FFTW_FORWARD (-1) or 
+      # (The fourth argument, sign, can be either FFTW_FORWARD (-1) or
       # FFTW_BACKWARD (+1), and indicates the direction of the transform you are
       # interested in; technically, it is the sign of the exponent in the transform)
       FFT_DIRECTION_HASH = {
         forward: -1,
-        backward: 1
+        backward: 1,
       }
 
       # Hash holding numerical equivalents of the DFT type. Used for determining
       # DFT type in C level.
       DATA_TYPE_HASH = {
         complex_complex: 0,
-        real_complex:    1,
-        complex_real:    2,
-        real_real:       3
+        real_complex: 1,
+        complex_real: 2,
+        real_real: 3,
       }
 
       # Array holding valid options that can be passed into NMatrix::FFTW::Plan
@@ -149,7 +148,7 @@ class NMatrix
       attr_reader :size
 
       # @!attribute [r] type
-      #   @return [Symbol] Type of the plan. Can be :complex_complex, 
+      #   @return [Symbol] Type of the plan. Can be :complex_complex,
       #   :complex_real, :real_complex or :real_real
       attr_reader :type
 
@@ -171,12 +170,12 @@ class NMatrix
       attr_reader :dim
 
       # @!attribute [r] input
-      #   @return [NMatrix] Input NMatrix. Will be valid once the 
+      #   @return [NMatrix] Input NMatrix. Will be valid once the
       #   NMatrix::FFTW::Plan#set_input method has been called.
       attr_reader :input
 
       # @!attribute [r] output
-      #   @return [NMatrix] Output NMatrix. Will be valid once the 
+      #   @return [NMatrix] Output NMatrix. Will be valid once the
       #   NMatrix::FFTW::Plan#execute method has been called.
       attr_reader :output
 
@@ -191,11 +190,11 @@ class NMatrix
       # Create a plan for a DFT. The FFTW library requires that you first create
       # a plan for performing a DFT, so that FFTW can optimize its algorithms
       # according to your computer's hardware and various user supplied options.
-      # 
-      # @see http://www.fftw.org/doc/Using-Plans.html 
+      #
+      # @see http://www.fftw.org/doc/Using-Plans.html
       #   For a comprehensive explanation of the FFTW planner.
       # @param shape [Array, Fixnum] Specify the shape of the plan. For 1D
-      #   fourier transforms this can be a single number specifying the length of 
+      #   fourier transforms this can be a single number specifying the length of
       #   the input. For multi-dimensional transforms, specify an Array containing
       #   the length of each dimension.
       # @param [Hash] opts the options to create a message with.
@@ -216,12 +215,12 @@ class NMatrix
       #   at http://www.fftw.org/fftw3_doc/Planner-Flags.html#Planner-Flags.
       #   @see REAL_REAL_FFT_KINDS_HASH
       # @option opts [Symbol] :direction (:forward) The direction of a DFT of
-      #   type :complex_complex. Technically, it is the sign of the exponent in 
+      #   type :complex_complex. Technically, it is the sign of the exponent in
       #   the transform. :forward corresponds to -1 and :backward to +1.
       #   @see FFT_DIRECTION_HASH
       # @option opts [Array] :real_real_kind When the type of transform is :real_real,
       #   specify the kind of transform that should be performed FOR EACH AXIS
-      #   of input. The position of the symbol in the Array corresponds to the 
+      #   of input. The position of the symbol in the Array corresponds to the
       #   axis of the input. The number of elements in :real_real_kind must be equal to
       #   :dim. Can accept one of the inputs specified in REAL_REAL_FFT_KINDS_HASH.
       #   @see REAL_REAL_FFT_KINDS_HASH
@@ -237,13 +236,13 @@ class NMatrix
       #   plan.set_input input
       #   plan.execute
       #   print plan.output
-      def initialize shape, opts={}
+      def initialize shape, opts = {}
         verify_opts opts
         opts = {
           dim: 1,
           flags: :estimate,
           direction: :forward,
-          type: :complex_complex
+          type: :complex_complex,
         }.merge(opts)
 
         @type      = opts[:type]
@@ -252,19 +251,19 @@ class NMatrix
         @shape     = shape.is_a?(Array) ? shape : [shape]
         @size      = @shape[0...@dim].inject(:*)
         @flags     = opts[:flags].is_a?(Array) ? opts[:flags] : [opts[:flags]]
-        @real_real_kind    = opts[:real_real_kind]
+        @real_real_kind = opts[:real_real_kind]
 
         raise ArgumentError, ":real_real_kind option must be specified for :real_real type transforms" if
-          @real_real_kind.nil? and @type == :real_real
+          @real_real_kind.nil? && (@type == :real_real)
 
         raise ArgumentError, "Specify kind of transform of each axis of input." if
-          @real_real_kind and @real_real_kind.size != @dim
+          @real_real_kind && (@real_real_kind.size != @dim)
 
         raise ArgumentError, "dim (#{@dim}) cannot be more than size of shape #{@shape.size}" if
           @dim > @shape.size
 
-        @plan_data = c_create_plan(@shape, @size, @dim, 
-          combine_flags(@flags), FFT_DIRECTION_HASH[@direction], 
+        @plan_data = c_create_plan(@shape, @size, @dim,
+          combine_flags(@flags), FFT_DIRECTION_HASH[@direction],
           DATA_TYPE_HASH[@type], encoded_rr_kind)
       end
 
@@ -280,7 +279,7 @@ class NMatrix
         raise ArgumentError, "stype must be dense." if ip.stype != :dense
         raise ArgumentError, "size of input (#{ip.size}) cannot be greater than planned input size #{@size}" if
           ip.size != @size
-        
+
         case @type
         when :complex_complex, :complex_real
           raise ArgumentError, "dtype must be complex128." if ip.dtype != :complex128
@@ -299,21 +298,22 @@ class NMatrix
       #   sucessfully computed, 'true' will be returned and you can access the
       #   computed output from the NMatrix::FFTW::Plan#output accessor.
       def execute
-        @output = 
-        case @type
-        when :complex_complex
-          @input.clone_structure        
-        when :real_complex
-          NMatrix.new([@input.size/2 + 1], dtype: :complex128)
-        when :complex_real, :real_real
-          NMatrix.new([@input.size], dtype: :float64)
-        else
-          raise TypeError, "Invalid type #{@type}"
-        end
+        @output =
+          case @type
+          when :complex_complex
+            @input.clone_structure
+          when :real_complex
+            NMatrix.new([@input.size / 2 + 1], dtype: :complex128)
+          when :complex_real, :real_real
+            NMatrix.new([@input.size], dtype: :float64)
+          else
+            raise TypeError, "Invalid type #{@type}"
+          end
 
         c_execute(@output, @plan_data, DATA_TYPE_HASH[@type])
       end
-     private
+
+      private
 
       # Combine flags received from the user (Symbols) into their respective
       # numeric equivalents and then 'OR' (|) all of them so the resulting number

@@ -27,22 +27,22 @@
 #++
 
 class NMatrix
-  def NMatrix.register_lapack_extension(name)
-    if (defined? @@lapack_extension)
+  def self.register_lapack_extension(name)
+    if defined? @@lapack_extension
       raise "Attempting to load #{name} when #{@@lapack_extension} is already loaded. You can only load one LAPACK extension."
     end
 
     @@lapack_extension = name
   end
 
-  alias_method :internal_dot, :dot
+  alias internal_dot dot
 
   def dot(right_v)
-    if (right_v.is_a?(NMatrix) && self.stype == :dense && right_v.stype == :dense &&
-        self.dim == 2 && right_v.dim == 2 && self.shape[1] == right_v.shape[0])
+    if right_v.is_a?(NMatrix) && stype == :dense && right_v.stype == :dense &&
+        dim == 2 && right_v.dim == 2 && shape[1] == right_v.shape[0]
 
-      result_dtype = NMatrix.upcast(self.dtype,right_v.dtype)
-      left = self.dtype == result_dtype ? self : self.cast(dtype: result_dtype)
+      result_dtype = NMatrix.upcast(dtype, right_v.dtype)
+      left = dtype == result_dtype ? self : cast(dtype: result_dtype)
       right = right_v.dtype == result_dtype ? right_v : right_v.cast(dtype: result_dtype)
 
       left = left.clone if left.is_ref?
@@ -52,18 +52,18 @@ class NMatrix
       result_n = right.shape[1]
       left_n = left.shape[1]
       vector = result_n == 1
-      result = NMatrix.new([result_m,result_n], dtype: result_dtype)
+      result = NMatrix.new([result_m, result_n], dtype: result_dtype)
 
       if vector
         NMatrix::BLAS.cblas_gemv(false, result_m, left_n, 1, left, left_n, right, 1, 0, result, 1)
       else
         NMatrix::BLAS.cblas_gemm(:row, false, false, result_m, result_n, left_n, 1, left, left_n, right, result_n, 0, result, result_n)
       end
-      return result
+      result
     else
-      #internal_dot will handle non-dense matrices (and also dot-products for NMatrix's with dim=1),
-      #and also all error-handling if the input is not valid
-      self.internal_dot(right_v)
+      # internal_dot will handle non-dense matrices (and also dot-products for NMatrix's with dim=1),
+      # and also all error-handling if the input is not valid
+      internal_dot(right_v)
     end
   end
 end
