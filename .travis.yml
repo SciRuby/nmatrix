@@ -29,7 +29,9 @@ before_install: ./travis.sh before_install
 
 install: ./travis.sh install
 
-script: ./travis.sh script
+script:
+  - ./travis.sh script
+  - bundle exec rake standard
 
 # Define extra configurations to add to the build matrix.
 # The idea here is that the USE_ATLAS=1 option should exercise all the ruby
@@ -48,7 +50,7 @@ matrix:
     - rvm: jruby-9.0.5.0
       env: USE_OPENBLAS=1
     - rvm: jruby-9.0.5.0
-      env: USE_REF=1    
+      env: USE_REF=1
     # NOTE: The following two ruby versions on OSX are currently unavailable
     - os: osx
       rvm: 2.0.0-p648
