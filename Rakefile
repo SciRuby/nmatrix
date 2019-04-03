@@ -113,20 +113,18 @@ VALGRIND_MEMORYFILL_OPTIONS = [
 GDB_OPTIONS = []
 
 task :console do |task|
-  cmd = ["irb", "-r './lib/nmatrix.rb'"]
-  run *cmd
+  run("irb", "-r './lib/nmatrix.rb'")
 end
 
 task :pry do |task|
-  cmd = ["pry", "-r './lib/nmatrix.rb'"]
-  run *cmd
+  run("pry", "-r './lib/nmatrix.rb'")
 end
 
 namespace :pry do
   task valgrind: [:compile] do |task|
     cmd  = ["valgrind"] + VALGRIND_OPTIONS
     cmd += ["ruby", "-Ilib:ext", "-r './lib/nmatrix.rb'", "-r 'pry'", "-e 'binding.pry'"]
-    run *cmd
+    run(*cmd)
   end
 end
 

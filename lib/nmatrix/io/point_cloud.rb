@@ -122,7 +122,7 @@ module NMatrix::IO::PointCloud
       raise(IOError, "premature end of file") if i < points[0]
     end
 
-    attr_accessor *ENTRIES
+    attr_accessor(*ENTRIES)
     attr_reader :matrix
 
     protected
