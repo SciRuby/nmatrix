@@ -29,11 +29,18 @@ end
 
 def find_newer_gplusplus #:nodoc:
   print "checking for apparent GNU g++ binary with C++0x/C++11 support... "
+  major_version = gplusplus_version.split(".").first.to_i
+  # modern GCC has that
+  return true if major_version > 4
+  return false if major_version < 4
+
+  # legacy approach, check version 4:
   [9,8,7,6,5,4,3].each do |minor|
     ver = "4.#{minor}"
     gpp = "g++-#{ver}"
     result = `which #{gpp}`
     next if result.empty?
+
     CONFIG['CXX'] = gpp
     puts ver
     return CONFIG['CXX']
@@ -48,10 +55,10 @@ def gplusplus_version
   patch = cxxvar.call('__GNUC_PATCHLEVEL__')
 
   raise("unable to determine g++ version (match to get version was nil)") if major.nil? || minor.nil? || patch.nil?
-
-  "#{major}.#{minor}.#{patch}"
+  ver = "#{major}.#{minor}.#{patch}"
+  puts "g++ version discovered: " + ver
+  ver
 end
-
 
 if /cygwin|mingw/ =~ RUBY_PLATFORM
   CONFIG["DLDFLAGS"] << " --output-lib libnmatrix.a"
