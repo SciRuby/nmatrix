@@ -200,7 +200,7 @@ class NMatrix
       #shape.unshift(1) if shape.size == 1
 
       # Then flatten the array.
-      NMatrix.new(shape, params.flatten, options)
+      NMatrix.new(shape, params.flatten, **options)
     end
 
     #
